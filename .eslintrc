@@ -1,0 +1,24 @@
+{
+  "ecmaFeatures": {
+    "jsx": true,
+    "modules": true,
+    "experimentalObjectRestSpread": true
+  },
+  "env": { "es6": true, "node": true, "browser": true },
+  "extends": ["standard", "airbnb"],
+  "globals": { "$": true },
+  "parser": "babel-eslint",
+  "plugins": ["standard", "react"],
+  "rules": {
+    "comma-dangle": [2, "never"],
+    "default-case": 0,
+    "func-names": 0,
+    "new-cap": [2, { "newIsCap": true, "capIsNew": false }],
+    "no-console": 0,
+    "object-curly-spacing": 0,
+    "react/prop-types": 0,
+    "react/sort-comp": 0,
+    "space-before-function-paren": [2, "never"],
+    "strict": 0
+  }
+}
