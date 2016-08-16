@@ -53,7 +53,7 @@
         this.stickerLayer.y = 100;
 
 
-        this.ui = new ui.TransformUI(this.rootLayer);
+        this.ui = new ui.TransformUI(this.rootLayer, this.stickerLayer);
         this.ui.setObject(this.sticker);
         this.rootLayer.addChild(this.ui);
     };

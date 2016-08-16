@@ -7,9 +7,10 @@
 
     var ui = usenamespace('editor.ui');
 
-    function TransformUI(rootLayer) {
+    function TransformUI(rootLayer, stickerLayer) {
         PIXI.Container.call(this);
         this.rootLayer = rootLayer;
+        this.stickerLayer= stickerLayer;
 
         this.initialize();
     };
@@ -63,6 +64,9 @@
     p.setObject = function (sticker) {
         this.sticker = sticker;
 
+        console.log('**********************');
+        console.log(this.sticker.worldTransform);
+        console.log('**********************');
         this.ro.visible = false;
         this.tl.visible = true;
         this.tl.visible = true;
@@ -164,73 +168,20 @@
 
 
     p.updataHandleBoard = function () {
-        var matrix;
 
-        if (this.targetTransformMatrix)
-            matrix = this.targetTransformMatrix.clone();
-        else
-            matrix = new PIXI.Matrix();
+        var inversed = {};
 
-        matrix.scale(this.screenScale, this.screenScale);
+        var uiPoints = this.absHandles;
+        var imageWorldTransform = this.sticker.worldTransform.clone();
 
-        var g = this.g;
-        g.clear();
 
-        if (!this.refHandles) return;
+        for(var prop in uiPoints){
+            inversed[prop] = imageWorldTransform.applyInverse(uiPoints[prop]);
 
-        var i;
-        var transPoint;
-
-        g.lineStyle(1, 0xff3300, 1);
-
-        for (i = 0; i < 4; i++) {
-            transPoint = matrix.applyInverse(this.refHandles[i]);
-            console.log('refHandles[' + i + ']:' + transPoint.x, transPoint.y);
-
-            if (i == 0)
-                g.moveTo(transPoint.x, transPoint.y);
-            else
-                g.lineTo(transPoint.x, transPoint.y);
-
+            console.log('uiPoints[' + prop + ']:' + uiPoints[prop].x, uiPoints[prop].y);
+            console.log('inversed[' + prop + ']:' + inversed[prop].x, inversed[prop].y);
         }
-        transPoint = matrix.applyInverse(this.refHandles[0]);
-        g.lineTo(transPoint.x, transPoint.y);
-
-        var rPoint = new PIXI.Point(0, 0);
-        //var rPoint = getAddedInterpolatePoint(
-        //    matrix.applyInverse(this.refHandles[4]),
-        //    matrix.applyInverse(this.refHandles[6]), 22);
-
-
-        transPoint = matrix.applyInverse(this.refHandles[4]);
-        g.lineStyle(1, 0, 1, true);
-        g.moveTo(transPoint.x, transPoint.y);
-        g.lineTo(rPoint.x, rPoint.y);
-
-        for (i = 0; i < this.refHandles.length; i++) {
-            transPoint = matrix.applyInverse(this.refHandles[i]);
-            transPoint = new PIXI.Point(Math.round(transPoint.x), Math.round(transPoint.y));
-
-            g.lineStyle(1, 0, 1);
-            g.beginFill(0x6666ff, 1);
-            g.drawRect(transPoint.x - 3, transPoint.y - 3, 6, 6);
-            g.endFill();
-        }
-
-        g.lineStyle(1, 0, 1);
-        g.beginFill(0x50BC0E, 1);
-        g.drawCircle(rPoint.x, rPoint.y, 3.5);
-        g.endFill();
-
-        //var closePoint = matrix.applyInverse(this.refHandles[1]);
-        //closePoint.offset(-1, -11);
-        //closePoint = new Point(Math.round(closePoint.x), Math.round(closePoint.y));
-        //
-        //g.lineStyle(0, 0, 0);
-        //g.beginBitmapFill(closeButtonImg, new Matrix(1, 0, 0, 1, closePoint.x - 6, closePoint.y - 6));
-        //g.drawRect(closePoint.x - 6, closePoint.y - 6, 11, 11);
-        //g.endFill();
-    }
+    };
 
 
     p.setAbsHandles = function () {
