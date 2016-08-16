@@ -81,7 +81,7 @@
 
         this.setAbsHandles();
         this.setRefHandles();
-        this.updataHandleBoard();
+        setTimeout(this.updataHandleBoard.bind(this), 100);
     };
 
 
@@ -172,14 +172,69 @@
         var inversed = {};
 
         var uiPoints = this.absHandles;
-        var imageWorldTransform = this.sticker.worldTransform.clone();
 
+        var matrix = new PIXI.Matrix();
+        var wt = this.sticker.worldTransform;
+        matrix.a = wt.a;
+        matrix.b = wt.b;
+        matrix.c = wt.c;
+        matrix.d = wt.d;
+        matrix.tx = wt.tx;
+        matrix.ty = wt.ty;
+
+
+        console.dir(this.sticker);
+        console.log('-------------------------------->');
+        console.dir(this.stickerLayer);
+        console.log('-------------------------------->');
+        console.dir(matrix);
+
+
+        var p;
 
         for(var prop in uiPoints){
-            inversed[prop] = imageWorldTransform.applyInverse(uiPoints[prop]);
+            p = inversed[prop] = matrix.applyInverse(uiPoints[prop]);
 
             console.log('uiPoints[' + prop + ']:' + uiPoints[prop].x, uiPoints[prop].y);
             console.log('inversed[' + prop + ']:' + inversed[prop].x, inversed[prop].y);
+
+
+            switch (prop) {
+                case 0:
+                    this.tl.x = p.x;
+                    this.tl.y = p.y;
+                    break;
+                case 1:
+                    this.tr.x = p.x;
+                    this.tr.y = p.y;
+                    break;
+                case 2:
+                    this.br.x = p.x;
+                    this.br.y = p.y;
+                    break;
+                case 3:
+                    this.bl.x = p.x;
+                    this.bl.y = p.y;
+                    break;
+                case 4:
+                    this.tc.x = p.x;
+                    this.tc.y = p.y;
+                    break;
+                case 5:
+                    this.mr.x = p.x;
+                    this.mr.y = p.y;
+                    break;
+                case 6:
+                    this.bc.x = p.x;
+                    this.bc.y = p.y;
+                    break;
+                case 7:
+                    this.ml.x = p.x;
+                    this.ml.y = p.y;
+                    break;
+                case 8:
+                    break;
+            }
         }
     };
 
