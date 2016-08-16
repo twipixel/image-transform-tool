@@ -11,10 +11,10 @@
         }
 
         #canvas {
-            /*width:100%;
-            height:100%;
-            margin: 10px;*/
-            background: #000000;
+            background: #e5e5e5;
+            border-style: solid;
+            border-width: 1px;
+            border-color: #ff3300;
         }
     </style>
 <body>
@@ -149,15 +149,32 @@
     </div>
 </div>
 
-<!--
-<img id="image" src="./img/horizontal.jpg">
-<canvas id="canvas" width="100" height="100"></canvas>
-<canvas id="texture" width="200" height="200"></canvas>
 
+<img id="image" src="./img/png/Stickers.png">
+<canvas id="canvas" x="0" y="0" width="100" height="100"></canvas>
+
+<script src="libs/common.js"></script>
 <script src="libs/dat.gui.js"></script>
 <script src="libs/pixi.js"></script>
--->
 
+<script src="js/nts/editor/ui/ControlArea.js"></script>
+<script src="js/nts/editor/ui/CornerShape.js"></script>
+<script src="js/nts/editor/ui/DimedUI.js"></script>
+<script src="js/nts/editor/ui/Image.js"></script>
+<script src="js/nts/editor/ui/MoveUI.js"></script>
+<script src="js/nts/editor/ui/ResizeUI.js"></script>
+<script src="js/nts/editor/ui/RotateUI.js"></script>
+<script src="js/nts/editor/ui/StickerContainer.js"></script>
+<script src="js/nts/editor/ui/TransformUI.js"></script>
+<script src="js/nts/editor/ui/ControlPoint.js"></script>
+
+<script src="js/nts/editor/utils/Animation.js"></script>
+<script src="js/nts/editor/utils/Calculator.js"></script>
+<script src="js/nts/editor/utils/Function.js"></script>
+<script src="js/nts/editor/utils/Mouse.js"></script>
+<script src="js/nts/editor/utils/Painter.js"></script>
+
+<script src="js/nts/editor/sticker/StickerMain.js"></script>
 
 <script>
     // Install babel hooks to the browser process

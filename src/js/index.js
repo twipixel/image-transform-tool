@@ -1,44 +1,74 @@
-import {ImageEditor} from './nts/editor/ImageEditor';
+(function() {
+    'use strict';
+
+    var s = usenamespace('editor.sticker');
+
+    var stage, stickerMain, rootLayer, stickerLayer, canvas, context, renderer;
 
 
-
-var editor;
-var image = document.getElementById('image');
-var texture = document.getElementById('texture');
-
-//window.onload = initailize.bind(this);
-window.onload = fastInitailize.bind(this);
-window.onresize = resizeWindow.bind(this);
+    window.onload = initailize.bind(this);
 
 
-function fastInitailize() {
-    if(image && texture) {
-        var context = texture.getContext('2d');
-        texture.width = image.width;
-        texture.height = image.height;
-        context.drawImage(image, 0, 0, image.width, image.height);
-        document.body.removeChild(image);
-        document.body.removeChild(texture);
+    function initailize() {
+        console.log('initialize');
+        canvas = document.getElementById('canvas');
+        context = canvas.getContext('2d');
+        renderer = new PIXI.CanvasRenderer(canvas.width, canvas.height, {
+            view: canvas,
+            autoResize: true,
+            backgroundColor: 0xe5e5e5
+        });
 
-        //beginWithImageElement(image);
-        beginWithCanvas(texture, image);
+        stage = new PIXI.Container(0xE6E9EC);
+        rootLayer = new PIXI.Container(0xE6E9EC);
+        stickerLayer = new PIXI.Container(0xE6E9EC);
+
+        stage.addChild(stickerLayer);
+        stage.addChild(rootLayer);
+
+        console.dir(renderer);
+        stickerMain = new s.StickerMain(rootLayer, stickerLayer, renderer);
+
+        updateLoop();
+        resizeWindow();
     }
-}
 
 
-function beginWithImageElement(image) {
-    editor = new ImageEditor(image);
-    resizeWindow();
-}
+    function updateLoop (ms) {
+        update(ms);
+        requestAnimFrame(updateLoop.bind(this));
+    };
 
 
-function beginWithCanvas(texture, imageElement) {
-    editor = new ImageEditor(texture, imageElement);
-    resizeWindow();
-}
+    function update(ms) {
+        renderer.render(stage);
+    };
 
 
-function resizeWindow() {
-    if(editor)
-        editor.resize();
-}
+    function resizeWindow() {
+        var width = window.innerWidth;
+        var height = window.innerHeight;
+
+        /**
+         * 캔버스 사이즈와 디스플레이 사이즈 설정
+         * 레티나 그래픽 지원 코드
+         */
+        canvas.width = width * window.devicePixelRatio;
+        canvas.height = height * window.devicePixelRatio;
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+
+        /**
+         * PIXI renderer 리사이즈
+         * PIXI 에게 viewport 사이즈 변경 알림
+         */
+        renderer.resize(width, height);
+
+        if(stickerMain)
+            stickerMain.resize();
+    }
+
+})();
+
+
+
