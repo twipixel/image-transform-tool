@@ -1193,7 +1193,7 @@ dat.color.toString = (function (common) {
 
     } else {
 
-      return 'rgba(' + Math.round(color.r) + ',' + Math.round(color.g) + ',' + Math.round(color.b) + ',' + color.a + ')';
+      return 'rgba(' + Math.round(color.r) + ',' + Math.round(color.graphics) + ',' + Math.round(color.b) + ',' + color.a + ')';
 
     }
 
@@ -1299,7 +1299,7 @@ dat.color.interpret = (function (toString, common) {
             return {
               space: 'RGB',
               r: parseFloat(test[1]),
-              g: parseFloat(test[2]),
+              graphics: parseFloat(test[2]),
               b: parseFloat(test[3])
             };
 
@@ -1319,7 +1319,7 @@ dat.color.interpret = (function (toString, common) {
             return {
               space: 'RGB',
               r: parseFloat(test[1]),
-              g: parseFloat(test[2]),
+              graphics: parseFloat(test[2]),
               b: parseFloat(test[3]),
               a: parseFloat(test[4])
             };
@@ -1372,13 +1372,13 @@ dat.color.interpret = (function (toString, common) {
             return {
               space: 'RGB',
               r: original[0],
-              g: original[1],
+              graphics: original[1],
               b: original[2]
             };
           },
 
           write: function(color) {
-            return [color.r, color.g, color.b];
+            return [color.r, color.graphics, color.b];
           }
 
         },
@@ -1389,14 +1389,14 @@ dat.color.interpret = (function (toString, common) {
             return {
               space: 'RGB',
               r: original[0],
-              g: original[1],
+              graphics: original[1],
               b: original[2],
               a: original[3]
             };
           },
 
           write: function(color) {
-            return [color.r, color.g, color.b, color.a];
+            return [color.r, color.graphics, color.b, color.a];
           }
 
         }
@@ -1415,13 +1415,13 @@ dat.color.interpret = (function (toString, common) {
         RGBA_OBJ: {
           read: function(original) {
             if (common.isNumber(original.r) &&
-                common.isNumber(original.g) &&
+                common.isNumber(original.graphics) &&
                 common.isNumber(original.b) &&
                 common.isNumber(original.a)) {
               return {
                 space: 'RGB',
                 r: original.r,
-                g: original.g,
+                graphics: original.graphics,
                 b: original.b,
                 a: original.a
               }
@@ -1432,7 +1432,7 @@ dat.color.interpret = (function (toString, common) {
           write: function(color) {
             return {
               r: color.r,
-              g: color.g,
+              graphics: color.graphics,
               b: color.b,
               a: color.a
             }
@@ -1442,12 +1442,12 @@ dat.color.interpret = (function (toString, common) {
         RGB_OBJ: {
           read: function(original) {
             if (common.isNumber(original.r) &&
-                common.isNumber(original.g) &&
+                common.isNumber(original.graphics) &&
                 common.isNumber(original.b)) {
               return {
                 space: 'RGB',
                 r: original.r,
-                g: original.g,
+                graphics: original.graphics,
                 b: original.b
               }
             }
@@ -1457,7 +1457,7 @@ dat.color.interpret = (function (toString, common) {
           write: function(color) {
             return {
               r: color.r,
-              g: color.g,
+              graphics: color.graphics,
               b: color.b
             }
           }
@@ -3343,7 +3343,7 @@ dat.color.Color = (function (interpret, math, toString, common) {
     get: function() {
 
       if (!this.__state.space !== 'HEX') {
-        this.__state.hex = math.rgb_to_hex(this.r, this.g, this.b);
+        this.__state.hex = math.rgb_to_hex(this.r, this.graphics, this.b);
       }
 
       return this.__state.hex;
@@ -3440,7 +3440,7 @@ dat.color.Color = (function (interpret, math, toString, common) {
 
   function recalculateHSV(color) {
 
-    var result = math.rgb_to_hsv(color.r, color.g, color.b);
+    var result = math.rgb_to_hsv(color.r, color.graphics, color.b);
 
     common.extend(color.__state,
         {
@@ -3485,7 +3485,7 @@ dat.color.math = (function () {
 
       return {
         r: c[0] * 255,
-        g: c[1] * 255,
+        graphics: c[1] * 255,
         b: c[2] * 255
       };
 

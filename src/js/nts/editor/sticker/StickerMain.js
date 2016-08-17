@@ -1,17 +1,9 @@
-/**
- * Created by Naver on 2016. 8. 16..
- */
+import {StickerLoader} from './../ui/StickerLoader';
+import {TransfromTool} from './../transform/TransformTool';
 
-(function () {
-    'use strict';
-
-    var ui = usenamespace('editor.ui');
-    var utils = usenamespace('editor.utils');
-
-
-    function StickerMain (rootLayer, stickerLayer, renderer) {
-        console.log('StickerMain(' + rootLayer + ', ' + stickerLayer + ')');
-        PIXI.Container.call(this);
+export class StickerMain {
+    constructor(renderer, rootLayer, stickerLayer) {
+        console.log('StickerMain(' + renderer, rootLayer + ', ' + stickerLayer + ')');
 
         this.rootLayer = rootLayer;
         this.stickerLayer = stickerLayer;
@@ -21,60 +13,58 @@
         this.addEvent();
     }
 
-    var p = StickerMain.prototype;
+    initialize() {
 
-
-    p.initialize = function(options) {
-        this.options = utils.Func.getDefaultParameters(options, {
+        var options = {
             offsetX: 0,
             offsetY: 0,
             paddingX: 0,
             paddingY: 0,
             viewport: {
-                x:0,
-                y:0,
-                width:this.canvas.width,
-                height:this.canvas.height
-            }});
-
-
-        console.log('width:' + this.options.viewport.width, ',height:' + this.options.viewport.height);
+                x: 0,
+                y: 0,
+                width: this.canvas.width,
+                height: this.canvas.height
+            }
+        };
 
         var stickerImageElement = this.getSticker();
-
-        //this.sticker = new PIXI.Sprite(new PIXI.Texture(new PIXI.BaseTexture(stickerImageElement)));
-        this.sticker = new ui.StickerContainer(stickerImageElement);
+        this.sticker = new StickerLoader(stickerImageElement);
         this.stickerLayer.addChild(this.sticker);
 
         this.stickerLayer.rotation = 0.3;
         this.stickerLayer.scale.x = 1.15;
         this.stickerLayer.scale.y = 1.15;
-        this.stickerLayer.x = 100;
-        this.stickerLayer.y = 100;
+        this.stickerLayer.x = 160;
+        this.stickerLayer.y = 40;
 
-
-        this.ui = new ui.TransformUI(this.rootLayer, this.stickerLayer);
-        this.ui.setObject(this.sticker);
-        this.rootLayer.addChild(this.ui);
+        setTimeout(() => {
+            this.testTool();
+        }, 100);
     };
 
-    p.addEvent = function () {
+    testTool() {
+        this.transformTool = new TransfromTool(this.rootLayer, this.stickerLayer);
+        this.transformTool.setTarget(this.sticker);
+    }
+
+    addEvent() {
 
     };
 
-    p.getSticker = function () {
+    getSticker() {
         var image = document.getElementById('image');
-        if(image)
+
+        if (image) {
             document.body.removeChild(image);
-        return image;
+            return image;
+        }
+
+        return null;
     };
 
-
-
-    p.resize = function() {
+    resize() {
 
     };
+}
 
-
-    usenamespace('editor.sticker').StickerMain = StickerMain;
-})();
