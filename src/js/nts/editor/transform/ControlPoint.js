@@ -124,13 +124,13 @@ export class ControlPoint {
 
         graphics.beginFill(color);
 
+        console.log(this.id, this.screenPosition.x, this.screenPosition.y);
+
         if (this.type !== ControlPoint.TYPE_ROTATION) {
-            graphics.lineStyle(thickness, color);
-            //graphics.arc(this.screenPosition.x, this.screenPosition.y, size, 0, Math.PI * 2);
-            graphics.drawCircle(this.screenPosition.x, this.screenPosition.y, size);
+            //graphics.drawCircle(this.screenPosition.x, this.screenPosition.y, size);
+            graphics.drawRect(this.screenPosition.x - size, this.screenPosition.y - size, size * 2, size * 2);
         } else {
-            graphics.lineStyle(thickness, color);
-            graphics.drawRect(this.screenPosition.x - half, this.screenPosition.y - half, size, size);
+            graphics.drawCircle(this.screenPosition.x, this.screenPosition.y, size);
         }
         graphics.endFill();
     }

@@ -47,15 +47,15 @@ export class TransfromTool {
 
         this.controls.tl.absPosition = new PIXI.Point(0, 0);
         this.controls.tr.absPosition = new PIXI.Point(w, 0);
-        this.controls.tc.absPosition = ControlPoint.interpolate(this.controls.tr, this.controls.tl, .5);
+        this.controls.tc.absPosition = ControlPoint.interpolate(this.controls.tr.absPosition, this.controls.tl.absPosition, .5);
 
         this.controls.bl.absPosition = new PIXI.Point(0, h);
         this.controls.br.absPosition = new PIXI.Point(w, h);
-        this.controls.bc.absPosition = ControlPoint.interpolate(this.controls.br, this.controls.bl, .5);
+        this.controls.bc.absPosition = ControlPoint.interpolate(this.controls.br.absPosition, this.controls.bl.absPosition, .5);
 
-        this.controls.ml.absPosition = ControlPoint.interpolate(this.controls.bl, this.controls.tl, .5);
-        this.controls.mr.absPosition = ControlPoint.interpolate(this.controls.br, this.controls.tr, .5);
-        this.controls.mc.absPosition = ControlPoint.interpolate(this.controls.bc, this.controls.tc, .5);
+        this.controls.ml.absPosition = ControlPoint.interpolate(this.controls.bl.absPosition, this.controls.tl.absPosition, .5);
+        this.controls.mr.absPosition = ControlPoint.interpolate(this.controls.br.absPosition, this.controls.tr.absPosition, .5);
+        this.controls.mc.absPosition = ControlPoint.interpolate(this.controls.bc.absPosition, this.controls.tc.absPosition, .5);
 
         this.controls.ro.absPosition = this.controls.tc.absPosition.clone();
 
@@ -64,6 +64,8 @@ export class TransfromTool {
             c.matrix = this.matrix;
             c.absCenterPosition = this.controls.mc.absPosition;
             c.update();
+
+            console.log(c.absPosition);
         }
 
         this.draw();
@@ -73,7 +75,6 @@ export class TransfromTool {
     draw() {
         var g = this.graphics;
         g.clear();
-        g.beginFill();
         g.lineStyle(1, 0xFF3300);
         g.moveTo(this.controls.tl.screenPosition.x, this.controls.tl.screenPosition.y);
         g.lineTo(this.controls.tr.screenPosition.x, this.controls.tr.screenPosition.y);
@@ -82,7 +83,6 @@ export class TransfromTool {
         g.lineTo(this.controls.tl.screenPosition.x, this.controls.tl.screenPosition.y);
         g.moveTo(this.controls.tc.screenPosition.x, this.controls.tc.screenPosition.y);
         g.lineTo(this.controls.ro.screenPosition.x, this.controls.ro.screenPosition.y);
-        g.endFill();
 
         for(var prop in this.controls) {
             var c = this.controls[prop];
