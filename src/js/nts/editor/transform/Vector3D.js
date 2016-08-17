@@ -12,22 +12,22 @@ export class Vector3D {
         return new Vector3D(0, 0, 1);
     }
 
-    static AngleBetween(a, b) {
+    static angleBetween(a, b) {
         var dot = a.dotProduct(b);
         var theta = Math.acos(dot / ( a.length() * b.length() ));
         return theta;
     }
 
-    static Add(a, b) {
+    static add(a, b) {
         return new Vector3D(a.x + b.x, a.y + b.y, a.z + b.z);
     }
 
-    static Sub(a, b) {
+    static sub(a, b) {
         return new Vector3D(a.x - b.x, a.y - b.y, a.z - b.z);
     }
 
-    static Distance(a, b) {
-        var v = Vector3D.Sub(a, b);
+    static distance(a, b) {
+        var v = Vector3D.sub(a, b);
         var d = v.length();
         return d;
     }

@@ -30,8 +30,9 @@ export class TransfromTool {
         };
 
         this.selectedControl = null;
-
     };
+
+
 
     setTarget(pixiSprite) {
         console.log('setTarget(' + pixiSprite + ')');
