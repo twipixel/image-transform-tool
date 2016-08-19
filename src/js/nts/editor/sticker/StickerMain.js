@@ -28,11 +28,12 @@ export class StickerMain {
             }
         };
 
+        this.options = options;
         var stickerImageElement = this.getSticker();
         this.sticker = new StickerLoader(stickerImageElement);
         this.stickerLayer.addChild(this.sticker);
 
-        this.stickerLayer.rotation = 0.3;
+        //this.stickerLayer.rotation = 0.3;
         this.stickerLayer.scale.x = 1.15;
         this.stickerLayer.scale.y = 1.15;
         this.stickerLayer.x = 160;
@@ -44,7 +45,7 @@ export class StickerMain {
     };
 
     testTool() {
-        this.transformTool = new TransfromTool(this.rootLayer, this.stickerLayer);
+        this.transformTool = new TransfromTool(this.canvas, this.options, this.rootLayer, this.stickerLayer);
         this.transformTool.setTarget(this.sticker);
     }
 
