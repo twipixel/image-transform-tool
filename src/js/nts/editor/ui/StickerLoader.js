@@ -19,4 +19,10 @@ export class StickerLoader extends PIXI.Container {
         console.dir(image);
         console.log('StickerContainer.initialize(), originalBounds.width', this._originalBounds.width, 'originalBounds.height:', this._originalBounds.height);
     };
+
+
+    update(w, h) {
+        console.log('!!!!!!!! update(' + w + ', ' + h + ')');
+
+    }
 }

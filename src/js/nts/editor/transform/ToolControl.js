@@ -28,10 +28,7 @@ export class ToolControl extends PIXI.Sprite {
             };
         this.offsetX = this.options.offsetX;
         this.offsetY = this.options.offsetY;
-
         this._localPoint = new PIXI.Point();
-        this._centerPoint = new PIXI.Point();
-        this.m = this._matrix = new PIXI.Matrix();
 
         this.interactive = true;
         this.size = this.options.size;
@@ -191,15 +188,6 @@ export class ToolControl extends PIXI.Sprite {
     };
 
 
-
-    set matrix(value) {
-        this._matrix = value;
-    }
-
-    get matrix() {
-        return this._matrix;
-    }
-
     set localPoint(value) {
         this._localPoint = value;
     }
@@ -208,20 +196,6 @@ export class ToolControl extends PIXI.Sprite {
         return this._localPoint;
     }
 
-    set centerPoint(value) {
-        this._centerPoint = value;
-    }
 
-    get centerPoint() {
-        return this._centerPoint;
-    }
-
-    get globalX() {
-        return this._matrix.apply(this.localPoint).x;
-    }
-
-    get globalY() {
-        return this._matrix.apply(this.localPoint).y;
-    }
 
 }

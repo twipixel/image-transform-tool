@@ -1,3 +1,4 @@
+import {Mouse} from './nts/editor/utils/Mouse';
 import {StickerMain} from './nts/editor/sticker/StickerMain';
 
 
@@ -16,6 +17,7 @@ function initailize() {
         backgroundColor: 0xe5e5e5
     });
 
+    Mouse.renderer = renderer;
     stage = new PIXI.Container(0xE6E9EC);
     rootLayer = new PIXI.Container(0xE6E9EC);
     stickerLayer = new PIXI.Container(0xE6E9EC);
