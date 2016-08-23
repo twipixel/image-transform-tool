@@ -17,7 +17,8 @@ export class StickerMain {
 
         // 스티커 생성
         var stickerImageElement = this.getSticker();
-        this.sticker = new StickerLoader(stickerImageElement);
+        //this.sticker = new StickerLoader('./../../../../img/svg/amazon.svg');
+        this.sticker = new StickerLoader('./img/svg/amazon.svg');
         this.stickerLayer.addChild(this.sticker);
 
         // stickerLayer 변경 테스트
