@@ -1,5 +1,13 @@
 export class ToolControlType {
 
+    static get CLOSE() {
+        return 'close';
+    }
+
+    static get ROTATION() {
+        return 'rotation';
+    }
+
     static get TOP_LEFT() {
         return 'topLeft';
     }
@@ -36,13 +44,6 @@ export class ToolControlType {
         return 'bottomRight';
     }
 
-    static get ROTATION() {
-        return 'rotation';
-    }
-
-    static get CLOSE() {
-        return 'close';
-    }
 
     constructor(){
 

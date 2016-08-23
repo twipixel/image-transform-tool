@@ -30,18 +30,18 @@ export class ToolControl extends PIXI.Sprite {
         super();
         this.type = type;
         this.options = options || {
-                offsetX: 0,
-                offsetY: 0,
                 size: 5,
                 alpha: 1,
                 thickness: 1,
                 color: 0xFFFFFF,
+                canvasOffsetX: 0,
+                canvasOffsetY: 0,
                 defaultCursor: 'pointer'
             };
 
         this._localPoint = new PIXI.Point();
-        this.offsetX = this.options.offsetX;
-        this.offsetY = this.options.offsetY;
+        this.canvasOffsetX = this.options.canvasOffsetX;
+        this.canvasOffsetY = this.options.canvasOffsetY;
 
         this.interactive = true;
         this.currentRadian = 0;
@@ -191,7 +191,7 @@ export class ToolControl extends PIXI.Sprite {
     };
 
     onMouseMove(e) {
-        this.currentMousePoint = {x: e.clientX - this.offsetX, y: e.clientY - this.offsetY};
+        this.currentMousePoint = {x: e.clientX - this.canvasOffsetX, y: e.clientY - this.canvasOffsetY};
 
         this.changeMovement = {
             x: this.currentMousePoint.x - this.prevMousePoint.x,
@@ -200,8 +200,8 @@ export class ToolControl extends PIXI.Sprite {
 
         if(this.type === ToolControlType.ROTATION) {
             this.currentRotation = Calc.getRotation(this.centerPoint, {
-                x: e.clientX - this.offsetX,
-                y: e.clientY - this.offsetY
+                x: e.clientX - this.canvasOffsetX,
+                y: e.clientY - this.canvasOffsetY
             });
 
             this.changeRotation = this.currentRotation - this.prevRotation;
@@ -234,13 +234,13 @@ export class ToolControl extends PIXI.Sprite {
 
     onMouseUp(e) {
         this.changeCursor('pointer');
-        this.currentMousePoint = {x: e.clientX - this.offsetX, y: e.clientY - this.offsetY};
+        this.currentMousePoint = {x: e.clientX - this.canvasOffsetX, y: e.clientY - this.canvasOffsetY};
 
         if(this.type === ToolControlType.ROTATION) {
 
             this.currentRotation = Calc.getRotation(this.centerPoint, {
-                x: e.clientX - this.offsetX,
-                y: e.clientY - this.offsetY
+                x: e.clientX - this.canvasOffsetX,
+                y: e.clientY - this.canvasOffsetY
             });
 
             this.changeRotation = this.currentRotation - this.prevRotation;
@@ -281,6 +281,18 @@ export class ToolControl extends PIXI.Sprite {
     get localPoint() {
         return this._localPoint;
     }
+
+
+    set mcPoint(value) {
+        this._mcPoint = value;
+    }
+
+    get mcPoint() {
+        if(!this._mcPoint)
+            this._mcPoint = {x:0, y:0};
+        return this._mcPoint;
+    }
+
 
 
     set centerPoint(value) {

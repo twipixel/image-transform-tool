@@ -15684,7 +15684,7 @@ FilterManager.prototype.destroy = function ()
     WebGLManager.prototype.destroy.call(this);
     
     this.filterStack = null;
-    this.offsetY = 0;
+    this.canvasOffsetY = 0;
 
     // destroy textures
     for (var i = 0; i < this.texturePool.length; i++)

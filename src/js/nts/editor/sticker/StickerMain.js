@@ -5,9 +5,9 @@ export class StickerMain {
     constructor(renderer, rootLayer, stickerLayer) {
         console.log('StickerMain(' + renderer, rootLayer + ', ' + stickerLayer + ')');
 
+        this.canvas = renderer.view;
         this.rootLayer = rootLayer;
         this.stickerLayer = stickerLayer;
-        this.canvas = renderer.view;
 
         this.initialize();
         this.addEvent();
@@ -15,38 +15,34 @@ export class StickerMain {
 
     initialize() {
 
-        var options = {
-            offsetX: 0,
-            offsetY: 0,
-            paddingX: 0,
-            paddingY: 0,
-            viewport: {
-                x: 0,
-                y: 0,
-                width: this.canvas.width,
-                height: this.canvas.height
-            }
-        };
-
-        this.options = options;
+        // 스티커 생성
         var stickerImageElement = this.getSticker();
         this.sticker = new StickerLoader(stickerImageElement);
         this.stickerLayer.addChild(this.sticker);
 
+        // stickerLayer 변경 테스트
         //this.stickerLayer.rotation = 0.3;
-        this.stickerLayer.scale.x = 1.15;
-        this.stickerLayer.scale.y = 1.15;
-        this.stickerLayer.x = 160;
-        this.stickerLayer.y = 40;
+        this.stickerLayer.scale.x = 1.10;
+        this.stickerLayer.scale.y = 1.10;
+        //this.stickerLayer.x = 160;
+        //this.stickerLayer.y = 40;
+        this.stickerLayer.updateTransform();
 
-        setTimeout(() => {
-            this.testTool();
-        }, 100);
+
+        var options = {
+            canvasOffsetX: 0,
+            canvasOffsetY: 0,
+            scaleOffsetX: this.stickerLayer.scale.x - 1,
+            scaleOffsetY: this.stickerLayer.scale.y - 1
+        };
+
+        this.transformTool = new TransfromTool(this.canvas, options, this.rootLayer, this.stickerLayer);
+        this.transformTool.setTarget(this.sticker);
+
     };
 
     testTool() {
-        this.transformTool = new TransfromTool(this.canvas, this.options, this.rootLayer, this.stickerLayer);
-        this.transformTool.setTarget(this.sticker);
+
     }
 
     addEvent() {
