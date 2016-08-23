@@ -71,9 +71,23 @@ export class TransfromTool {
             var control = this.controls[prop];
             control.visible = false;
             this.rootLayer.addChild(control);
-            control.on(ToolControl.MOVE_START, this.onControlMoveStart.bind(this));
-            control.on(ToolControl.MOVE, this.onControlMove.bind(this));
-            control.on(ToolControl.MOVE_END, this.onControlMoveEnd.bind(this));
+
+            switch (control.type) {
+                case ToolControlType.CLOSE:
+                    break;
+
+                case ToolControlType.ROTATION:
+                    control.on(ToolControl.ROTATE_START, this.onTargetRotateStart.bind(this));
+                    control.on(ToolControl.ROTATE, this.onTargetRotate.bind(this));
+                    control.on(ToolControl.ROTATE_END, this.onTargetRotateEnd.bind(this));
+                    break;
+
+                default:
+                    control.on(ToolControl.MOVE_START, this.onControlMoveStart.bind(this));
+                    control.on(ToolControl.MOVE, this.onControlMove.bind(this));
+                    control.on(ToolControl.MOVE_END, this.onControlMoveEnd.bind(this));
+                    break;
+            }
         }
     };
 
@@ -127,8 +141,10 @@ export class TransfromTool {
         this.iTargetTransform = this.targetTransform.clone();
         this.iTargetTransform.invert();
 
+        var centerPoint = this.targetTransform.apply(this.controls.mc.localPoint);
         for (var prop in this.controls) {
             var c = this.controls[prop];
+            c.centerPoint = centerPoint;
             this.globalControls[prop] = this.targetTransform.apply(c.localPoint);
         }
     }
@@ -144,6 +160,23 @@ export class TransfromTool {
     }
 
 
+
+    onTargetRotateStart(e) {
+
+    }
+
+    onTargetRotate(e) {
+        this.target.rotation += e.changeRadian;
+
+        this.setGlobalPointAndInvertMatrix();
+        this.draw();
+    }
+
+    onTargetRotateEnd(e) {
+
+    }
+
+
     onControlMoveStart(e) {
         console.log('');
         console.log('MOVE START:::');
@@ -153,16 +186,7 @@ export class TransfromTool {
         this.currentMousePoint = e.currentMousePoint;
         this.startMousePoint = {x: this.currentMousePoint.x, y: this.currentMousePoint.y};
 
-
         this.setPivot(e.target);
-
-        var centerPoint = this.globalControls.mc;
-        this.prevRotation = this.currentRotation = Calc.getRotation(
-            {x: centerPoint.x, y: centerPoint.y},
-            {x: this.currentMousePoint.x, y: this.currentMousePoint.y});
-
-        this.currentRadian = Calc.toRadians(this.currentRotation);
-
 
         this.setGlobalPointAndInvertMatrix();
         this.setMoveStart();
@@ -174,20 +198,7 @@ export class TransfromTool {
         this.change = e.change;
         this.currentMousePoint = e.currentMousePoint;
 
-        var centerPoint = this.globalControls.mc;
-        this.currentRotation = Calc.getRotation(
-            {x: centerPoint.x, y: centerPoint.y},
-            {x: this.currentMousePoint.x, y: this.currentMousePoint.y});
-
-        this.changeRotation = this.currentRotation - this.prevRotation;
-        this.absChangeRotation = (this.changeRotation < 0) ? this.changeRotation * -1 : this.changeRotation;
-
-        this.currentRadian = Calc.toRadians(this.currentRotation);
-
-        this.transform(e.target);
-
-        this.prevRotation = this.currentRotation;
-
+        this.transform(e);
         this.updatePrevLt();
     }
 
@@ -231,13 +242,21 @@ export class TransfromTool {
     }
 
 
-    rotation(control) {
-        this.target.rotation += Calc.toRadians(1);
+    move(e) {
+        var changeMovement = e.changeMovement;
+        this.target.x += changeMovement.x;
+        this.target.y += changeMovement.y;
+    }
+
+
+    rotation(e) {
+
     }
 
 
 
-    transform(control) {
+    transform(e) {
+        var control = e.target;
         switch (control.type) {
             case ToolControlType.TOP_LEFT:
             case ToolControlType.TOP_RIGHT:
@@ -250,13 +269,13 @@ export class TransfromTool {
             case ToolControlType.MIDDLE_RIGHT:
             case ToolControlType.TOP_CENTER:
             case ToolControlType.BOTTOM_CENTER:
-
                 break;
 
             case ToolControlType.MIDDLE_CENTER:
+                this.move(e);
                 break;
             case ToolControlType.ROTATION:
-                this.rotation(control);
+                this.rotation(e);
                 break;
                 break;
             case ToolControlType.CLOSE:

@@ -1,3 +1,4 @@
+import {Calc} from './../utils/Calculator';
 import {ToolControlType} from './ToolControlType';
 
 export class ToolControl extends PIXI.Sprite {
@@ -5,14 +6,25 @@ export class ToolControl extends PIXI.Sprite {
     static get MOVE_START() {
         return 'moveStart';
     }
-
     static get MOVE() {
         return 'move';
     }
-
     static get MOVE_END() {
         return 'moveEnd';
     }
+    static get ROTATE_START() {
+        return 'rotateStart';
+    }
+    static get ROTATE() {
+        return 'rotate';
+    }
+    static get ROTATE_END() {
+        return 'rotateEnd';
+    }
+    static get CLOSE() {
+        return 'close';
+    }
+
 
     constructor(type, options) {
         super();
@@ -26,11 +38,14 @@ export class ToolControl extends PIXI.Sprite {
                 color: 0xFFFFFF,
                 defaultCursor: 'pointer'
             };
+
+        this._localPoint = new PIXI.Point();
         this.offsetX = this.options.offsetX;
         this.offsetY = this.options.offsetY;
-        this._localPoint = new PIXI.Point();
 
         this.interactive = true;
+        this.currentRadian = 0;
+        this.currentRotation = 0;
         this.size = this.options.size;
         this.half = this.size / 2;
         this.color = this.options.color;
@@ -106,7 +121,6 @@ export class ToolControl extends PIXI.Sprite {
 
 
 
-
     changeCursor(cursor) {
         this.defaultCursor = cursor;
     };
@@ -144,16 +158,34 @@ export class ToolControl extends PIXI.Sprite {
 
 
     onMouseDown(e) {
-        this.prevMousePoint = this.currentMousePoint = {x: e.data.global.x, y: e.data.global.y};
-        this.emit(ToolControl.MOVE_START, {
-            type: this.type,
-            target: this,
-            currentMousePoint: this.currentMousePoint
-        });
-
         e.stopPropagation();
-
         this.changeCursor('move');
+        this.prevMousePoint = this.currentMousePoint = {x: e.data.global.x, y: e.data.global.y};
+
+        if(this.type === ToolControlType.ROTATION) {
+            this.prevRotation = this.currentRotation = Calc.getRotation(this.centerPoint, {
+                x: e.data.global.x,
+                y: e.data.global.y
+            });
+            this.currentRadian = Calc.toRadians(this.currentRotation);
+
+            console.log('this.emit(ToolControl.ROTATE_START');
+            this.emit(ToolControl.ROTATE_START, {
+                target: this,
+                type: this.type,
+                currentRadian: this.currentRadian,
+                currentRotation: this.currentRotation,
+                currentMousePoint: this.currentMousePoint
+            });
+
+        } else {
+            this.emit(ToolControl.MOVE_START, {
+                target: this,
+                type: this.type,
+                currentMousePoint: this.currentMousePoint
+            });
+        }
+
         this.addMouseMoveEvent();
         this.removeMouseDownEvent();
     };
@@ -161,31 +193,85 @@ export class ToolControl extends PIXI.Sprite {
     onMouseMove(e) {
         this.currentMousePoint = {x: e.clientX - this.offsetX, y: e.clientY - this.offsetY};
 
-        this.change = {
+        this.changeMovement = {
             x: this.currentMousePoint.x - this.prevMousePoint.x,
             y: this.currentMousePoint.y - this.prevMousePoint.y
         };
 
-        this.emit(ToolControl.MOVE, {
-            type: this.type,
-            target: this,
-            prevMousePoint: this.prevMousePoint,
-            currentMousePoint: this.currentMousePoint,
-            change: this.change
-        });
+        if(this.type === ToolControlType.ROTATION) {
+            this.currentRotation = Calc.getRotation(this.centerPoint, {
+                x: e.clientX - this.offsetX,
+                y: e.clientY - this.offsetY
+            });
 
+            this.changeRotation = this.currentRotation - this.prevRotation;
+            this.absChangeRotation = (this.changeRotation < 0) ? this.changeRotation * -1 : this.changeRotation;
+
+            console.log('changeRotation:', this.changeRotation, 'absChangeRotation:', this.absChangeRotation);
+            if (this.absChangeRotation < 100) {
+                console.log('this.emit(ToolControl.ROTATE');
+                this.emit(ToolControl.ROTATE, {
+                    prevRotation: this.prevRotation,
+                    changeRotation: this.changeRotation,
+                    currentRotation: this.currentRotation,
+                    currentRadian: Calc.toRadians(this.currentRotation),
+                    changeRadian: Calc.toRadians(this.changeRotation)
+                });
+            }
+        } else {
+            this.emit(ToolControl.MOVE, {
+                target: this,
+                type: this.type,
+                prevMousePoint: this.prevMousePoint,
+                changeMovement: this.changeMovement,
+                currentMousePoint: this.currentMousePoint
+            });
+        }
+
+        this.prevRotation = this.currentRotation;
         this.prevMousePoint = this.currentMousePoint;
     };
 
-    onMouseUp() {
+    onMouseUp(e) {
         this.changeCursor('pointer');
-        this.emit(ToolControl.MOVE_END, {
-            type: this.type,
-            target: this
-        });
+        this.currentMousePoint = {x: e.clientX - this.offsetX, y: e.clientY - this.offsetY};
+
+        if(this.type === ToolControlType.ROTATION) {
+
+            this.currentRotation = Calc.getRotation(this.centerPoint, {
+                x: e.clientX - this.offsetX,
+                y: e.clientY - this.offsetY
+            });
+
+            this.changeRotation = this.currentRotation - this.prevRotation;
+            this.absChangeRotation = (this.changeRotation < 0) ? this.changeRotation * -1 : this.changeRotation;
+
+            if (this.absChangeRotation < 100) {
+                console.log('this.emit(ToolControl.ROTATE_END');
+
+                this.emit(ToolControl.ROTATE_END, {
+                    target: this,
+                    type: this.type,
+                    prevRotation: this.prevRotation,
+                    changeRotation: this.changeRotation,
+                    currentRotation: this.currentRotation,
+                    currentRadian: Calc.toRadians(this.currentRotation),
+                    changeRadian: Calc.toRadians(this.changeRotation)
+                });
+            }
+        } else {
+            this.emit(ToolControl.MOVE_END, {
+                target: this,
+                type: this.type,
+                prevMousePoint: this.prevMousePoint,
+                currentMousePoint: this.currentMousePoint
+            });
+        }
+
         this.addMouseDownEvent();
         this.removeMouseMoveEvent();
     };
+
 
 
     set localPoint(value) {
@@ -196,6 +282,16 @@ export class ToolControl extends PIXI.Sprite {
         return this._localPoint;
     }
 
+
+    set centerPoint(value) {
+        this._centerPoint = value;
+    }
+
+    get centerPoint() {
+        if(!this._centerPoint)
+            this._centerPoint = {x:0, y:0};
+        return this._centerPoint;
+    }
 
 
 }
