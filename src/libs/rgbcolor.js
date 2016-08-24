@@ -301,7 +301,4 @@
 
     global.RGBColor = RGBColor;
 
-	console.log('***********************');
-	console.log('global', global);
-
 }( typeof window !== 'undefined' ? window : this ));

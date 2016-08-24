@@ -27,6 +27,10 @@ export class StickerLoader extends PIXI.Container {
 
     drawSvg(x, y, w, h) {
         console.log('drawSvg(' + this.url + x + ', ' + y + ', ' + w + ', ' + h + ')');
+
+        w = Math.abs(w);
+        h = Math.abs(h);
+
         this.textureWidth = w;
         this.textureHeight = h;
         this.offscreenCanvas.width = w;
@@ -35,35 +39,43 @@ export class StickerLoader extends PIXI.Container {
     }
 
     onTransformComplete(e) {
-        var localBounds = this.getLocalBounds();
-        console.log('localBounds', Calc.digit(localBounds.width), Calc.digit(localBounds.height));
+        //this.drawSvg(0, 0, this.width, this.height);
 
-        if(this.width > localBounds.width || this.height > localBounds.height) {
-            this.drawSvg(0, 0, this.width, this.height);
-        }
+        /*var localBounds = this.getLocalBounds();
+        if(this.width > localBounds.width || this.height > localBounds.height)
+            this.drawSvg(0, 0, this.width, this.height);*/
     }
 
     onDrawComplete() {
-        this.texture = new PIXI.Texture.fromCanvas(this.offscreenCanvas);
+        //this.texture = new PIXI.Texture.fromCanvas(this.offscreenCanvas);
 
         if(this.isFirstLoad === true) {
+            this.texture = new PIXI.Texture.fromCanvas(this.offscreenCanvas);
             this.isFirstLoad = false;
             this.image = new PIXI.Sprite(this.texture);
             this.image.interactive = true;
             this.image.on('click', this.onClick.bind(this));
             this.addChild(this.image);
         } else {
-            //this.scale.x = 1;
-            //this.scale.y = 1;
-            //this.texture.width = this.textureWidth;
-            //this.texture.height = this.textureHeight;
+            //this.scale = {x:1, y:1};
             //this.texture.update();
+            //this.updateTransform();
+
+            this.emit('textureUpdate', {target:this});
+            this.toString();
         }
     }
 
     onClick(e) {
-        console.log(this.url + '.' + 'onClick');
         this.emit('click', {target:this});
     }
 
+
+    toString() {
+        console.log('');
+        var localBounds = this.getLocalBounds();
+        var imageLocalBounds = this.image.getLocalBounds();
+        console.log('wh[' + Calc.digit(this.width) + ', ' + Calc.digit(this.height) + '], localBounds[' + localBounds.width + ', ' + localBounds.height + ']');
+        console.log('image wh[' + Calc.digit(this.image.width), ', ' + Calc.digit(this.image.height) + '], localBounds[' + imageLocalBounds.width + ', ' + imageLocalBounds.height + ']');
+    }
 }

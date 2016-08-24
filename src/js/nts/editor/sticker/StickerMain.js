@@ -32,8 +32,6 @@ export class StickerMain {
     };
 
 
-
-
     createStickers() {
         var count = 1 + parseInt(Math.random() * this.svgs.length);
         console.log('createStickers, count:', count);
@@ -45,10 +43,10 @@ export class StickerMain {
             sticker.x = parseInt(Math.random() * 800);
             sticker.y = parseInt(Math.random() * 600);
             sticker.on('click', this.onStickerClick.bind(this));
+            sticker.on('textureUpdate', this.onStickerTextureUpdate.bind(this));
             this.stickerLayer.addChild(sticker);
         }
     }
-
 
 
     startTest() {
@@ -60,7 +58,6 @@ export class StickerMain {
         //this.stickerLayer.x = 160;
         //this.stickerLayer.y = 40;
         this.stickerLayer.updateTransform();
-
 
         var options = {
             canvasOffsetX: 0,
@@ -74,11 +71,16 @@ export class StickerMain {
     }
 
 
+    onStickerTextureUpdate(e) {
+        console.log('onStickerTextureUpdate');
+        //this.stickerLayer.updateTransform();
+    }
+
+
     onStickerClick(e) {
         var target = e.target;
         this.transformTool.setTarget(target);
     }
-
 
 
     resize() {

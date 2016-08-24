@@ -12,7 +12,6 @@ export class TransfromTool {
     }
 
     constructor(canvas, options, rootLayer, stickerLayer) {
-
         this.canvas = canvas;
         this.rootLayer = rootLayer;
         this.stickerLayer = stickerLayer;
@@ -78,11 +77,10 @@ export class TransfromTool {
             br: new ToolControl(ToolControlType.BOTTOM_RIGHT, toolControlOptions)
         };
 
-        this.globalControls = {};
-
         for (var prop in this.controls) {
             var control = this.controls[prop];
             control.visible = false;
+            control.centerPoint = this.controls.mc;
             this.rootLayer.addChild(control);
 
             switch (control.type) {
@@ -111,37 +109,37 @@ export class TransfromTool {
 
 
     setTarget(pixiSprite) {
-        console.log('setTarget(' + pixiSprite + ')');
-
         this.target = pixiSprite;
         this._diffScaleX = this.target.scale.x - 1;
         this._diffScaleY = this.target.scale.y - 1;
 
-        console.log('***********************************************');
-        console.log('scale:', this.target.scale.x, this.target.scale.y);
-        console.log('diffScale:', Calc.digit(this._diffScaleX), Calc.digit(this._diffScaleY));
-        console.log('***********************************************');
+        var localBounds = pixiSprite.getLocalBounds();
+        console.log('');
+        console.log('-----------------------------------------------------------');
+        console.log('setTarget');
+        console.log('-----------------------------------------------------------');
+        console.log('scale[' + this.target.scale.x + ', ' + this.target.scale.y + ']');
+        console.log('diffScale[' + Calc.digit(this._diffScaleX) + ', ' + Calc.digit(this._diffScaleY) + ']');
+        console.log('wh[' + pixiSprite.width + ', ' + pixiSprite.width + ']');
+        console.log('localBounds[' + localBounds.width + ', ' + localBounds.height + ']');
+        console.log('-----------------------------------------------------------');
 
         this.updatePrevLt();
-        this.setLocalPoint();
-        this.setGlobalPointAndInvertMatrix();
+        this.setControls();
+        this.updateControls();
         this.draw();
     };
 
 
-    releaseTarget() {
+    disposeTarget() {
 
     }
 
-    setLocalPoint() {
+
+    setControls() {
         var localBounds = this.target.getLocalBounds();
         var w = localBounds.width;
         var h = localBounds.height;
-
-        console.log('***********************');
-        console.log('w:', w, 'h:', h, 'localBounds', localBounds);
-        console.log('***********************');
-
         this.c.tl.localPoint = new PIXI.Point(0, 0);
         this.c.tr.localPoint = new PIXI.Point(w, 0);
         this.c.tc.localPoint = PointUtil.interpolate(this.c.tr.localPoint, this.c.tl.localPoint, .5);
@@ -152,30 +150,20 @@ export class TransfromTool {
         this.c.mr.localPoint = PointUtil.interpolate(this.c.br.localPoint, this.c.tr.localPoint, .5);
         this.c.mc.localPoint = PointUtil.interpolate(this.c.bc.localPoint, this.c.tc.localPoint, .5);
         this.c.ro.localPoint = PointUtil.add(this.controls.tc.localPoint.clone(), new PIXI.Point(0, -this.rotationLineLength));
-
-        for (var prop in this.controls) {
-            var c = this.controls[prop];
-            c.mcPoint = this.c.mc.localPoint;
-        }
     }
 
 
-    setGlobalPointAndInvertMatrix() {
+    updateControls() {
         this.targetTransform = this.target.worldTransform.clone();
         this.targetTransform.append(this.localTransform);
 
         this.iTargetTransform = this.targetTransform.clone();
         this.iTargetTransform.invert();
 
-        var centerPoint = this.targetTransform.apply(this.controls.mc.localPoint);
         for (var prop in this.controls) {
             var control = this.controls[prop];
-            control.centerPoint = centerPoint;
-            this.globalControls[prop] = this.targetTransform.apply(control.localPoint);
+            control.transform = this.targetTransform;
         }
-
-        var rotatePoint = PointUtil.getAddedInterpolate(this.globalControls.tc, this.globalControls.ro, -this.rotationLineLength);
-        this.globalControls.ro = rotatePoint;
     }
 
 
@@ -183,11 +171,6 @@ export class TransfromTool {
         this.prevLtX = this.lt.x;
         this.prevLtY = this.lt.y;
     }
-
-    get lt() {
-        return this.target.toGlobal({x:0, y:0});
-    }
-
 
 
     onTargetRotateStart(e) {
@@ -197,82 +180,57 @@ export class TransfromTool {
     onTargetRotate(e) {
         this.target.rotation += e.changeRadian;
 
-        this.setGlobalPointAndInvertMatrix();
+        this.updateControls();
         this.draw();
         this.updatePrevLt();
     }
 
     onTargetRotateEnd(e) {
-        this.setGlobalPointAndInvertMatrix();
+        this.updateControls();
         this.draw();
         this.updatePrevLt();
     }
 
 
     onControlMoveStart(e) {
-        console.log('');
-        console.log('MOVE START:::');
-
-        this.currentControl = e.target;
-        this.globalCurrentControl = this.getGlobalCurrentControl(e.target);
-        this.currentMousePoint = e.currentMousePoint;
-        this.startMousePoint = {x: this.currentMousePoint.x, y: this.currentMousePoint.y};
+        this.startMousePoint = {x: e.currentMousePoint.x, y: e.currentMousePoint.y};
 
         this.setPivot(e.target);
-
-        this.setGlobalPointAndInvertMatrix();
-        this.setMoveStart();
+        this.updateControls();
         this.updatePrevLt();
     }
 
 
     onControlMove(e) {
-        this.change = e.change;
-        this.currentMousePoint = e.currentMousePoint;
-
         this.transform(e);
         this.updatePrevLt();
     }
 
 
     onControlMoveEnd(e) {
-        console.log('');
-        console.log('MOVE END:::');
-        this.setMoveEnd();
+        this.transform(e);
         this.updatePrevLt();
-    }
 
-
-    setMoveStart() {
-
-    }
-
-
-    setMoveEnd() {
-        //this._diffScaleX = 0;
-        //this._diffScaleY = 0;
         this._diffScaleX = this.target.scale.x - 1;
         this._diffScaleY = this.target.scale.y - 1;
-        console.log('diffX', Calc.digit(this._diffScaleX), ', diffY', Calc.digit(this._diffScaleY));
-
         this.target.emit(TransfromTool.TRANSFORM_COMPLETE);
     }
 
 
+
     scale(e) {
-        var control = e.target;
-        var v = PointUtil.subtract(this.currentMousePoint, this.startMousePoint);
-        var wh = PointUtil.subtract(this.currentControl.localPoint, this.c.mc.localPoint);
-        var w =  wh.x  * 2;
-        var h =  wh.y  * 2;
+        var currentControl = e.target;
+        var currentMousePoint = e.currentMousePoint;
+
+        var n = 1;
+        var v = PointUtil.subtract(currentMousePoint, this.startMousePoint);
+        var wh = PointUtil.subtract(currentControl.localPoint, this.c.mc.localPoint);
+        var w = wh.x * 2;
+        var h = wh.y * 2;
         var wr = (v.x / w);
         var hr = (v.y / h);
-        var xscale, yscale;
-        var n = 1;
-        xscale = 1 + (n * wr);
-        yscale = 1 + (n * hr);
-
-        //console.log('xscale', Calc.digit(xscale), 'yscale', Calc.digit(yscale));
+        var xscale = 1 + (n * wr);
+        var yscale = 1 + (n * hr);
         this.target.scale = {x: xscale + this._diffScaleX, y: yscale + this._diffScaleY};
     }
 
@@ -305,7 +263,7 @@ export class TransfromTool {
                 break;
         }
 
-        this.setGlobalPointAndInvertMatrix();
+        this.updateControls();
         this.draw();
         this.updatePrevLt();
     }
@@ -313,20 +271,26 @@ export class TransfromTool {
 
     draw() {
         var g = this.g;
+        var rotatePoint = PointUtil.getAddedInterpolate(this.c.tc.globalPoint, this.c.ro.globalPoint, -this.rotationLineLength);
         g.clear();
         g.lineStyle(1, 0xFF3300);
-        g.moveTo(this.globalControls.tl.x, this.globalControls.tl.y);
-        g.lineTo(this.globalControls.tr.x, this.globalControls.tr.y);
-        g.lineTo(this.globalControls.br.x, this.globalControls.br.y);
-        g.lineTo(this.globalControls.bl.x, this.globalControls.bl.y);
-        g.lineTo(this.globalControls.tl.x, this.globalControls.tl.y);
-        g.moveTo(this.globalControls.tc.x, this.globalControls.tc.y);
-        g.lineTo(this.globalControls.ro.x, this.globalControls.ro.y);
+        g.moveTo(this.c.tl.globalPoint.x, this.c.tl.globalPoint.y);
+        g.lineTo(this.c.tr.globalPoint.x, this.c.tr.globalPoint.y);
+        g.lineTo(this.c.br.globalPoint.x, this.c.br.globalPoint.y);
+        g.lineTo(this.c.bl.globalPoint.x, this.c.bl.globalPoint.y);
+        g.lineTo(this.c.tl.globalPoint.x, this.c.tl.globalPoint.y);
+        g.moveTo(this.c.tc.globalPoint.x, this.c.tc.globalPoint.y);
+        g.lineTo(rotatePoint.x, rotatePoint.y);
 
         for (var prop in this.controls) {
             var c = this.controls[prop];
-            c.x = this.globalControls[prop].x;
-            c.y = this.globalControls[prop].y;
+            if(c.type === ToolControlType.ROTATION) {
+                c.x = rotatePoint.x;
+                c.y = rotatePoint.y;
+            } else {
+                c.x = this.c[prop].globalPoint.x;
+                c.y = this.c[prop].globalPoint.y;
+            }
             c.visible = true;
         }
     }
@@ -334,25 +298,16 @@ export class TransfromTool {
 
     setPivot(control) {
         this.pivot = this.getPivot(control);
-        this.globalPivot = this.getGlobalPivot(control);
+        this.target.pivot = this.pivot.localPoint;
 
-        console.log('diffSclaeX:' + Calc.digit(this._diffScaleX), Calc.digit(this._diffScaleY));
-        var iPivot = this.target.toLocal(this.globalPivot);
-        this.target.pivot = iPivot;
-        this.target.pivot = iPivot;
         var offsetX = this.lt.x - this.prevLtX;
         var offsetY = this.lt.y - this.prevLtY;
         var percentX = (this.scaleOffsetX * 100) / 100 * offsetX;
         var percentY = (this.scaleOffsetY * 100) / 100 * offsetY;
-        console.log('percentX:', Calc.digit(percentX), 'percentY:', Calc.digit(percentY));
         this.target.x = this.target.x - offsetX + percentX;
         this.target.y = this.target.y - offsetY + percentY;
-        console.log('offsetX:', Calc.digit(offsetX), 'offsetY:', Calc.digit(offsetY));
-        console.log('prevLtX:', Calc.digit(this.prevLtX), 'prevLtY:', Calc.digit(this.prevLtY));
-
         this.updatePrevLt();
     }
-
 
 
     getPivot(control) {
@@ -385,111 +340,13 @@ export class TransfromTool {
     }
 
 
-    getGlobalPivot(control) {
-        switch (control.type) {
-            case ToolControlType.TOP_LEFT:
-                return this.globalControls.br;
-            case ToolControlType.TOP_CENTER:
-                return this.globalControls.bc;
-            case ToolControlType.TOP_RIGHT:
-                return this.globalControls.bl;
-            case ToolControlType.MIDDLE_LEFT:
-                return this.globalControls.mr;
-            case ToolControlType.MIDDLE_RIGHT:
-                return this.globalControls.ml;
-            case ToolControlType.BOTTOM_LEFT:
-                return this.globalControls.tr;
-            case ToolControlType.BOTTOM_CENTER:
-                return this.globalControls.tc;
-            case ToolControlType.BOTTOM_RIGHT:
-                return this.globalControls.tl;
-            case ToolControlType.MIDDLE_CENTER:
-                return this.globalControls.mc;
-            case ToolControlType.ROTATION:
-                return this.globalControls.mc;
-                break;
-            case ToolControlType.CLOSE:
-                return this.globalControls.cl;
-                break;
-        }
-    }
-
-
-    getGlobalCurrentControl(control) {
-        switch (control.type) {
-            case ToolControlType.TOP_LEFT:
-                return this.globalControls.tl;
-            case ToolControlType.TOP_CENTER:
-                return this.globalControls.tc;
-            case ToolControlType.TOP_RIGHT:
-                return this.globalControls.tr;
-            case ToolControlType.MIDDLE_LEFT:
-                return this.globalControls.ml;
-            case ToolControlType.MIDDLE_RIGHT:
-                return this.globalControls.mr;
-            case ToolControlType.BOTTOM_LEFT:
-                return this.globalControls.bl;
-            case ToolControlType.BOTTOM_CENTER:
-                return this.globalControls.bc;
-            case ToolControlType.BOTTOM_RIGHT:
-                return this.globalControls.br;
-            case ToolControlType.MIDDLE_CENTER:
-                return this.globalControls.mc;
-            case ToolControlType.ROTATION:
-                return this.globalControls.mc;
-                break;
-            case ToolControlType.CLOSE:
-                return this.globalControls.cl;
-                break;
-        }
-    }
-
-
     onKeyUp(e) {
         switch (e.keyCode) {
             case 27: //consts.KeyCode.ESC:
                 break;
             case 32: //consts.KeyCode.SPACE:
-
-
-                var beforeLtX = this.lt.x;
-                var beforeLtY = this.lt.y;
-                var beforePivotX = this.target.pivot.x;
-                var beforePivotY = this.target.pivot.y;
-                console.log('BEFORE pivot', Calc.digit(this.target.pivot.x), Calc.digit(this.target.pivot.y));
-                console.log('BEFORE pivotRect', Calc.digit(this.lt.x), Calc.digit(this.lt.y), 'target:', Calc.digit(this.target.x), Calc.digit(this.target.y));
-
-
-                var random = Math.random() * 300;
-                this.target.pivot = {x:random, y:random};
-                this.target.pivot = {x:random, y:random};
-
-                var afterLtX = this.lt.x;
-                var afterLtY = this.lt.y;
-                var afterPivotX = this.target.pivot.x;
-                var afterPivotY = this.target.pivot.y;
-
-                console.log('AFTER pivot', Calc.digit(this.target.pivot.x), Calc.digit(this.target.pivot.y));
-                console.log('AFTER pivotRect', Calc.digit(this.lt.x), Calc.digit(this.lt.y), 'target:', Calc.digit(this.target.x), Calc.digit(this.target.y));
-
-                var diffLtX = afterLtX - beforeLtX;
-                var diffLtY = afterLtY - beforeLtY;
-
-                var diffPivotX = afterPivotX - beforePivotX;
-                var diffPivotY = afterPivotY - beforePivotY;
-
-
-                //this.target.x += diffLtX;
-                //this.target.y += diffLtY;
-
-                console.log('diffLtX:', Calc.digit(diffLtX), 'diffLtY:', Calc.digit(diffLtY));
-                console.log('diffPivotX:', Calc.digit(diffPivotX), 'diffPivotY:', Calc.digit(diffPivotY));
-
                 break;
-
             case 49: //consts.KeyCode.NUM_1:
-                console.log('setTarget!!');
-                this.setTarget(this.target);
                 break;
             case 50: //consts.KeyCode.NUM_2:
                 break;
@@ -505,6 +362,8 @@ export class TransfromTool {
     };
 
 
-
+    get lt() {
+        return this.target.toGlobal({x: 0, y: 0});
+    }
 
 }
