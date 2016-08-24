@@ -9,22 +9,54 @@ export class StickerMain {
         this.rootLayer = rootLayer;
         this.stickerLayer = stickerLayer;
 
+        this.stickers = [];
+        this.svgs = [
+            './img/svg-modify/amazon.svg',
+            './img/svg-modify/dribbble.svg',
+            './img/svg-modify/facebook.svg',
+            './img/svg-modify/foursquare.svg',
+            './img/svg-modify/periscope.svg',
+            './img/svg-modify/pinterest.svg',
+            './img/svg-modify/shutterstock.svg',
+            './img/svg-modify/skype.svg',
+            './img/svg-modify/whatsapp.svg',
+            './img/svg-modify/wordpress.svg'
+        ];
+
         this.initialize();
-        this.addEvent();
     }
 
     initialize() {
+        this.createStickers();
+        setTimeout(this.startTest.bind(this), 2000);
+    };
 
-        // 스티커 생성
-        var stickerImageElement = this.getSticker();
-        //this.sticker = new StickerLoader('./../../../../img/svg/amazon.svg');
-        this.sticker = new StickerLoader('./img/svg/amazon.svg');
-        this.stickerLayer.addChild(this.sticker);
 
+
+
+    createStickers() {
+        var count = 1 + parseInt(Math.random() * this.svgs.length);
+        console.log('createStickers, count:', count);
+
+        for(var i=0; i<count; i++) {
+            var svgURL = this.svgs[i];
+            var sticker = new StickerLoader(svgURL);
+            this.stickers[i] = sticker;
+            sticker.x = parseInt(Math.random() * 800);
+            sticker.y = parseInt(Math.random() * 600);
+            sticker.on('click', this.onStickerClick.bind(this));
+            this.stickerLayer.addChild(sticker);
+        }
+    }
+
+
+
+    startTest() {
+        console.log('START TEST');
         // stickerLayer 변경 테스트
         //this.stickerLayer.rotation = 0.3;
-        this.stickerLayer.scale.x = 1.10;
-        this.stickerLayer.scale.y = 1.10;
+        //this.stickerLayer.scale.x = 1.10;
+        //this.stickerLayer.scale.y = 1.10;
         //this.stickerLayer.x = 160;
         //this.stickerLayer.y = 40;
         this.stickerLayer.updateTransform();
@@ -38,28 +70,16 @@ export class StickerMain {
         };
 
         this.transformTool = new TransfromTool(this.canvas, options, this.rootLayer, this.stickerLayer);
-        this.transformTool.setTarget(this.sticker);
-
-    };
-
-    testTool() {
-
+        //this.transformTool.setTarget(this.sticker);
     }
 
-    addEvent() {
 
-    };
+    onStickerClick(e) {
+        var target = e.target;
+        this.transformTool.setTarget(target);
+    }
 
-    getSticker() {
-        var image = document.getElementById('image');
 
-        if (image) {
-            document.body.removeChild(image);
-            return image;
-        }
-
-        return null;
-    };
 
     resize() {
 

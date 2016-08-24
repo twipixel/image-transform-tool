@@ -249,6 +249,8 @@ export class TransfromTool {
 
 
     setMoveEnd() {
+        //this._diffScaleX = 0;
+        //this._diffScaleY = 0;
         this._diffScaleX = this.target.scale.x - 1;
         this._diffScaleY = this.target.scale.y - 1;
         console.log('diffX', Calc.digit(this._diffScaleX), ', diffY', Calc.digit(this._diffScaleY));
