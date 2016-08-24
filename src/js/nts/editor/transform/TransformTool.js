@@ -193,7 +193,7 @@ export class TransfromTool {
 
 
     onControlMoveStart(e) {
-        this.startMousePoint = {x: e.currentMousePoint.x, y: e.currentMousePoint.y};
+        this.selectedControl = e.target;
 
         this.setPivot(e.target);
         this.updateControls();
@@ -221,10 +221,14 @@ export class TransfromTool {
     scale(e) {
         var currentControl = e.target;
         var currentMousePoint = e.currentMousePoint;
+        currentMousePoint = this.targetTransform.applyInverse(currentMousePoint);
+
 
         var n = 1;
-        var v = PointUtil.subtract(currentMousePoint, this.startMousePoint);
-        var wh = PointUtil.subtract(currentControl.localPoint, this.c.mc.localPoint);
+        var v = PointUtil.subtract(currentMousePoint, this.selectedControl.localPoint);
+        var wh = PointUtil.subtract(this.selectedControl.localPoint, this.c.mc.localPoint);
+        console.log('!!!!!! v:', v, 'wh:', wh);
+
         var w = wh.x * 2;
         var h = wh.y * 2;
         var wr = (v.x / w);
@@ -271,7 +275,8 @@ export class TransfromTool {
 
     draw() {
         var g = this.g;
-        var rotatePoint = PointUtil.getAddedInterpolate(this.c.tc.globalPoint, this.c.ro.globalPoint, -this.rotationLineLength);
+        var rotatePoint = this.rotatePoint;
+
         g.clear();
         g.lineStyle(1, 0xFF3300);
         g.moveTo(this.c.tl.globalPoint.x, this.c.tl.globalPoint.y);
@@ -364,6 +369,12 @@ export class TransfromTool {
 
     get lt() {
         return this.target.toGlobal({x: 0, y: 0});
+    }
+
+    get rotatePoint() {
+        if(!this.c)
+            return new PIXI.Point(0, 0);
+        return PointUtil.getAddedInterpolate(this.c.tc.globalPoint, this.c.ro.globalPoint, -this.rotationLineLength);
     }
 
 }
