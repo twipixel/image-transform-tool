@@ -30,15 +30,16 @@ export class TransfromTool {
         this.canvasOffsetY = this.options.canvasOffsetY;
         this.rotationLineLength = this.options.rotationLineLength || 25;
 
+        console.log('TransformTool');
+        console.log('scaleOffset[' + this.scaleOffsetX + ', ' +  this.scaleOffsetY + ']');
         this.initialize();
         this.addDebug();
     };
 
 
     initialize() {
-        this.localTransform = new PIXI.Matrix();
-        this.targetTransform = new PIXI.Matrix();
-        this.iTargetTransform = new PIXI.Matrix();
+        this.transform = new PIXI.Matrix();
+        this.invertTransform = new PIXI.Matrix();
 
         this.g = this.graphics = new PIXI.Graphics();
         this.rootLayer.addChild(this.graphics);
@@ -124,10 +125,10 @@ export class TransfromTool {
         console.log('localBounds[' + localBounds.width + ', ' + localBounds.height + ']');
         console.log('-----------------------------------------------------------');
 
-        this.updatePrevLt();
+        this.updateTransform();
         this.setControls();
-        this.updateControls();
         this.draw();
+        this.updatePrevLt();
     };
 
 
@@ -150,20 +151,18 @@ export class TransfromTool {
         this.c.mr.localPoint = PointUtil.interpolate(this.c.br.localPoint, this.c.tr.localPoint, .5);
         this.c.mc.localPoint = PointUtil.interpolate(this.c.bc.localPoint, this.c.tc.localPoint, .5);
         this.c.ro.localPoint = PointUtil.add(this.controls.tc.localPoint.clone(), new PIXI.Point(0, -this.rotationLineLength));
-    }
-
-
-    updateControls() {
-        this.targetTransform = this.target.worldTransform.clone();
-        this.targetTransform.append(this.localTransform);
-
-        this.iTargetTransform = this.targetTransform.clone();
-        this.iTargetTransform.invert();
 
         for (var prop in this.controls) {
             var control = this.controls[prop];
-            control.transform = this.targetTransform;
+            control.transform = this.transform;
         }
+    }
+
+
+    updateTransform() {
+        this.transform = this.target.worldTransform.clone();
+        this.invertTransform = this.transform.clone();
+        this.invertTransform.invert();
     }
 
 
@@ -180,35 +179,35 @@ export class TransfromTool {
     onTargetRotate(e) {
         this.target.rotation += e.changeRadian;
 
-        this.updateControls();
         this.draw();
         this.updatePrevLt();
     }
 
     onTargetRotateEnd(e) {
-        this.updateControls();
         this.draw();
         this.updatePrevLt();
     }
 
 
     onControlMoveStart(e) {
-        this.selectedControl = e.target;
+        this.xScaleSign = (this.target.scale.x < 0) ? -1 : 1;
+        this.yScaleSign = (this.target.scale.y < 0) ? -1 : 1;
+        this.startMousePoint = {x: e.currentMousePoint.x, y: e.currentMousePoint.y};
 
         this.setPivot(e.target);
-        this.updateControls();
         this.updatePrevLt();
     }
 
 
     onControlMove(e) {
-        this.transform(e);
+        this.updateTransform();
+        this.doTransform(e);
         this.updatePrevLt();
     }
 
 
     onControlMoveEnd(e) {
-        this.transform(e);
+        this.doTransform(e);
         this.updatePrevLt();
 
         this._diffScaleX = this.target.scale.x - 1;
@@ -217,25 +216,46 @@ export class TransfromTool {
     }
 
 
-
     scale(e) {
         var currentControl = e.target;
         var currentMousePoint = e.currentMousePoint;
-        currentMousePoint = this.targetTransform.applyInverse(currentMousePoint);
-
 
         var n = 1;
-        var v = PointUtil.subtract(currentMousePoint, this.selectedControl.localPoint);
-        var wh = PointUtil.subtract(this.selectedControl.localPoint, this.c.mc.localPoint);
-        console.log('!!!!!! v:', v, 'wh:', wh);
+        //var current = this.invertTransform.apply(currentMousePoint);
+        //var start = this.invertTransform.apply(this.startMousePoint);
+        var current = this.transform.applyInverse(currentMousePoint);
+        var start = this.transform.applyInverse(this.startMousePoint);
+        var vector = PointUtil.subtract(current, start);
+        //var vector = PointUtil.subtract(currentMousePoint, this.startMousePoint);
+
+        //var curretPoint = this.invertTransform.apply(currentControl.globalPoint);
+        //var center = this.invertTransform.apply(this.c.mc.globalPoint);
+        var curretPoint = this.transform.applyInverse(currentControl.globalPoint);
+        var center = this.transform.applyInverse(this.c.mc.globalPoint);
+        var wh = PointUtil.subtract(curretPoint, center);
+        //var wh = PointUtil.subtract(currentControl.globalPoint, this.c.mc.globalPoint);
 
         var w = wh.x * 2;
         var h = wh.y * 2;
-        var wr = (v.x / w);
-        var hr = (v.y / h);
-        var xscale = 1 + (n * wr);
-        var yscale = 1 + (n * hr);
-        this.target.scale = {x: xscale + this._diffScaleX, y: yscale + this._diffScaleY};
+        var ratioW = (vector.x / w) * this.xScaleSign;
+        var ratioH = (vector.y / h) * this.yScaleSign;
+        var scaleX = 1 + (n * ratioW);
+        var scaleY = 1 + (n * ratioH);
+        this.target.scale = {x: scaleX + this._diffScaleX, y: scaleY + this._diffScaleY};
+
+        console.log('');
+        //console.log('curret[' + Calc.digit(currentMousePoint.x) + ', ' + Calc.digit(currentMousePoint.y) + ']');
+        //console.log('start[' + Calc.digit(this.startMousePoint.x) + ', ' + Calc.digit(this.startMousePoint.y) + ']');
+        console.log('curret[' + Calc.digit(current.x) + ', ' + Calc.digit(current.y) + ']');
+        console.log('start[' + Calc.digit(start.x) + ', ' + Calc.digit(start.y) + ']');
+        console.log('v[' + Calc.digit(vector.x) + ', ' + Calc.digit(vector.y) + ']');
+        //console.log('currentControl[' + Calc.digit(currentControl.globalPoint.x) + ', ' + Calc.digit(currentControl.globalPoint.y) + ']')
+        //console.log('center[' + Calc.digit(this.c.mc.globalPoint.x) + ', ' + Calc.digit(this.c.mc.globalPoint.y) + ']');
+        console.log('curretPoint[' + Calc.digit(curretPoint.x) + ', ' + Calc.digit(curretPoint.y) + ']')
+        console.log('center[' + Calc.digit(center.x) + ', ' + Calc.digit(center.y) + ']');
+        console.log('wh[' + Calc.digit(wh.x) + ', ' + Calc.digit(wh.y) + '], w:' + Calc.digit(w) + ', h:' + Calc.digit(h));
+        console.log('ratioW:' + Calc.digit(ratioW) + ', ratioH:' + Calc.digit(ratioH));
+        console.log('scale[' + Calc.digit(scaleX) + ', ' + Calc.digit(scaleY) + ']');
     }
 
 
@@ -246,7 +266,7 @@ export class TransfromTool {
     }
 
 
-    transform(e) {
+    doTransform(e) {
         var control = e.target;
         switch (control.type) {
             case ToolControlType.TOP_LEFT:
@@ -267,7 +287,6 @@ export class TransfromTool {
                 break;
         }
 
-        this.updateControls();
         this.draw();
         this.updatePrevLt();
     }
@@ -304,13 +323,30 @@ export class TransfromTool {
     setPivot(control) {
         this.pivot = this.getPivot(control);
         this.target.pivot = this.pivot.localPoint;
-
         var offsetX = this.lt.x - this.prevLtX;
         var offsetY = this.lt.y - this.prevLtY;
-        var percentX = (this.scaleOffsetX * 100) / 100 * offsetX;
-        var percentY = (this.scaleOffsetY * 100) / 100 * offsetY;
-        this.target.x = this.target.x - offsetX + percentX;
-        this.target.y = this.target.y - offsetY + percentY;
+        // stickerLayer 의 스케일 포함한 offset 결과값
+        //var realOffsetX = offsetX / (this.target.scale.x + this.scaleOffsetX);
+        //var realOffsetY = offsetY / (this.target.scale.y + this.scaleOffsetY);
+        var targetScaleOffsetX = (this.scaleOffsetX * 100) / 100 * offsetX;
+        var targetScaleOffsetY = (this.scaleOffsetY * 100) / 100 * offsetY;
+
+
+        //var realOffsetX = 0;
+        //var realOffsetY = 0;
+        console.log('::: setPivot :::');
+        console.log('offset[' + Calc.digit(offsetX) + ', ' + Calc.digit(offsetY) + ']');
+        console.log('scale[' + Calc.digit(this.target.scale.x) + ', ' + Calc.digit(this.target.scale.y) + ']');
+        //console.log('realOffset[' + Calc.digit(realOffsetX) + ', ' + Calc.digit(realOffsetY) + ']');
+        console.log('scaleOffset[' + Calc.digit(this.scaleOffsetX) + ', ' + Calc.digit(this.scaleOffsetY) + ']');
+        console.log('diffScale[' + Calc.digit(this._diffScaleX) + ', ' + Calc.digit(this._diffScaleY) + ']');
+
+        this.target.x = this.target.x - offsetX + targetScaleOffsetX;
+        this.target.y = this.target.y - offsetY + targetScaleOffsetY;
+        //this.target.x = this.target.x - realOffsetX + targetScaleOffsetX;
+        //this.target.y = this.target.y - realOffsetY + targetScaleOffsetY;
+
+        //this.target.updateTransform();
         this.updatePrevLt();
     }
 

@@ -53,8 +53,8 @@ export class StickerMain {
         console.log('START TEST');
         // stickerLayer 변경 테스트
         //this.stickerLayer.rotation = 0.3;
-        //this.stickerLayer.scale.x = 1.10;
-        //this.stickerLayer.scale.y = 1.10;
+        //this.stickerLayer.scale.x = 1.50;
+        //this.stickerLayer.scale.y = 1.50;
         //this.stickerLayer.x = 160;
         //this.stickerLayer.y = 40;
         this.stickerLayer.updateTransform();
@@ -67,7 +67,6 @@ export class StickerMain {
         };
 
         this.transformTool = new TransfromTool(this.canvas, options, this.rootLayer, this.stickerLayer);
-        //this.transformTool.setTarget(this.sticker);
     }
 
 
