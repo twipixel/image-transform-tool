@@ -47,7 +47,7 @@ export class StickerLoader extends PIXI.Container {
     }
 
     onDrawComplete() {
-        //this.texture = new PIXI.Texture.fromCanvas(this.offscreenCanvas);
+        this.texture = new PIXI.Texture.fromCanvas(this.offscreenCanvas);
 
         if(this.isFirstLoad === true) {
             this.texture = new PIXI.Texture.fromCanvas(this.offscreenCanvas);
@@ -57,9 +57,9 @@ export class StickerLoader extends PIXI.Container {
             this.image.on('click', this.onClick.bind(this));
             this.addChild(this.image);
         } else {
-            //this.scale = {x:1, y:1};
-            //this.texture.update();
-            //this.updateTransform();
+            this.scale = {x:1, y:1};
+            this.texture.update();
+            this.updateTransform();
 
             this.emit('textureUpdate', {target:this});
             this.toString();

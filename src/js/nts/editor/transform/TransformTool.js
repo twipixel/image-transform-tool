@@ -114,6 +114,8 @@ export class TransfromTool {
         this._diffScaleX = this.target.scale.x - 1;
         this._diffScaleY = this.target.scale.y - 1;
 
+        this.addTargetDownEvent();
+
         var localBounds = pixiSprite.getLocalBounds();
         console.log('');
         console.log('-----------------------------------------------------------');
@@ -163,6 +165,11 @@ export class TransfromTool {
         this.transform = this.target.worldTransform.clone();
         this.invertTransform = this.transform.clone();
         this.invertTransform.invert();
+
+        for (var prop in this.controls) {
+            var control = this.controls[prop];
+            control.transform = this.transform;
+        }
     }
 
 
@@ -200,14 +207,16 @@ export class TransfromTool {
 
 
     onControlMove(e) {
-        this.updateTransform();
         this.doTransform(e);
+        this.draw();
         this.updatePrevLt();
     }
 
 
     onControlMoveEnd(e) {
         this.doTransform(e);
+        this.updateTransform();
+        this.draw();
         this.updatePrevLt();
 
         this._diffScaleX = this.target.scale.x - 1;
@@ -286,38 +295,45 @@ export class TransfromTool {
                 this.move(e);
                 break;
         }
-
-        this.draw();
-        this.updatePrevLt();
     }
 
 
     draw() {
         var g = this.g;
-        var rotatePoint = this.rotatePoint;
+        var transform = this.target.worldTransform.clone();
+        var globalPoints = {
+            ro: this.rotatePoint,
+            cl: transform.apply(this.c.cl.localPoint),
+            tl: transform.apply(this.c.tl.localPoint),
+            tr: transform.apply(this.c.tr.localPoint),
+            tc: transform.apply(this.c.tc.localPoint),
+            bl: transform.apply(this.c.bl.localPoint),
+            br: transform.apply(this.c.br.localPoint),
+            bc: transform.apply(this.c.bc.localPoint),
+            ml: transform.apply(this.c.ml.localPoint),
+            mr: transform.apply(this.c.mr.localPoint),
+            mc: transform.apply(this.c.mc.localPoint)
+        };
 
         g.clear();
         g.lineStyle(1, 0xFF3300);
-        g.moveTo(this.c.tl.globalPoint.x, this.c.tl.globalPoint.y);
-        g.lineTo(this.c.tr.globalPoint.x, this.c.tr.globalPoint.y);
-        g.lineTo(this.c.br.globalPoint.x, this.c.br.globalPoint.y);
-        g.lineTo(this.c.bl.globalPoint.x, this.c.bl.globalPoint.y);
-        g.lineTo(this.c.tl.globalPoint.x, this.c.tl.globalPoint.y);
-        g.moveTo(this.c.tc.globalPoint.x, this.c.tc.globalPoint.y);
-        g.lineTo(rotatePoint.x, rotatePoint.y);
+        g.moveTo(globalPoints.tl.x, globalPoints.tl.y);
+        g.lineTo(globalPoints.tr.x, globalPoints.tr.y);
+        g.lineTo(globalPoints.br.x, globalPoints.br.y);
+        g.lineTo(globalPoints.bl.x, globalPoints.bl.y);
+        g.lineTo(globalPoints.tl.x, globalPoints.tl.y);
+        g.moveTo(globalPoints.tc.x, globalPoints.tc.y);
+        g.lineTo(globalPoints.ro.x, globalPoints.ro.y);
 
         for (var prop in this.controls) {
             var c = this.controls[prop];
-            if(c.type === ToolControlType.ROTATION) {
-                c.x = rotatePoint.x;
-                c.y = rotatePoint.y;
-            } else {
-                c.x = this.c[prop].globalPoint.x;
-                c.y = this.c[prop].globalPoint.y;
-            }
+            var p = globalPoints[prop];
+            c.x = p.x;
+            c.y = p.y;
             c.visible = true;
         }
     }
+
 
 
     setPivot(control) {
@@ -381,6 +397,87 @@ export class TransfromTool {
     }
 
 
+
+    addTargetDownEvent() {
+        this.removeTargetDownEvent();
+        this.removeTargetMoveEvent();
+
+        this._targetDownListener = this.onTargetDown.bind(this);
+        this.target.interactive = true;
+        this.target.on('mousedown', this._targetDownListener);
+    };
+
+    removeTargetDownEvent() {
+        this.target.off('mousedown', this._targetDownListener);
+    };
+
+    addTargetMoveEvent() {
+        this._targetMoveListener = this.onTargetMove.bind(this);
+        this._targetUpListener = this.onTargetUp.bind(this);
+
+        window.document.addEventListener('mousemove', this._targetMoveListener);
+        window.document.addEventListener('mouseup', this._targetUpListener);
+    };
+
+    removeTargetMoveEvent() {
+        window.document.removeEventListener('mousemove', this._targetMoveListener);
+        window.document.removeEventListener('mouseup', this._targetUpListener);
+    };
+
+
+    onTargetDown(e) {
+        e.stopPropagation();
+        this.prevMousePoint = this.currentMousePoint = {x: e.data.global.x, y: e.data.global.y};
+
+        this.c.mc.emit(ToolControl.MOVE_START, {
+            target: this.c.mc,
+            type: this.c.mc.type,
+            currentMousePoint: this.currentMousePoint
+        });
+
+        this.addTargetMoveEvent();
+        this.removeTargetDownEvent();
+    };
+
+    onTargetMove(e) {
+        this.currentMousePoint = {x: e.clientX - this.canvasOffsetX, y: e.clientY - this.canvasOffsetY};
+
+        this.changeMovement = {
+            x: this.currentMousePoint.x - this.prevMousePoint.x,
+            y: this.currentMousePoint.y - this.prevMousePoint.y
+        };
+
+        this.c.mc.emit(ToolControl.MOVE_END, {
+            target: this.c.mc,
+            type: this.c.mc.type,
+            prevMousePoint: this.prevMousePoint,
+            changeMovement: this.changeMovement,
+            currentMousePoint: this.currentMousePoint
+        });
+
+        this.prevMousePoint = this.currentMousePoint;
+    };
+
+    onTargetUp(e) {
+        this.currentMousePoint = {x: e.clientX - this.canvasOffsetX, y: e.clientY - this.canvasOffsetY};
+
+        this.changeMovement = {
+            x: this.currentMousePoint.x - this.prevMousePoint.x,
+            y: this.currentMousePoint.y - this.prevMousePoint.y
+        };
+
+        this.c.mc.emit(ToolControl.MOVE_END, {
+            target: this.c.mc,
+            type: this.c.mc.type,
+            prevMousePoint: this.prevMousePoint,
+            changeMovement: this.changeMovement,
+            currentMousePoint: this.currentMousePoint
+        });
+        this.addTargetDownEvent();
+        this.removeTargetMoveEvent();
+    };
+
+
     onKeyUp(e) {
         switch (e.keyCode) {
             case 27: //consts.KeyCode.ESC:
@@ -410,7 +507,11 @@ export class TransfromTool {
     get rotatePoint() {
         if(!this.c)
             return new PIXI.Point(0, 0);
-        return PointUtil.getAddedInterpolate(this.c.tc.globalPoint, this.c.ro.globalPoint, -this.rotationLineLength);
+
+        var transform = this.target.worldTransform.clone();
+        var tc = transform.apply(this.c.tc.localPoint);
+        var ro = transform.apply(this.c.ro.localPoint);
+        return PointUtil.getAddedInterpolate(tc, ro, -this.rotationLineLength);
     }
 
 }
