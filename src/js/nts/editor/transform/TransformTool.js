@@ -110,11 +110,16 @@ export class TransfromTool {
 
 
     setTarget(pixiSprite) {
+        console.log('-----------------------------------');
+        window.target = window.t = pixiSprite;
+        console.log(pixiSprite);
+        console.log('-----------------------------------');
+
         this.target = pixiSprite;
         this._diffScaleX = this.target.scale.x - 1;
         this._diffScaleY = this.target.scale.y - 1;
 
-        this.addTargetDownEvent();
+        //this.addTargetDownEvent();
 
         var localBounds = pixiSprite.getLocalBounds();
         console.log('');
@@ -191,8 +196,7 @@ export class TransfromTool {
     }
 
     onTargetRotateEnd(e) {
-        this.draw();
-        this.updatePrevLt();
+        this.setTarget(this.target);
     }
 
 
@@ -214,13 +218,12 @@ export class TransfromTool {
 
 
     onControlMoveEnd(e) {
-        this.doTransform(e);
-        this.updateTransform();
-        this.draw();
-        this.updatePrevLt();
+        //this.draw();
+        //this.updatePrevLt();
+        //this._diffScaleX = this.target.scale.x - 1;
+        //this._diffScaleY = this.target.scale.y - 1;
 
-        this._diffScaleX = this.target.scale.x - 1;
-        this._diffScaleY = this.target.scale.y - 1;
+        this.setTarget(this.target);
         this.target.emit(TransfromTool.TRANSFORM_COMPLETE);
     }
 
@@ -230,19 +233,13 @@ export class TransfromTool {
         var currentMousePoint = e.currentMousePoint;
 
         var n = 1;
-        //var current = this.invertTransform.apply(currentMousePoint);
-        //var start = this.invertTransform.apply(this.startMousePoint);
-        var current = this.transform.applyInverse(currentMousePoint);
-        var start = this.transform.applyInverse(this.startMousePoint);
-        var vector = PointUtil.subtract(current, start);
-        //var vector = PointUtil.subtract(currentMousePoint, this.startMousePoint);
+        var currentPoint = this.invertTransform.apply(currentMousePoint);
+        var startPoint = this.invertTransform.apply(this.startMousePoint);
+        var vector = PointUtil.subtract(currentPoint, startPoint);
 
-        //var curretPoint = this.invertTransform.apply(currentControl.globalPoint);
-        //var center = this.invertTransform.apply(this.c.mc.globalPoint);
-        var curretPoint = this.transform.applyInverse(currentControl.globalPoint);
-        var center = this.transform.applyInverse(this.c.mc.globalPoint);
-        var wh = PointUtil.subtract(curretPoint, center);
-        //var wh = PointUtil.subtract(currentControl.globalPoint, this.c.mc.globalPoint);
+        var currentControl = this.invertTransform.apply(currentControl.globalPoint);
+        var centerPoint = this.invertTransform.apply(this.c.mc.globalPoint);
+        var wh = PointUtil.subtract(currentControl, centerPoint);
 
         var w = wh.x * 2;
         var h = wh.y * 2;
@@ -251,20 +248,6 @@ export class TransfromTool {
         var scaleX = 1 + (n * ratioW);
         var scaleY = 1 + (n * ratioH);
         this.target.scale = {x: scaleX + this._diffScaleX, y: scaleY + this._diffScaleY};
-
-        console.log('');
-        //console.log('curret[' + Calc.digit(currentMousePoint.x) + ', ' + Calc.digit(currentMousePoint.y) + ']');
-        //console.log('start[' + Calc.digit(this.startMousePoint.x) + ', ' + Calc.digit(this.startMousePoint.y) + ']');
-        console.log('curret[' + Calc.digit(current.x) + ', ' + Calc.digit(current.y) + ']');
-        console.log('start[' + Calc.digit(start.x) + ', ' + Calc.digit(start.y) + ']');
-        console.log('v[' + Calc.digit(vector.x) + ', ' + Calc.digit(vector.y) + ']');
-        //console.log('currentControl[' + Calc.digit(currentControl.globalPoint.x) + ', ' + Calc.digit(currentControl.globalPoint.y) + ']')
-        //console.log('center[' + Calc.digit(this.c.mc.globalPoint.x) + ', ' + Calc.digit(this.c.mc.globalPoint.y) + ']');
-        console.log('curretPoint[' + Calc.digit(curretPoint.x) + ', ' + Calc.digit(curretPoint.y) + ']')
-        console.log('center[' + Calc.digit(center.x) + ', ' + Calc.digit(center.y) + ']');
-        console.log('wh[' + Calc.digit(wh.x) + ', ' + Calc.digit(wh.y) + '], w:' + Calc.digit(w) + ', h:' + Calc.digit(h));
-        console.log('ratioW:' + Calc.digit(ratioW) + ', ratioH:' + Calc.digit(ratioH));
-        console.log('scale[' + Calc.digit(scaleX) + ', ' + Calc.digit(scaleY) + ']');
     }
 
 
@@ -473,6 +456,7 @@ export class TransfromTool {
             changeMovement: this.changeMovement,
             currentMousePoint: this.currentMousePoint
         });
+
         this.addTargetDownEvent();
         this.removeTargetMoveEvent();
     };

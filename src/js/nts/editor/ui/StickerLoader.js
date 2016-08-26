@@ -13,12 +13,15 @@ export class StickerLoader extends PIXI.Container {
     initialize(url, x, y, width, height) {
         this.url = url;
         this.isFirstLoad = true;
+        this.interactive = true;
+
         this.offscreenCanvas = document.createElement('CANVAS');
         this.offscreenCanvas.id = 'offscreen';
         this.offscreenContext = this.offscreenCanvas.getContext('2d');
         document.body.appendChild(this.offscreenCanvas);
 
         this.drawSvg(x, y, width, height);
+        this.on('click', this.onClick.bind(this));
     };
 
     addEvent() {
@@ -31,43 +34,44 @@ export class StickerLoader extends PIXI.Container {
         w = Math.abs(w);
         h = Math.abs(h);
 
-        this.textureWidth = w;
-        this.textureHeight = h;
         this.offscreenCanvas.width = w;
         this.offscreenCanvas.height = h;
         this.offscreenContext.drawSvg(this.url, x, y, w, h, {renderCallback: this.onDrawComplete.bind(this)});
     }
 
     onTransformComplete(e) {
-        //this.drawSvg(0, 0, this.width, this.height);
-
-        /*var localBounds = this.getLocalBounds();
-        if(this.width > localBounds.width || this.height > localBounds.height)
-            this.drawSvg(0, 0, this.width, this.height);*/
+        console.log('onTransformComplete()');
+        this.drawSvg(0, 0, this.width, this.height);
     }
 
     onDrawComplete() {
-        this.texture = new PIXI.Texture.fromCanvas(this.offscreenCanvas);
+        console.log('onDrawComplete');
+        //this.texture = new PIXI.Texture.fromCanvas(this.offscreenCanvas);
 
         if(this.isFirstLoad === true) {
-            this.texture = new PIXI.Texture.fromCanvas(this.offscreenCanvas);
+            console.log('**************************');
+            console.log('FIRST LOAD()');
             this.isFirstLoad = false;
-            this.image = new PIXI.Sprite(this.texture);
-            this.image.interactive = true;
-            this.image.on('click', this.onClick.bind(this));
+            this.image = new PIXI.Sprite(new PIXI.Texture.fromCanvas(this.offscreenCanvas));
             this.addChild(this.image);
         } else {
-            this.scale = {x:1, y:1};
-            this.texture.update();
+            console.log('**************************');
+            console.log('DESTROY()');
+            //this.image = new PIXI.Sprite(new PIXI.Texture.fromCanvas(this.offscreenCanvas));
+            //this.pivot = {x:0, y:0};
+            //this.worldTransform.scale(1, 1);
+            //this.width = this.offscreenCanvas.width;
+            //this.height = this.offscreenCanvas.height;
+            window.target = this;
             this.updateTransform();
 
+            console.dir(this);
             this.emit('textureUpdate', {target:this});
-            this.toString();
         }
     }
 
     onClick(e) {
-        this.emit('click', {target:this});
+        this.emit('stickerClick', {target:this});
     }
 
 

@@ -42,7 +42,7 @@ export class StickerMain {
             this.stickers[i] = sticker;
             sticker.x = parseInt(Math.random() * 800);
             sticker.y = parseInt(Math.random() * 600);
-            sticker.on('click', this.onStickerClick.bind(this));
+            sticker.on('stickerClick', this.onStickerClick.bind(this));
             sticker.on('textureUpdate', this.onStickerTextureUpdate.bind(this));
             this.stickerLayer.addChild(sticker);
         }
