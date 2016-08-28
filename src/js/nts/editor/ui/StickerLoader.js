@@ -62,10 +62,12 @@ export class StickerLoader extends PIXI.Container {
             //this.worldTransform.scale(1, 1);
             //this.width = this.offscreenCanvas.width;
             //this.height = this.offscreenCanvas.height;
+
             window.target = this;
+            this.scale = {x:1, y:1};
+            this.image.texture.update();
             this.updateTransform();
 
-            console.dir(this);
             this.emit('textureUpdate', {target:this});
         }
     }

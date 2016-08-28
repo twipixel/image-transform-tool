@@ -132,8 +132,9 @@ export class TransfromTool {
         console.log('localBounds[' + localBounds.width + ', ' + localBounds.height + ']');
         console.log('-----------------------------------------------------------');
 
-        this.updateTransform();
+
         this.setControls();
+        this.updateTransform();
         this.draw();
         this.updatePrevLt();
     };
@@ -185,7 +186,7 @@ export class TransfromTool {
 
 
     onTargetRotateStart(e) {
-        this.setPivot(e.target);
+        this.setPivotByControl(e.target);
     }
 
     onTargetRotate(e) {
@@ -205,7 +206,7 @@ export class TransfromTool {
         this.yScaleSign = (this.target.scale.y < 0) ? -1 : 1;
         this.startMousePoint = {x: e.currentMousePoint.x, y: e.currentMousePoint.y};
 
-        this.setPivot(e.target);
+        this.setPivotByControl(e.target);
         this.updatePrevLt();
     }
 
@@ -318,8 +319,27 @@ export class TransfromTool {
     }
 
 
+    setPivotByLocalPoint(localPoint) {
+        this.target.pivot = localPoint;
+        var offsetX = this.lt.x - this.prevLtX;
+        var offsetY = this.lt.y - this.prevLtY;
+        // stickerLayer 의 스케일 포함한 offset 결과값
+        //var realOffsetX = offsetX / (this.target.scale.x + this.scaleOffsetX);
+        //var realOffsetY = offsetY / (this.target.scale.y + this.scaleOffsetY);
+        var targetScaleOffsetX = (this.scaleOffsetX * 100) / 100 * offsetX;
+        var targetScaleOffsetY = (this.scaleOffsetY * 100) / 100 * offsetY;
 
-    setPivot(control) {
+        this.target.x = this.target.x - offsetX + targetScaleOffsetX;
+        this.target.y = this.target.y - offsetY + targetScaleOffsetY;
+        //this.target.x = this.target.x - realOffsetX + targetScaleOffsetX;
+        //this.target.y = this.target.y - realOffsetY + targetScaleOffsetY;
+
+        //this.target.updateTransform();
+        this.updatePrevLt();
+    }
+
+
+    setPivotByControl(control) {
         this.pivot = this.getPivot(control);
         this.target.pivot = this.pivot.localPoint;
         var offsetX = this.lt.x - this.prevLtX;

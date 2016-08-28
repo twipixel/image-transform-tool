@@ -72,7 +72,8 @@ export class StickerMain {
 
     onStickerTextureUpdate(e) {
         console.log('onStickerTextureUpdate');
-        //this.stickerLayer.updateTransform();
+        this.transformTool.setPivotByLocalPoint({x:0, y:0});
+        this.stickerLayer.updateTransform();
     }
 
 
