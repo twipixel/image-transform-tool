@@ -59,10 +59,12 @@ export class ToolControl extends PIXI.Sprite {
         this.addMouseDownEvent();
     }
 
+
     initialize() {
         this.g = this.graphics = new PIXI.Graphics();
         this.addChild(this.graphics);
     }
+
 
     render() {
         switch (this.type) {
@@ -91,12 +93,14 @@ export class ToolControl extends PIXI.Sprite {
         }
     }
 
+
     drawControl() {
         this.g.clear();
         this.g.beginFill(this.color, this.alpha);
         this.g.drawRect(-this.half, -this.half, this.size, this.size);
         this.g.endFill();
     }
+
 
     drawTranslateControl() {
         this.g.clear();
@@ -105,12 +109,14 @@ export class ToolControl extends PIXI.Sprite {
         this.g.endFill();
     }
 
+
     drawRotation() {
         this.g.clear();
         this.g.beginFill(this.color, this.alpha);
         this.g.drawCircle(0, 0, this.half);
         this.g.endFill();
     }
+
 
     drawCloseButton() {
         this.g.clear();
@@ -120,27 +126,31 @@ export class ToolControl extends PIXI.Sprite {
     }
 
 
-
     changeCursor(cursor) {
         this.defaultCursor = cursor;
     };
+
 
     addCursorEvent() {
         this.mouseover = this.changeCursor.bind(this, 'pointer');
     };
 
+
     removeCursorEvent() {
         this.mouseover = null;
     };
+
 
     addMouseDownEvent() {
         this._mouseDownListener = this.onMouseDown.bind(this);
         this.on('mousedown', this._mouseDownListener);
     };
 
+
     removeMouseDownEvent() {
         this.off('mousedown', this._mouseDownListener);
     };
+
 
     addMouseMoveEvent() {
         this._mouseMoveListener = this.onMouseMove.bind(this);
@@ -149,6 +159,7 @@ export class ToolControl extends PIXI.Sprite {
         window.document.addEventListener('mousemove', this._mouseMoveListener);
         window.document.addEventListener('mouseup', this._mouseUpListener);
     };
+
 
     removeMouseMoveEvent() {
         window.document.removeEventListener('mousemove', this._mouseMoveListener);
@@ -189,6 +200,7 @@ export class ToolControl extends PIXI.Sprite {
         this.removeMouseDownEvent();
     };
 
+
     onMouseMove(e) {
         this.currentMousePoint = {x: e.clientX - this.canvasOffsetX, y: e.clientY - this.canvasOffsetY};
 
@@ -228,6 +240,7 @@ export class ToolControl extends PIXI.Sprite {
         this.prevRotation = this.currentRotation;
         this.prevMousePoint = this.currentMousePoint;
     };
+
 
     onMouseUp(e) {
         this.changeCursor('pointer');

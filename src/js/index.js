@@ -25,7 +25,7 @@ function initailize() {
     stage.addChild(stickerLayer);
     stage.addChild(rootLayer);
 
-    stickerMain = new StickerMain(renderer, rootLayer, stickerLayer);
+    stickerMain = new StickerMain(rootLayer, stickerLayer);
 
     updateLoop();
     resizeWindow();

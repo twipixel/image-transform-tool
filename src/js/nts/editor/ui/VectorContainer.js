@@ -1,32 +1,54 @@
 import {Calc} from './../utils/Calculator';
 import {TransfromTool} from './../transform/TransformTool';
 
-export class StickerLoader extends PIXI.Container {
-    constructor(url, x = 0, y = 0, width = 100, height = 100) {
-        console.log('StickerLoader(' + url + ')');
-        super();
+export class VectorContainer extends PIXI.Container {
 
-        this.initialize(url, x, y, width, height);
+    /**
+     * Vector가 처음 로드 되었을 때 이벤트
+     * @returns {string}
+     * @constructor
+     */
+    static LOAD_COMPLETE() {
+        return 'drawComplete';
+    }
+
+    /**
+     * 처음 이후 업데이트 되었을 때 이벤트
+     * @returns {string}
+     * @constructor
+     */
+    static TEXTURE_UPDATE() {
+        return 'textureUpdate';
+    }
+
+
+    constructor() {
+        super();
+        this.initialize();
         this.addEvent();
     }
 
-    initialize(url, x, y, width, height) {
-        this.url = url;
+
+    initialize() {
         this.isFirstLoad = true;
         this.interactive = true;
-
         this.offscreenCanvas = document.createElement('CANVAS');
         this.offscreenCanvas.id = 'offscreen';
         this.offscreenContext = this.offscreenCanvas.getContext('2d');
         document.body.appendChild(this.offscreenCanvas);
-
-        this.drawSvg(x, y, width, height);
-        this.on('click', this.onClick.bind(this));
     };
+
 
     addEvent() {
         this.on(TransfromTool.TRANSFORM_COMPLETE, this.onTransformComplete);
     }
+
+
+    load(url, x = 0, y = 0, width = 100, height = 100) {
+        this.url = url;
+        this.drawSvg(x, y, width, height);
+    }
+
 
     drawSvg(x, y, w, h) {
         console.log('drawSvg(' + this.url + x + ', ' + y + ', ' + w + ', ' + h + ')');
@@ -39,41 +61,31 @@ export class StickerLoader extends PIXI.Container {
         this.offscreenContext.drawSvg(this.url, x, y, w, h, {renderCallback: this.onDrawComplete.bind(this)});
     }
 
+
     onTransformComplete(e) {
         console.log('onTransformComplete()');
         this.drawSvg(0, 0, this.width, this.height);
     }
 
+
     onDrawComplete() {
         console.log('onDrawComplete');
-        //this.texture = new PIXI.Texture.fromCanvas(this.offscreenCanvas);
+
+        //TODO 테스트 코드
+        window.target = this;
 
         if(this.isFirstLoad === true) {
-            console.log('**************************');
-            console.log('FIRST LOAD()');
+            console.log('LOAD COMPLETE');
             this.isFirstLoad = false;
             this.image = new PIXI.Sprite(new PIXI.Texture.fromCanvas(this.offscreenCanvas));
             this.addChild(this.image);
+            this.emit(VectorContainer.LOAD_COMPLETE, {target:this});
         } else {
-            console.log('**************************');
-            console.log('DESTROY()');
-            //this.image = new PIXI.Sprite(new PIXI.Texture.fromCanvas(this.offscreenCanvas));
-            //this.pivot = {x:0, y:0};
-            //this.worldTransform.scale(1, 1);
-            //this.width = this.offscreenCanvas.width;
-            //this.height = this.offscreenCanvas.height;
-
-            window.target = this;
             this.scale = {x:1, y:1};
             this.image.texture.update();
             this.updateTransform();
-
-            this.emit('textureUpdate', {target:this});
+            this.emit(VectorContainer.TEXTURE_UPDATE, {target:this});
         }
-    }
-
-    onClick(e) {
-        this.emit('stickerClick', {target:this});
     }
 
 

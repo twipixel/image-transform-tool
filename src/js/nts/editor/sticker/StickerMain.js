@@ -1,11 +1,10 @@
-import {StickerLoader} from './../ui/StickerLoader';
+import {VectorContainer} from './../ui/VectorContainer';
 import {TransfromTool} from './../transform/TransformTool';
 
 export class StickerMain {
-    constructor(renderer, rootLayer, stickerLayer) {
-        console.log('StickerMain(' + renderer, rootLayer + ', ' + stickerLayer + ')');
+    constructor(rootLayer, stickerLayer) {
+        console.log('StickerMain(' + rootLayer + ', ' + stickerLayer + ')');
 
-        this.canvas = renderer.view;
         this.rootLayer = rootLayer;
         this.stickerLayer = stickerLayer;
 
@@ -24,64 +23,86 @@ export class StickerMain {
         ];
 
         this.initialize();
+        this.addDebug();
     }
+
 
     initialize() {
         this.createStickers();
-        setTimeout(this.startTest.bind(this), 2000);
     };
 
 
     createStickers() {
-        var count = 1 + parseInt(Math.random() * this.svgs.length);
-        console.log('createStickers, count:', count);
+        this.loadStickerCount = 0;
+        this.totalSticker = 1 + parseInt(Math.random() * this.svgs.length);
+        console.log('createStickers, totalSticker:', this.totalSticker);
 
-        for(var i=0; i<count; i++) {
-            var svgURL = this.svgs[i];
-            var sticker = new StickerLoader(svgURL);
-            this.stickers[i] = sticker;
+        for(var i=0; i<this.totalSticker; i++) {
+            var url = this.svgs[i];
+            var sticker = new VectorContainer();
             sticker.x = parseInt(Math.random() * 800);
             sticker.y = parseInt(Math.random() * 600);
-            sticker.on('stickerClick', this.onStickerClick.bind(this));
-            sticker.on('textureUpdate', this.onStickerTextureUpdate.bind(this));
+            sticker.on('click', this.onStickerClick.bind(this));
+            sticker.on(VectorContainer.LOAD_COMPLETE, this.onLoadComplete.bind(this));
+            sticker.load(url);
             this.stickerLayer.addChild(sticker);
+            this.stickers[i] = sticker;
         }
+    }
+
+
+    addDebug() {
+        window.document.addEventListener('keyup', this.onKeyUp.bind(this));
     }
 
 
     startTest() {
         console.log('START TEST');
-        // stickerLayer 변경 테스트
-        //this.stickerLayer.rotation = 0.3;
-        //this.stickerLayer.scale.x = 1.50;
-        //this.stickerLayer.scale.y = 1.50;
-        //this.stickerLayer.x = 160;
-        //this.stickerLayer.y = 40;
         this.stickerLayer.updateTransform();
 
         var options = {
             canvasOffsetX: 0,
             canvasOffsetY: 0,
             scaleOffsetX: this.stickerLayer.scale.x - 1,
-            scaleOffsetY: this.stickerLayer.scale.y - 1
+            scaleOffsetY: this.stickerLayer.scale.y - 1,
+            rotationLineLength: 25
         };
 
-        this.transformTool = new TransfromTool(this.canvas, options, this.rootLayer, this.stickerLayer);
+        this.transformTool = new TransfromTool(this.rootLayer, this.stickerLayer, options);
     }
 
 
-    onStickerTextureUpdate(e) {
-        console.log('onStickerTextureUpdate');
-        this.transformTool.setPivotByLocalPoint({x:0, y:0});
-        this.stickerLayer.updateTransform();
+    onLoadComplete(e) {
+        if(++this.loadStickerCount == this.totalSticker)
+            this.startTest();
     }
 
 
     onStickerClick(e) {
-        var target = e.target;
-        this.transformTool.setTarget(target);
+        this.transformTool.setTarget(e.target);
     }
 
+
+    onKeyUp(e) {
+        switch (e.keyCode) {
+            case 27: //consts.KeyCode.ESC:
+                break;
+            case 32: //consts.KeyCode.SPACE:
+                break;
+            case 49: //consts.KeyCode.NUM_1:
+                break;
+            case 50: //consts.KeyCode.NUM_2:
+                break;
+            case 51: //consts.KeyCode.NUM_3:
+                break;
+            case 52: //consts.KeyCode.NUM_4:
+                break;
+            case 53: //consts.KeyCode.NUM_5:
+                break;
+            case 54: //consts.KeyCode.NUM_6:
+                break;
+        }
+    };
 
     resize() {
 

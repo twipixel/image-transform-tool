@@ -3,6 +3,7 @@ import {Calc} from './../utils/Calculator';
 import {PointUtil} from './../utils/PointUtil';
 import {ToolControl} from './ToolControl';
 import {ToolControlType} from './ToolControlType';
+import {VectorContainer} from './../ui/VectorContainer';
 
 
 export class TransfromTool {
@@ -11,8 +12,7 @@ export class TransfromTool {
         return 'transformComplete';
     }
 
-    constructor(canvas, options, rootLayer, stickerLayer) {
-        this.canvas = canvas;
+    constructor(rootLayer, stickerLayer, options) {
         this.rootLayer = rootLayer;
         this.stickerLayer = stickerLayer;
 
@@ -24,16 +24,14 @@ export class TransfromTool {
                 rotationLineLength: 25
             };
 
+        // stickerLayer의 스케일이 1이 아닐 경우 그 차이값 (this.stickerLayer.scale.x - 1)
         this.scaleOffsetX = this.options.scaleOffsetX;
         this.scaleOffsetY = this.options.scaleOffsetY;
         this.canvasOffsetX = this.options.canvasOffsetX;
         this.canvasOffsetY = this.options.canvasOffsetY;
         this.rotationLineLength = this.options.rotationLineLength || 25;
 
-        console.log('TransformTool');
-        console.log('scaleOffset[' + this.scaleOffsetX + ', ' +  this.scaleOffsetY + ']');
         this.initialize();
-        this.addDebug();
     };
 
 
@@ -43,6 +41,9 @@ export class TransfromTool {
 
         this.g = this.graphics = new PIXI.Graphics();
         this.rootLayer.addChild(this.graphics);
+
+        this.target = null;
+        this._targetTextureUpdateListener = null;
 
         var toolControlOptions = {
             size: 10,
@@ -89,9 +90,9 @@ export class TransfromTool {
                     break;
 
                 case ToolControlType.ROTATION:
-                    control.on(ToolControl.ROTATE_START, this.onTargetRotateStart.bind(this));
-                    control.on(ToolControl.ROTATE, this.onTargetRotate.bind(this));
-                    control.on(ToolControl.ROTATE_END, this.onTargetRotateEnd.bind(this));
+                    control.on(ToolControl.ROTATE_START, this.onRotateStart.bind(this));
+                    control.on(ToolControl.ROTATE, this.onRotate.bind(this));
+                    control.on(ToolControl.ROTATE_END, this.onRotateEnd.bind(this));
                     break;
 
                 default:
@@ -104,44 +105,56 @@ export class TransfromTool {
     };
 
 
-    addDebug() {
-        window.document.addEventListener('keyup', this.onKeyUp.bind(this));
-    }
-
-
     setTarget(pixiSprite) {
-        console.log('-----------------------------------');
+        // TODO 테스트 코드
         window.target = window.t = pixiSprite;
-        console.log(pixiSprite);
-        console.log('-----------------------------------');
 
         this.target = pixiSprite;
-        this._diffScaleX = this.target.scale.x - 1;
-        this._diffScaleY = this.target.scale.y - 1;
+        this.removeTextureUpdateEvent();
+        this.addTextureUpdateEvent();
 
-        //this.addTargetDownEvent();
+        //현재는 scale 후 스케일로 1로 강제 조정하기 때문에 diffScale의 차이가 없습니다.
+        this._diffScaleX = 0;
+        this._diffScaleY = 0;
+        //타겟의 스케일이 1로 변하지 않았을 때는 차이 값을 저장했다가 변형 시 반영해야 합니다.
+        //this._diffScaleX = this.target.scale.x - 1;
+        //this._diffScaleY = this.target.scale.y - 1;
 
-        var localBounds = pixiSprite.getLocalBounds();
-        console.log('');
-        console.log('-----------------------------------------------------------');
-        console.log('setTarget');
-        console.log('-----------------------------------------------------------');
-        console.log('scale[' + this.target.scale.x + ', ' + this.target.scale.y + ']');
-        console.log('diffScale[' + Calc.digit(this._diffScaleX) + ', ' + Calc.digit(this._diffScaleY) + ']');
-        console.log('wh[' + pixiSprite.width + ', ' + pixiSprite.width + ']');
-        console.log('localBounds[' + localBounds.width + ', ' + localBounds.height + ']');
-        console.log('-----------------------------------------------------------');
-
-
-        this.setControls();
-        this.updateTransform();
-        this.draw();
-        this.updatePrevLt();
+        this.update();
     };
 
 
-    disposeTarget() {
+    releaseTarget() {
+        if(this.target === null)
+            return;
 
+        if(this._targetTextureUpdateListener !== null) {
+            this.target.off(VectorContainer.TEXTURE_UPDATE, this._targetTextureUpdateListener);
+        }
+
+        this.target = null;
+        this._targetTextureUpdateListener = null;
+    }
+
+
+    addTextureUpdateEvent() {
+        this._targetTextureUpdateListener = this.onTextureUpdate.bind(this);
+        this.target.on(VectorContainer.TEXTURE_UPDATE, this._targetTextureUpdateListener);
+    }
+
+
+    removeTextureUpdateEvent() {
+        if(this._targetTextureUpdateListener !== null) {
+            this.target.off(VectorContainer.TEXTURE_UPDATE, this._targetTextureUpdateListener);
+        }
+    }
+
+
+    update() {
+        this.setControls();
+        this.updateTransform();
+        this.draw();
+        this.updatePrevTargetLt();
     }
 
 
@@ -179,53 +192,9 @@ export class TransfromTool {
     }
 
 
-    updatePrevLt() {
-        this.prevLtX = this.lt.x;
-        this.prevLtY = this.lt.y;
-    }
-
-
-    onTargetRotateStart(e) {
-        this.setPivotByControl(e.target);
-    }
-
-    onTargetRotate(e) {
-        this.target.rotation += e.changeRadian;
-
-        this.draw();
-        this.updatePrevLt();
-    }
-
-    onTargetRotateEnd(e) {
-        this.setTarget(this.target);
-    }
-
-
-    onControlMoveStart(e) {
-        this.xScaleSign = (this.target.scale.x < 0) ? -1 : 1;
-        this.yScaleSign = (this.target.scale.y < 0) ? -1 : 1;
-        this.startMousePoint = {x: e.currentMousePoint.x, y: e.currentMousePoint.y};
-
-        this.setPivotByControl(e.target);
-        this.updatePrevLt();
-    }
-
-
-    onControlMove(e) {
-        this.doTransform(e);
-        this.draw();
-        this.updatePrevLt();
-    }
-
-
-    onControlMoveEnd(e) {
-        //this.draw();
-        //this.updatePrevLt();
-        //this._diffScaleX = this.target.scale.x - 1;
-        //this._diffScaleY = this.target.scale.y - 1;
-
-        this.setTarget(this.target);
-        this.target.emit(TransfromTool.TRANSFORM_COMPLETE);
+    updatePrevTargetLt() {
+        this.prevTargetLtX = this.tagetLt.x;
+        this.prevTargetLtY = this.tagetLt.y;
     }
 
 
@@ -286,7 +255,7 @@ export class TransfromTool {
         var g = this.g;
         var transform = this.target.worldTransform.clone();
         var globalPoints = {
-            ro: this.rotatePoint,
+            ro: this.targetRotatePoint,
             cl: transform.apply(this.c.cl.localPoint),
             tl: transform.apply(this.c.tl.localPoint),
             tr: transform.apply(this.c.tr.localPoint),
@@ -321,52 +290,28 @@ export class TransfromTool {
 
     setPivotByLocalPoint(localPoint) {
         this.target.pivot = localPoint;
-        var offsetX = this.lt.x - this.prevLtX;
-        var offsetY = this.lt.y - this.prevLtY;
+        var offsetX = this.tagetLt.x - this.prevTargetLtX;
+        var offsetY = this.tagetLt.y - this.prevTargetLtY;
         // stickerLayer 의 스케일 포함한 offset 결과값
-        //var realOffsetX = offsetX / (this.target.scale.x + this.scaleOffsetX);
-        //var realOffsetY = offsetY / (this.target.scale.y + this.scaleOffsetY);
         var targetScaleOffsetX = (this.scaleOffsetX * 100) / 100 * offsetX;
         var targetScaleOffsetY = (this.scaleOffsetY * 100) / 100 * offsetY;
-
         this.target.x = this.target.x - offsetX + targetScaleOffsetX;
         this.target.y = this.target.y - offsetY + targetScaleOffsetY;
-        //this.target.x = this.target.x - realOffsetX + targetScaleOffsetX;
-        //this.target.y = this.target.y - realOffsetY + targetScaleOffsetY;
-
-        //this.target.updateTransform();
-        this.updatePrevLt();
+        this.updatePrevTargetLt();
     }
 
 
     setPivotByControl(control) {
         this.pivot = this.getPivot(control);
         this.target.pivot = this.pivot.localPoint;
-        var offsetX = this.lt.x - this.prevLtX;
-        var offsetY = this.lt.y - this.prevLtY;
+        var offsetX = this.tagetLt.x - this.prevTargetLtX;
+        var offsetY = this.tagetLt.y - this.prevTargetLtY;
         // stickerLayer 의 스케일 포함한 offset 결과값
-        //var realOffsetX = offsetX / (this.target.scale.x + this.scaleOffsetX);
-        //var realOffsetY = offsetY / (this.target.scale.y + this.scaleOffsetY);
         var targetScaleOffsetX = (this.scaleOffsetX * 100) / 100 * offsetX;
         var targetScaleOffsetY = (this.scaleOffsetY * 100) / 100 * offsetY;
-
-
-        //var realOffsetX = 0;
-        //var realOffsetY = 0;
-        console.log('::: setPivot :::');
-        console.log('offset[' + Calc.digit(offsetX) + ', ' + Calc.digit(offsetY) + ']');
-        console.log('scale[' + Calc.digit(this.target.scale.x) + ', ' + Calc.digit(this.target.scale.y) + ']');
-        //console.log('realOffset[' + Calc.digit(realOffsetX) + ', ' + Calc.digit(realOffsetY) + ']');
-        console.log('scaleOffset[' + Calc.digit(this.scaleOffsetX) + ', ' + Calc.digit(this.scaleOffsetY) + ']');
-        console.log('diffScale[' + Calc.digit(this._diffScaleX) + ', ' + Calc.digit(this._diffScaleY) + ']');
-
         this.target.x = this.target.x - offsetX + targetScaleOffsetX;
         this.target.y = this.target.y - offsetY + targetScaleOffsetY;
-        //this.target.x = this.target.x - realOffsetX + targetScaleOffsetX;
-        //this.target.y = this.target.y - realOffsetY + targetScaleOffsetY;
-
-        //this.target.updateTransform();
-        this.updatePrevLt();
+        this.updatePrevTargetLt();
     }
 
 
@@ -392,123 +337,72 @@ export class TransfromTool {
                 return this.c.mc;
             case ToolControlType.ROTATION:
                 return this.c.mc;
-                break;
             case ToolControlType.CLOSE:
                 return this.c.cl;
-                break;
         }
     }
 
 
-
-    addTargetDownEvent() {
-        this.removeTargetDownEvent();
-        this.removeTargetMoveEvent();
-
-        this._targetDownListener = this.onTargetDown.bind(this);
-        this.target.interactive = true;
-        this.target.on('mousedown', this._targetDownListener);
-    };
-
-    removeTargetDownEvent() {
-        this.target.off('mousedown', this._targetDownListener);
-    };
-
-    addTargetMoveEvent() {
-        this._targetMoveListener = this.onTargetMove.bind(this);
-        this._targetUpListener = this.onTargetUp.bind(this);
-
-        window.document.addEventListener('mousemove', this._targetMoveListener);
-        window.document.addEventListener('mouseup', this._targetUpListener);
-    };
-
-    removeTargetMoveEvent() {
-        window.document.removeEventListener('mousemove', this._targetMoveListener);
-        window.document.removeEventListener('mouseup', this._targetUpListener);
-    };
+    onRotateStart(e) {
+        this.setPivotByControl(e.target);
+    }
 
 
-    onTargetDown(e) {
-        e.stopPropagation();
-        this.prevMousePoint = this.currentMousePoint = {x: e.data.global.x, y: e.data.global.y};
+    onRotate(e) {
+        this.target.rotation += e.changeRadian;
 
-        this.c.mc.emit(ToolControl.MOVE_START, {
-            target: this.c.mc,
-            type: this.c.mc.type,
-            currentMousePoint: this.currentMousePoint
-        });
-
-        this.addTargetMoveEvent();
-        this.removeTargetDownEvent();
-    };
-
-    onTargetMove(e) {
-        this.currentMousePoint = {x: e.clientX - this.canvasOffsetX, y: e.clientY - this.canvasOffsetY};
-
-        this.changeMovement = {
-            x: this.currentMousePoint.x - this.prevMousePoint.x,
-            y: this.currentMousePoint.y - this.prevMousePoint.y
-        };
-
-        this.c.mc.emit(ToolControl.MOVE_END, {
-            target: this.c.mc,
-            type: this.c.mc.type,
-            prevMousePoint: this.prevMousePoint,
-            changeMovement: this.changeMovement,
-            currentMousePoint: this.currentMousePoint
-        });
-
-        this.prevMousePoint = this.currentMousePoint;
-    };
-
-    onTargetUp(e) {
-        this.currentMousePoint = {x: e.clientX - this.canvasOffsetX, y: e.clientY - this.canvasOffsetY};
-
-        this.changeMovement = {
-            x: this.currentMousePoint.x - this.prevMousePoint.x,
-            y: this.currentMousePoint.y - this.prevMousePoint.y
-        };
-
-        this.c.mc.emit(ToolControl.MOVE_END, {
-            target: this.c.mc,
-            type: this.c.mc.type,
-            prevMousePoint: this.prevMousePoint,
-            changeMovement: this.changeMovement,
-            currentMousePoint: this.currentMousePoint
-        });
-
-        this.addTargetDownEvent();
-        this.removeTargetMoveEvent();
-    };
+        this.draw();
+        this.updatePrevTargetLt();
+    }
 
 
-    onKeyUp(e) {
-        switch (e.keyCode) {
-            case 27: //consts.KeyCode.ESC:
-                break;
-            case 32: //consts.KeyCode.SPACE:
-                break;
-            case 49: //consts.KeyCode.NUM_1:
-                break;
-            case 50: //consts.KeyCode.NUM_2:
-                break;
-            case 51: //consts.KeyCode.NUM_3:
-                break;
-            case 52: //consts.KeyCode.NUM_4:
-                break;
-            case 53: //consts.KeyCode.NUM_5:
-                break;
-            case 54: //consts.KeyCode.NUM_6:
-                break;
-        }
-    };
+    onRotateEnd(e) {
+        this.update();
+    }
 
 
-    get lt() {
+    onControlMoveStart(e) {
+        this.xScaleSign = (this.target.scale.x < 0) ? -1 : 1;
+        this.yScaleSign = (this.target.scale.y < 0) ? -1 : 1;
+        this.startMousePoint = {x: e.currentMousePoint.x, y: e.currentMousePoint.y};
+
+        this.setPivotByControl(e.target);
+        this.updatePrevTargetLt();
+    }
+
+
+    onControlMove(e) {
+        this.doTransform(e);
+        this.draw();
+        this.updatePrevTargetLt();
+    }
+
+
+    onControlMoveEnd(e) {
+        //this.draw();
+        //this.updatePrevLt();
+        //this._diffScaleX = this.target.scale.x - 1;
+        //this._diffScaleY = this.target.scale.y - 1;
+
+        //this.setTarget(this.target);
+        this.target.emit(TransfromTool.TRANSFORM_COMPLETE);
+    }
+
+
+    onTextureUpdate(e) {
+        this.setPivotByLocalPoint({x:0, y:0});
+        this.update();
+    }
+
+
+
+
+
+    get tagetLt() {
         return this.target.toGlobal({x: 0, y: 0});
     }
 
-    get rotatePoint() {
+    get targetRotatePoint() {
         if(!this.c)
             return new PIXI.Point(0, 0);
 
