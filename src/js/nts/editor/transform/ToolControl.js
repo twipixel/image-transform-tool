@@ -3,6 +3,9 @@ import {ToolControlType} from './ToolControlType';
 
 export class ToolControl extends PIXI.Sprite {
 
+    static get DELETE() {
+        return 'delete';
+    }
     static get MOVE_START() {
         return 'moveStart';
     }
@@ -20,9 +23,6 @@ export class ToolControl extends PIXI.Sprite {
     }
     static get ROTATE_END() {
         return 'rotateEnd';
-    }
-    static get CLOSE() {
-        return 'close';
     }
 
 
@@ -80,15 +80,15 @@ export class ToolControl extends PIXI.Sprite {
                 break;
 
             case ToolControlType.MIDDLE_CENTER:
-                this.drawTranslateControl();
+                this.drawControl();
                 break;
 
             case ToolControlType.ROTATION:
                 this.drawRotation();
                 break;
 
-            case ToolControlType.CLOSE:
-                this.drawCloseButton();
+            case ToolControlType.DELETE:
+                this.drawDeleteButton();
                 break;
         }
     }
@@ -102,10 +102,17 @@ export class ToolControl extends PIXI.Sprite {
     }
 
 
-    drawTranslateControl() {
+    drawCenter(lt, rt, rb, lb) {
         this.g.clear();
-        this.g.beginFill(this.color, this.alpha);
-        this.g.drawRect(-this.half, -this.half, this.size, this.size);
+        this.g.lineStyle(5, 0x333333);
+        this.g.beginFill(0xFF3300, 0.3);
+        this.g.moveTo(lt.x, lt.y);
+        this.g.lineTo(rt.x, rt.y);
+        this.g.lineTo(rb.x, rb.y);
+        this.g.lineTo(lb.x, lb.y);
+        this.g.lineTo(lt.x, lt.y);
+        //this.g.drawRect(lt.x, lt.y, rt.x, rb.y);
+        //this.g.drawRect(-(width / 2), -(height / 2), width, height);
         this.g.endFill();
     }
 
@@ -118,7 +125,7 @@ export class ToolControl extends PIXI.Sprite {
     }
 
 
-    drawCloseButton() {
+    drawDeleteButton() {
         this.g.clear();
         this.g.beginFill(this.color, this.alpha);
         this.g.drawRect(-this.half, -this.half, this.size, this.size);

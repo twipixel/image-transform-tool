@@ -21,6 +21,7 @@ export class TransfromTool {
                 scaleOffsetY: 0,
                 canvasOffsetX: 0,
                 canvasOffsetY: 0,
+                deleteButtonOffsetY: 20,
                 rotationLineLength: 25
             };
 
@@ -30,6 +31,7 @@ export class TransfromTool {
         this.canvasOffsetX = this.options.canvasOffsetX;
         this.canvasOffsetY = this.options.canvasOffsetY;
         this.rotationLineLength = this.options.rotationLineLength || 25;
+        this.deleteButtonOffsetY = this.options.deleteButtonOffsetY || 20;
 
         this.initialize();
     };
@@ -45,7 +47,8 @@ export class TransfromTool {
         this.target = null;
         this._targetTextureUpdateListener = null;
 
-        var toolControlOptions = {
+
+        var deleteButtonOptions = {
             size: 10,
             alpha: 1,
             thickness: 1,
@@ -65,37 +68,65 @@ export class TransfromTool {
             canvasOffsetY: this.canvasOffsetY
         };
 
-        this.c = this.controls = {
-            cl: new ToolControl(ToolControlType.CLOSE, toolControlOptions),
-            ro: new ToolControl(ToolControlType.ROTATION, rotationOptions),
-            tl: new ToolControl(ToolControlType.TOP_LEFT, toolControlOptions),
-            tc: new ToolControl(ToolControlType.TOP_CENTER, toolControlOptions),
-            tr: new ToolControl(ToolControlType.TOP_RIGHT, toolControlOptions),
-            ml: new ToolControl(ToolControlType.MIDDLE_LEFT, toolControlOptions),
-            mc: new ToolControl(ToolControlType.MIDDLE_CENTER, toolControlOptions),
-            mr: new ToolControl(ToolControlType.MIDDLE_RIGHT, toolControlOptions),
-            bl: new ToolControl(ToolControlType.BOTTOM_LEFT, toolControlOptions),
-            bc: new ToolControl(ToolControlType.BOTTOM_CENTER, toolControlOptions),
-            br: new ToolControl(ToolControlType.BOTTOM_RIGHT, toolControlOptions)
+        var controlOptions = {
+            size: 10,
+            alpha: 1,
+            thickness: 1,
+            color: 0xFFFFFF,
+            defaultCursor: 'pointer',
+            canvasOffsetX: this.canvasOffsetX,
+            canvasOffsetY: this.canvasOffsetY
         };
+
+
+
+        this.c = this.controls = {
+            de: new ToolControl(ToolControlType.DELETE, deleteButtonOptions),
+            ro: new ToolControl(ToolControlType.ROTATION, rotationOptions),
+            tl: new ToolControl(ToolControlType.TOP_LEFT, controlOptions),
+            tc: new ToolControl(ToolControlType.TOP_CENTER, controlOptions),
+            tr: new ToolControl(ToolControlType.TOP_RIGHT, controlOptions),
+            ml: new ToolControl(ToolControlType.MIDDLE_LEFT, controlOptions),
+            mr: new ToolControl(ToolControlType.MIDDLE_RIGHT, controlOptions),
+            bl: new ToolControl(ToolControlType.BOTTOM_LEFT, controlOptions),
+            bc: new ToolControl(ToolControlType.BOTTOM_CENTER, controlOptions),
+            br: new ToolControl(ToolControlType.BOTTOM_RIGHT, controlOptions),
+            mc: new ToolControl(ToolControlType.MIDDLE_CENTER, controlOptions)
+        };
+
+        // 맨 아래에 위치시킵니다.
+        this.rootLayer.addChild(this.c.mc);
+        this.c.mc.on(ToolControl.MOVE_START, this.onControlMoveStart.bind(this));
+        this.c.mc.on(ToolControl.MOVE, this.onControlMove.bind(this));
+        this.c.mc.on(ToolControl.MOVE_END, this.onControlMoveEnd.bind(this));
 
         for (var prop in this.controls) {
             var control = this.controls[prop];
             control.visible = false;
             control.centerPoint = this.controls.mc;
-            this.rootLayer.addChild(control);
 
             switch (control.type) {
-                case ToolControlType.CLOSE:
+                case ToolControlType.DELETE:
+                    this.rootLayer.addChild(control);
+                    control.on('click', this.onDelete.bind(this));
                     break;
 
                 case ToolControlType.ROTATION:
+                    this.rootLayer.addChild(control);
                     control.on(ToolControl.ROTATE_START, this.onRotateStart.bind(this));
                     control.on(ToolControl.ROTATE, this.onRotate.bind(this));
                     control.on(ToolControl.ROTATE_END, this.onRotateEnd.bind(this));
                     break;
 
-                default:
+                case ToolControlType.TOP_LEFT:
+                case ToolControlType.TOP_RIGHT:
+                case ToolControlType.TOP_CENTER:
+                case ToolControlType.MIDDLE_LEFT:
+                case ToolControlType.MIDDLE_RIGHT:
+                case ToolControlType.BOTTOM_LEFT:
+                case ToolControlType.BOTTOM_RIGHT:
+                case ToolControlType.BOTTOM_CENTER:
+                    this.rootLayer.addChild(control);
                     control.on(ToolControl.MOVE_START, this.onControlMoveStart.bind(this));
                     control.on(ToolControl.MOVE, this.onControlMove.bind(this));
                     control.on(ToolControl.MOVE_END, this.onControlMoveEnd.bind(this));
@@ -121,6 +152,7 @@ export class TransfromTool {
         //this._diffScaleY = this.target.scale.y - 1;
 
         this.update();
+        this.c.mc.drawCenter(this.c.tl.globalPoints, this.c.tr, this.c.globalPoints, this.c.br.globalPoints, this.c.bl.globalPoints);
     };
 
 
@@ -171,7 +203,8 @@ export class TransfromTool {
         this.c.ml.localPoint = PointUtil.interpolate(this.c.bl.localPoint, this.c.tl.localPoint, .5);
         this.c.mr.localPoint = PointUtil.interpolate(this.c.br.localPoint, this.c.tr.localPoint, .5);
         this.c.mc.localPoint = PointUtil.interpolate(this.c.bc.localPoint, this.c.tc.localPoint, .5);
-        this.c.ro.localPoint = PointUtil.add(this.controls.tc.localPoint.clone(), new PIXI.Point(0, -this.rotationLineLength));
+        this.c.de.localPoint = PointUtil.add(this.c.tl.localPoint.clone(), new PIXI.Point(0, this.deleteButtonOffsetY));
+        this.c.ro.localPoint = PointUtil.add(this.c.tc.localPoint.clone(), new PIXI.Point(0, this.rotationLineLength));
 
         for (var prop in this.controls) {
             var control = this.controls[prop];
@@ -193,8 +226,8 @@ export class TransfromTool {
 
 
     updatePrevTargetLt() {
-        this.prevTargetLtX = this.tagetLt.x;
-        this.prevTargetLtY = this.tagetLt.y;
+        this.prevLtX = this.lt.x;
+        this.prevLtY = this.lt.y;
     }
 
 
@@ -222,9 +255,9 @@ export class TransfromTool {
 
 
     move(e) {
-        var changeMovement = e.changeMovement;
-        this.target.x += changeMovement.x;
-        this.target.y += changeMovement.y;
+        var change = e.changeMovement;
+        this.target.x += change.x;
+        this.target.y += change.y;
     }
 
 
@@ -255,8 +288,8 @@ export class TransfromTool {
         var g = this.g;
         var transform = this.target.worldTransform.clone();
         var globalPoints = {
-            ro: this.targetRotatePoint,
-            cl: transform.apply(this.c.cl.localPoint),
+            de: this.deleteButtonPosition,
+            ro: this.rotateControlPosition,
             tl: transform.apply(this.c.tl.localPoint),
             tr: transform.apply(this.c.tr.localPoint),
             tc: transform.apply(this.c.tc.localPoint),
@@ -279,10 +312,11 @@ export class TransfromTool {
         g.lineTo(globalPoints.ro.x, globalPoints.ro.y);
 
         for (var prop in this.controls) {
-            var c = this.controls[prop];
             var p = globalPoints[prop];
+            var c = this.controls[prop];
             c.x = p.x;
             c.y = p.y;
+            console.log(prop + ', xy[' + this.c[prop].x + ', ' + this.c[prop].y + '], p[' + p.x + ', ' + p.y + ']');
             c.visible = true;
         }
     }
@@ -290,8 +324,8 @@ export class TransfromTool {
 
     setPivotByLocalPoint(localPoint) {
         this.target.pivot = localPoint;
-        var offsetX = this.tagetLt.x - this.prevTargetLtX;
-        var offsetY = this.tagetLt.y - this.prevTargetLtY;
+        var offsetX = this.lt.x - this.prevLtX;
+        var offsetY = this.lt.y - this.prevLtY;
         // stickerLayer 의 스케일 포함한 offset 결과값
         var targetScaleOffsetX = (this.scaleOffsetX * 100) / 100 * offsetX;
         var targetScaleOffsetY = (this.scaleOffsetY * 100) / 100 * offsetY;
@@ -304,8 +338,8 @@ export class TransfromTool {
     setPivotByControl(control) {
         this.pivot = this.getPivot(control);
         this.target.pivot = this.pivot.localPoint;
-        var offsetX = this.tagetLt.x - this.prevTargetLtX;
-        var offsetY = this.tagetLt.y - this.prevTargetLtY;
+        var offsetX = this.lt.x - this.prevLtX;
+        var offsetY = this.lt.y - this.prevLtY;
         // stickerLayer 의 스케일 포함한 offset 결과값
         var targetScaleOffsetX = (this.scaleOffsetX * 100) / 100 * offsetX;
         var targetScaleOffsetY = (this.scaleOffsetY * 100) / 100 * offsetY;
@@ -317,6 +351,10 @@ export class TransfromTool {
 
     getPivot(control) {
         switch (control.type) {
+            case ToolControlType.DELETE:
+                return this.c.de;
+            case ToolControlType.ROTATION:
+                return this.c.mc;
             case ToolControlType.TOP_LEFT:
                 return this.c.br;
             case ToolControlType.TOP_CENTER:
@@ -335,11 +373,12 @@ export class TransfromTool {
                 return this.c.tl;
             case ToolControlType.MIDDLE_CENTER:
                 return this.c.mc;
-            case ToolControlType.ROTATION:
-                return this.c.mc;
-            case ToolControlType.CLOSE:
-                return this.c.cl;
         }
+    }
+
+
+    onDelete(e) {
+        console.log('Delete Click');
     }
 
 
@@ -379,12 +418,6 @@ export class TransfromTool {
 
 
     onControlMoveEnd(e) {
-        //this.draw();
-        //this.updatePrevLt();
-        //this._diffScaleX = this.target.scale.x - 1;
-        //this._diffScaleY = this.target.scale.y - 1;
-
-        //this.setTarget(this.target);
         this.target.emit(TransfromTool.TRANSFORM_COMPLETE);
     }
 
@@ -398,18 +431,31 @@ export class TransfromTool {
 
 
 
-    get tagetLt() {
+    get lt() {
         return this.target.toGlobal({x: 0, y: 0});
     }
 
-    get targetRotatePoint() {
+    get deleteButtonPosition() {
+        if(!this.c)
+            return new PIXI.Point(0, 0);
+
+        var transform = this.target.worldTransform.clone();
+        var tl = transform.apply(this.c.tl.localPoint);
+        var ml = transform.apply(this.c.ml.localPoint);
+        return PointUtil.getAddedInterpolate(tl, ml, this.deleteButtonOffsetY);
+    }
+
+    get rotateControlPosition() {
         if(!this.c)
             return new PIXI.Point(0, 0);
 
         var transform = this.target.worldTransform.clone();
         var tc = transform.apply(this.c.tc.localPoint);
         var ro = transform.apply(this.c.ro.localPoint);
-        return PointUtil.getAddedInterpolate(tc, ro, -this.rotationLineLength);
+        return PointUtil.getAddedInterpolate(tc, ro, this.rotationLineLength);
     }
+
+
+
 
 }

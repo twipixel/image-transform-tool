@@ -34,8 +34,8 @@ export class StickerMain {
 
     createStickers() {
         this.loadStickerCount = 0;
-        this.totalSticker = 1 + parseInt(Math.random() * this.svgs.length);
-        console.log('createStickers, totalSticker:', this.totalSticker);
+        this.totalSticker = 4 + parseInt(Math.random() * this.svgs.length - 3);
+        console.log('createStickers(), totalSticker:', this.totalSticker);
 
         for(var i=0; i<this.totalSticker; i++) {
             var url = this.svgs[i];
@@ -63,9 +63,10 @@ export class StickerMain {
         var options = {
             canvasOffsetX: 0,
             canvasOffsetY: 0,
+            rotationLineLength: 25,
+            deleteButtonOffsetY: 20,
             scaleOffsetX: this.stickerLayer.scale.x - 1,
-            scaleOffsetY: this.stickerLayer.scale.y - 1,
-            rotationLineLength: 25
+            scaleOffsetY: this.stickerLayer.scale.y - 1
         };
 
         this.transformTool = new TransfromTool(this.rootLayer, this.stickerLayer, options);

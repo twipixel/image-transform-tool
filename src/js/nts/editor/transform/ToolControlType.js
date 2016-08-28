@@ -1,7 +1,7 @@
 export class ToolControlType {
 
-    static get CLOSE() {
-        return 'close';
+    static get DELETE() {
+        return 'delete';
     }
 
     static get ROTATION() {

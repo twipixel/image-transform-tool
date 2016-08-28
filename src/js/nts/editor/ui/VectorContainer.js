@@ -63,19 +63,15 @@ export class VectorContainer extends PIXI.Container {
 
 
     onTransformComplete(e) {
-        console.log('onTransformComplete()');
         this.drawSvg(0, 0, this.width, this.height);
     }
 
 
     onDrawComplete() {
-        console.log('onDrawComplete');
-
         //TODO 테스트 코드
         window.target = this;
 
         if(this.isFirstLoad === true) {
-            console.log('LOAD COMPLETE');
             this.isFirstLoad = false;
             this.image = new PIXI.Sprite(new PIXI.Texture.fromCanvas(this.offscreenCanvas));
             this.addChild(this.image);
@@ -83,7 +79,6 @@ export class VectorContainer extends PIXI.Container {
         } else {
             this.scale = {x:1, y:1};
             this.image.texture.update();
-            this.updateTransform();
             this.emit(VectorContainer.TEXTURE_UPDATE, {target:this});
         }
     }
