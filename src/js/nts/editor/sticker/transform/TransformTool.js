@@ -25,6 +25,15 @@ export class TransformTool {
                 rotationLineLength: 25
             };
 
+        console.log('');
+        console.log('new TransformTool()');
+        console.log('-----------------------------------');
+        for(var prop in this.options) {
+            console.log(prop + ':' + this.options[prop]);
+        }
+        console.log('-----------------------------------');
+
+
         // stickerLayer의 스케일이 1이 아닐 경우 그 차이값 (this.stickerLayer.scale.x - 1)
         this.scaleOffsetX = this.options.scaleOffsetX;
         this.scaleOffsetY = this.options.scaleOffsetY;
@@ -140,6 +149,7 @@ export class TransformTool {
         // TODO 테스트 코드
         window.target = window.t = pixiSprite;
 
+        console.log('**** setTarget');
         this.target = pixiSprite;
         this.removeTextureUpdateEvent();
         this.addTextureUpdateEvent();
@@ -147,6 +157,7 @@ export class TransformTool {
         //현재는 scale 후 스케일로 1로 강제 조정하기 때문에 diffScale의 차이가 없습니다.
         this._diffScaleX = 0;
         this._diffScaleY = 0;
+
         //타겟의 스케일이 1로 변하지 않았을 때는 차이 값을 저장했다가 변형 시 반영해야 합니다.
         //this._diffScaleX = this.target.scale.x - 1;
         //this._diffScaleY = this.target.scale.y - 1;
@@ -191,9 +202,14 @@ export class TransformTool {
 
 
     setControls() {
+        var scaleSignX = this.target.scaleSignX;
+        var scaleSignY = this.target.scaleSignY;
         var localBounds = this.target.getLocalBounds();
-        var w = localBounds.width;
-        var h = localBounds.height;
+        var w = localBounds.width * scaleSignX;
+        var h = localBounds.height * scaleSignY;
+        var deleteButtonOffsetY = this.deleteButtonOffsetY * scaleSignY;
+        var rotationLineLength = this.rotationLineLength * scaleSignY;
+
         this.c.tl.localPoint = new PIXI.Point(0, 0);
         this.c.tr.localPoint = new PIXI.Point(w, 0);
         this.c.tc.localPoint = PointUtil.interpolate(this.c.tr.localPoint, this.c.tl.localPoint, .5);
@@ -203,8 +219,10 @@ export class TransformTool {
         this.c.ml.localPoint = PointUtil.interpolate(this.c.bl.localPoint, this.c.tl.localPoint, .5);
         this.c.mr.localPoint = PointUtil.interpolate(this.c.br.localPoint, this.c.tr.localPoint, .5);
         this.c.mc.localPoint = PointUtil.interpolate(this.c.bc.localPoint, this.c.tc.localPoint, .5);
-        this.c.de.localPoint = PointUtil.add(this.c.tl.localPoint.clone(), new PIXI.Point(0, this.deleteButtonOffsetY));
-        this.c.ro.localPoint = PointUtil.add(this.c.tc.localPoint.clone(), new PIXI.Point(0, this.rotationLineLength));
+        //this.c.de.localPoint = PointUtil.add(this.c.tl.localPoint.clone(), new PIXI.Point(0, this.deleteButtonOffsetY));
+        //this.c.ro.localPoint = PointUtil.add(this.c.tc.localPoint.clone(), new PIXI.Point(0, this.rotationLineLength));
+        this.c.de.localPoint = PointUtil.add(this.c.tl.localPoint.clone(), new PIXI.Point(0, deleteButtonOffsetY));
+        this.c.ro.localPoint = PointUtil.add(this.c.tc.localPoint.clone(), new PIXI.Point(0, rotationLineLength));
 
         for (var prop in this.controls) {
             var control = this.controls[prop];
@@ -246,11 +264,13 @@ export class TransformTool {
 
         var w = wh.x * 2;
         var h = wh.y * 2;
-        var ratioW = (vector.x / w) * this.xScaleSign;
-        var ratioH = (vector.y / h) * this.yScaleSign;
+        var ratioW = (vector.x / w);
+        var ratioH = (vector.y / h);
         var scaleX = 1 + (n * ratioW);
         var scaleY = 1 + (n * ratioH);
-        this.target.scale = {x: scaleX + this._diffScaleX, y: scaleY + this._diffScaleY};
+        scaleX = scaleX + this._diffScaleX;
+        scaleY = scaleY + this._diffScaleY;
+        this.target.scale = {x: scaleX, y: scaleY};
     }
 
 
@@ -322,6 +342,8 @@ export class TransformTool {
 
 
     setPivotByLocalPoint(localPoint) {
+        //this.target.pivot = localPoint;
+        this.target.setPivot(localPoint);
         this.target.pivot = localPoint;
         var offsetX = this.lt.x - this.prevLtX;
         var offsetY = this.lt.y - this.prevLtY;
@@ -336,7 +358,8 @@ export class TransformTool {
 
     setPivotByControl(control) {
         this.pivot = this.getPivot(control);
-        this.target.pivot = this.pivot.localPoint;
+        //this.target.pivot = this.pivot.localPoint;
+        this.target.setPivot(this.pivot.localPoint);
         var offsetX = this.lt.x - this.prevLtX;
         var offsetY = this.lt.y - this.prevLtY;
         // stickerLayer 의 스케일 포함한 offset 결과값
@@ -346,6 +369,7 @@ export class TransformTool {
         this.target.y = this.target.y - offsetY + targetScaleOffsetY;
         this.updatePrevTargetLt();
     }
+
 
 
     getPivot(control) {
@@ -396,12 +420,11 @@ export class TransformTool {
 
     onRotateEnd(e) {
         this.update();
+        this.c.mc.drawCenter(this.target.rotation, this.target.width, this.target.height);
     }
 
 
     onControlMoveStart(e) {
-        this.xScaleSign = (this.target.scale.x < 0) ? -1 : 1;
-        this.yScaleSign = (this.target.scale.y < 0) ? -1 : 1;
         this.startMousePoint = {x: e.currentMousePoint.x, y: e.currentMousePoint.y};
 
         this.setPivotByControl(e.target);
@@ -425,8 +448,10 @@ export class TransformTool {
         var target = e.target;
         var width = target.width;
         var height = target.height;
+        console.log('[TEXTURE UPDATE] wh[' + width + ', ' + height + ']');
         this.setPivotByLocalPoint({x:0, y:0});
         this.update();
+        this.c.mc.drawCenter(this.target.rotation, this.target.width, this.target.height);
     }
 
 
