@@ -152,7 +152,7 @@ export class TransfromTool {
         //this._diffScaleY = this.target.scale.y - 1;
 
         this.update();
-        this.c.mc.drawCenter(this.c.tl.globalPoints, this.c.tr, this.c.globalPoints, this.c.br.globalPoints, this.c.bl.globalPoints);
+        this.c.mc.drawCenter(this.target.rotation, this.target.width, this.target.height);
     };
 
 

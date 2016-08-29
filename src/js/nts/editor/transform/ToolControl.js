@@ -102,17 +102,11 @@ export class ToolControl extends PIXI.Sprite {
     }
 
 
-    drawCenter(lt, rt, rb, lb) {
+    drawCenter(rotation, width, height) {
+        this.rotation = rotation;
         this.g.clear();
-        this.g.lineStyle(5, 0x333333);
-        this.g.beginFill(0xFF3300, 0.3);
-        this.g.moveTo(lt.x, lt.y);
-        this.g.lineTo(rt.x, rt.y);
-        this.g.lineTo(rb.x, rb.y);
-        this.g.lineTo(lb.x, lb.y);
-        this.g.lineTo(lt.x, lt.y);
-        //this.g.drawRect(lt.x, lt.y, rt.x, rb.y);
-        //this.g.drawRect(-(width / 2), -(height / 2), width, height);
+        this.g.beginFill(0xFF33FF, 0.0);
+        this.g.drawRect(-(width / 2), -(height / 2), width, height);
         this.g.endFill();
     }
 
