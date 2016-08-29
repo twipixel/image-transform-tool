@@ -1,5 +1,5 @@
 import {Calc} from './../utils/Calculator';
-import {TransfromTool} from './../transform/TransformTool';
+import {TransformTool} from './../transform/TransformTool';
 
 export class VectorContainer extends PIXI.Container {
 
@@ -47,7 +47,7 @@ export class VectorContainer extends PIXI.Container {
 
 
     addEvent() {
-        this.on(TransfromTool.TRANSFORM_COMPLETE, this.onTransformComplete);
+        this.on(TransformTool.TRANSFORM_COMPLETE, this.onTransformComplete);
     }
 
 

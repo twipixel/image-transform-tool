@@ -1,5 +1,5 @@
 import {VectorContainer} from './ui/VectorContainer';
-import {TransfromTool} from './transform/TransformTool';
+import {TransformTool} from './transform/TransformTool';
 
 export class StickerMain {
     constructor(rootLayer, stickerLayer) {
@@ -69,7 +69,7 @@ export class StickerMain {
             scaleOffsetY: this.stickerLayer.scale.y - 1
         };
 
-        this.transformTool = new TransfromTool(this.rootLayer, this.stickerLayer, options);
+        this.transformTool = new TransformTool(this.rootLayer, this.stickerLayer, options);
     }
 
 

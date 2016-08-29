@@ -6,7 +6,7 @@ import {ToolControlType} from './ToolControlType';
 import {VectorContainer} from './../ui/VectorContainer';
 
 
-export class TransfromTool {
+export class TransformTool {
 
     static get TRANSFORM_COMPLETE() {
         return 'transformComplete';
@@ -417,7 +417,7 @@ export class TransfromTool {
 
 
     onControlMoveEnd(e) {
-        this.target.emit(TransfromTool.TRANSFORM_COMPLETE);
+        this.target.emit(TransformTool.TRANSFORM_COMPLETE);
     }
 
 
