@@ -144,6 +144,20 @@ export class TransformTool {
         }
     };
 
+    show() {
+        if(!this.controls) return;
+        this.g.visible = true;
+        for(var prop in this.controls)
+            this.controls[prop].visible = true;
+    }
+
+    hide() {
+        if(!this.controls) return;
+        this.g.visible = false;
+        for(var prop in this.controls)
+            this.controls[prop].visible = false;
+    }
+
 
     setTarget(pixiSprite) {
         // TODO 테스트 코드
