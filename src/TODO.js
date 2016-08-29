@@ -2,8 +2,8 @@
 /**
  * TODO LIST
  *
- * -스케일 처리
- * MIDDLE CENTER 꽉 채우기
+ * 객체 화면 가운데 생성하기
+ * 선택하면 Depth 최상위로 되도록 처리
  * 스케일 처리 포토 웹탑과 똑같이 처리
  * releaseTarget 처리
  * 커서 처리
