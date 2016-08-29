@@ -316,7 +316,6 @@ export class TransfromTool {
             var c = this.controls[prop];
             c.x = p.x;
             c.y = p.y;
-            console.log(prop + ', xy[' + this.c[prop].x + ', ' + this.c[prop].y + '], p[' + p.x + ', ' + p.y + ']');
             c.visible = true;
         }
     }
@@ -423,11 +422,12 @@ export class TransfromTool {
 
 
     onTextureUpdate(e) {
+        var target = e.target;
+        var width = target.width;
+        var height = target.height;
         this.setPivotByLocalPoint({x:0, y:0});
         this.update();
     }
-
-
 
 
 

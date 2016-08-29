@@ -30,12 +30,21 @@ export class VectorContainer extends PIXI.Container {
 
 
     initialize() {
+        this.xScaleSign = 1;
+        this.yScaleSign = 1;
+        this.isChangeX = false;
+        this.isChangeY = false;
         this.isFirstLoad = true;
         this.interactive = true;
-        this.offscreenCanvas = document.createElement('CANVAS');
-        this.offscreenCanvas.id = 'offscreen';
-        this.offscreenContext = this.offscreenCanvas.getContext('2d');
-        document.body.appendChild(this.offscreenCanvas);
+        this.canvgCanvas = document.createElement('CANVAS');
+        this.canvgCanvas.id = 'canvgCanvas';
+        this.canvgContext = this.canvgCanvas.getContext('2d');
+        document.body.appendChild(this.canvgCanvas);
+
+        this.flipCanvas = document.createElement('CANVAS');
+        this.flipCanvas.id = 'flipCanvas';
+        this.flipContext = this.flipCanvas.getContext('2d');
+        document.body.appendChild(this.flipCanvas);
     };
 
 
@@ -53,12 +62,18 @@ export class VectorContainer extends PIXI.Container {
     drawSvg(x, y, w, h) {
         console.log('drawSvg(' + this.url + x + ', ' + y + ', ' + w + ', ' + h + ')');
 
+        var signX = (w < 0) ? -1 : 1;
+        var signY = (h < 0) ? -1 : 1;
+        this.xScaleSign = this.xScaleSign * signX;
+        this.yScaleSign = this.yScaleSign * signY;
         w = Math.abs(w);
         h = Math.abs(h);
 
-        this.offscreenCanvas.width = w;
-        this.offscreenCanvas.height = h;
-        this.offscreenContext.drawSvg(this.url, x, y, w, h, {renderCallback: this.onDrawComplete.bind(this)});
+        this.flipCanvas.width = w;
+        this.flipCanvas.height = h;
+        this.canvgCanvas.width = w;
+        this.canvgCanvas.height = h;
+        this.canvgContext.drawSvg(this.url, x, y, w, h, {renderCallback: this.onDrawComplete.bind(this)});
     }
 
 
@@ -73,14 +88,37 @@ export class VectorContainer extends PIXI.Container {
 
         if(this.isFirstLoad === true) {
             this.isFirstLoad = false;
-            this.image = new PIXI.Sprite(new PIXI.Texture.fromCanvas(this.offscreenCanvas));
+            this.flipImage(this.xScaleSign, this.yScaleSign, this.canvgCanvas.width, this.canvgCanvas.height);
+            this.image = new PIXI.Sprite(new PIXI.Texture.fromCanvas(this.flipCanvas));
             this.addChild(this.image);
             this.emit(VectorContainer.LOAD_COMPLETE, {target:this});
         } else {
+            //this.scale = {x:1 * this.xScaleSign, y:1 * this.yScaleSign};
+            this.flipImage(this.xScaleSign, this.yScaleSign, this.canvgCanvas.width, this.canvgCanvas.height);
             this.scale = {x:1, y:1};
             this.image.texture.update();
-            this.emit(VectorContainer.TEXTURE_UPDATE, {target:this});
+            //this.updateTransform();
+            this.emit(VectorContainer.TEXTURE_UPDATE, {target:this, xScaleSign:this.xScaleSign, yScaleSign:this.yScaleSign});
         }
+
+        //this.flipTarget(this.xScaleSign, this.yScaleSign, this.canvgCanvas.width, this.canvgCanvas.height);
+    }
+
+
+    flipImage(signX, signY, width, height) {
+        var posX = (signX < 0) ? width * -1 : 0;
+        var posY = (signY < 0) ? height * -1 : 0;
+        //console.log('flipImage(' + signX + ', ' + signY + ', ' + width + ', ' + height + '), posX:' + posX + ', posY:' + posY);
+        this.flipContext.scale(signX, signY); // Set scale to flip the image
+        this.flipContext.drawImage(this.canvgCanvas, posX, posY, width, height);
+    }
+
+
+    flipTarget(signX, signY, width, height) {
+        var posX = (signX < 0) ? width * -1 : 0;
+        var posY = (signY < 0) ? height * -1 : 0;
+        this.x = this.x + posX;
+        this.y = this.y + posY;
     }
 
 
