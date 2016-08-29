@@ -105,7 +105,7 @@ export class ToolControl extends PIXI.Sprite {
     drawCenter(rotation, width, height) {
         this.rotation = rotation;
         this.g.clear();
-        this.g.beginFill(0xFF33FF, 0.3);
+        this.g.beginFill(0xFF33FF, 0.0);
         this.g.drawRect(-(width / 2), -(height / 2), width, height);
         this.g.endFill();
     }

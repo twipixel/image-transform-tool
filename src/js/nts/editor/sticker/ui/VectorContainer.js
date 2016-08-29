@@ -32,8 +32,6 @@ export class VectorContainer extends PIXI.Container {
     initialize() {
         this.xScaleSign = 1;
         this.yScaleSign = 1;
-        this.isChangeX = false;
-        this.isChangeY = false;
         this.isFirstLoad = true;
         this.interactive = true;
         this.canvgCanvas = document.createElement('CANVAS');
