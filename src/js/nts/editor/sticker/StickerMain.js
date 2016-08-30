@@ -60,6 +60,8 @@ export class StickerMain {
         console.log('START TEST');
 
         // 컨테이너에 스케일이 있는 경우 스케일 값을 전달해줍니다.
+        //this.stickerLayer.scale.x = 0.75;
+        //this.stickerLayer.scale.y = 0.75;
         //this.stickerLayer.scale.x = 1.5;
         //this.stickerLayer.scale.y = 1.5;
         this.stickerLayer.updateTransform();
