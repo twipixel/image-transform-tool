@@ -355,7 +355,6 @@ export class TransformTool {
 
 
     setPivotByLocalPoint(localPoint) {
-        //this.target.pivot = localPoint;
         this.target.setPivot(localPoint);
         this.target.pivot = localPoint;
         this.adjustPosition();
@@ -364,7 +363,6 @@ export class TransformTool {
 
     setPivotByControl(control) {
         this.pivot = this.getPivot(control);
-        //this.target.pivot = this.pivot.localPoint;
         this.target.setPivot(this.pivot.localPoint);
         this.adjustPosition();
     }
