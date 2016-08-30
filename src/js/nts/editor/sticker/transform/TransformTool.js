@@ -17,10 +17,10 @@ export class TransformTool {
         this.stickerLayer = stickerLayer;
 
         this.options = options || {
-                scaleOffsetX: 0,
-                scaleOffsetY: 0,
                 canvasOffsetX: 0,
                 canvasOffsetY: 0,
+                containerScaleX: 0,
+                containerScaleY: 0,
                 deleteButtonOffsetY: 20,
                 rotationLineLength: 25
             };
@@ -28,17 +28,15 @@ export class TransformTool {
         console.log('');
         console.log('new TransformTool()');
         console.log('-----------------------------------');
-        for(var prop in this.options) {
+        for(var prop in this.options)
             console.log(prop + ':' + this.options[prop]);
-        }
         console.log('-----------------------------------');
 
-
-        // stickerLayer의 스케일이 1이 아닐 경우 그 차이값 (this.stickerLayer.scale.x - 1)
-        this.scaleOffsetX = this.options.scaleOffsetX;
-        this.scaleOffsetY = this.options.scaleOffsetY;
         this.canvasOffsetX = this.options.canvasOffsetX;
         this.canvasOffsetY = this.options.canvasOffsetY;
+        // stickerLayer의 스케일이 1이 아닌 경우 스케일을 넘겨 줍니다.
+        this.containerScaleX = this.options.containerScaleX;
+        this.containerScaleY = this.options.containerScaleY;
         this.rotationLineLength = this.options.rotationLineLength || 25;
         this.deleteButtonOffsetY = this.options.deleteButtonOffsetY || 20;
 
@@ -144,12 +142,14 @@ export class TransformTool {
         }
     };
 
+
     show() {
         if(!this.controls) return;
         this.g.visible = true;
         for(var prop in this.controls)
             this.controls[prop].visible = true;
     }
+
 
     hide() {
         if(!this.controls) return;
@@ -371,8 +371,8 @@ export class TransformTool {
     adjustPosition() {
         var offsetX = this.lt.x - this.prevLtX;
         var offsetY = this.lt.y - this.prevLtY;
-        var noScaleOffsetX = offsetX / this.scaleOffsetX;
-        var noScaleOffsetY = offsetY / this.scaleOffsetY;
+        var noScaleOffsetX = offsetX / this.containerScaleX;
+        var noScaleOffsetY = offsetY / this.containerScaleY;
         var pivotOffsetX = offsetX - noScaleOffsetX;
         var pivotOffsetY = offsetY - noScaleOffsetY;
         this.target.x = this.target.x - offsetX + pivotOffsetX;

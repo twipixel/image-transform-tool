@@ -71,8 +71,8 @@ export class StickerMain {
             canvasOffsetY: 0,
             rotationLineLength: 25,
             deleteButtonOffsetY: 20,
-            scaleOffsetX: this.stickerLayer.scale.x,
-            scaleOffsetY: this.stickerLayer.scale.y
+            containerScaleX: this.stickerLayer.scale.x,
+            containerScaleY: this.stickerLayer.scale.y
         };
 
         this.transformTool = new TransformTool(this.rootLayer, this.stickerLayer, options);
