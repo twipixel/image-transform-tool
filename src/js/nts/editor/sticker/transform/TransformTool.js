@@ -163,7 +163,6 @@ export class TransformTool {
         // TODO 테스트 코드
         window.target = window.t = pixiSprite;
 
-        console.log('**** setTarget');
         this.target = pixiSprite;
         this.removeTextureUpdateEvent();
         this.addTextureUpdateEvent();
@@ -359,14 +358,7 @@ export class TransformTool {
         //this.target.pivot = localPoint;
         this.target.setPivot(localPoint);
         this.target.pivot = localPoint;
-        var offsetX = this.lt.x - this.prevLtX;
-        var offsetY = this.lt.y - this.prevLtY;
-        // stickerLayer 의 스케일 포함한 offset 결과값
-        var targetScaleOffsetX = (this.scaleOffsetX * 100) / 100 * offsetX;
-        var targetScaleOffsetY = (this.scaleOffsetY * 100) / 100 * offsetY;
-        this.target.x = this.target.x - offsetX + targetScaleOffsetX;
-        this.target.y = this.target.y - offsetY + targetScaleOffsetY;
-        this.updatePrevTargetLt();
+        this.adjustPosition();
     }
 
 
@@ -374,16 +366,21 @@ export class TransformTool {
         this.pivot = this.getPivot(control);
         //this.target.pivot = this.pivot.localPoint;
         this.target.setPivot(this.pivot.localPoint);
-        var offsetX = this.lt.x - this.prevLtX;
-        var offsetY = this.lt.y - this.prevLtY;
-        // stickerLayer 의 스케일 포함한 offset 결과값
-        var targetScaleOffsetX = (this.scaleOffsetX * 100) / 100 * offsetX;
-        var targetScaleOffsetY = (this.scaleOffsetY * 100) / 100 * offsetY;
-        this.target.x = this.target.x - offsetX + targetScaleOffsetX;
-        this.target.y = this.target.y - offsetY + targetScaleOffsetY;
-        this.updatePrevTargetLt();
+        this.adjustPosition();
     }
 
+
+    adjustPosition() {
+        var offsetX = this.lt.x - this.prevLtX;
+        var offsetY = this.lt.y - this.prevLtY;
+        var noScaleOffsetX = offsetX / this.scaleOffsetX;
+        var noScaleOffsetY = offsetY / this.scaleOffsetY;
+        var pivotOffsetX = offsetX - noScaleOffsetX;
+        var pivotOffsetY = offsetY - noScaleOffsetY;
+        this.target.x = this.target.x - offsetX + pivotOffsetX;
+        this.target.y = this.target.y - offsetY + pivotOffsetY;
+        this.updatePrevTargetLt();
+    }
 
 
     getPivot(control) {
@@ -462,7 +459,6 @@ export class TransformTool {
         var target = e.target;
         var width = target.width;
         var height = target.height;
-        console.log('[TEXTURE UPDATE] wh[' + width + ', ' + height + ']');
         this.setPivotByLocalPoint({x:0, y:0});
         this.update();
         this.c.mc.drawCenter(this.target.rotation, this.target.width, this.target.height);

@@ -58,6 +58,10 @@ export class StickerMain {
 
     startTest() {
         console.log('START TEST');
+
+        // 컨테이너에 스케일이 있는 경우 스케일 값을 전달해줍니다.
+        this.stickerLayer.scale.x = 1.5;
+        this.stickerLayer.scale.y = 1.5;
         this.stickerLayer.updateTransform();
 
         var options = {
@@ -65,8 +69,8 @@ export class StickerMain {
             canvasOffsetY: 0,
             rotationLineLength: 25,
             deleteButtonOffsetY: 20,
-            scaleOffsetX: this.stickerLayer.scale.x - 1,
-            scaleOffsetY: this.stickerLayer.scale.y - 1
+            scaleOffsetX: this.stickerLayer.scale.x,
+            scaleOffsetY: this.stickerLayer.scale.y
         };
 
         this.transformTool = new TransformTool(this.rootLayer, this.stickerLayer, options);

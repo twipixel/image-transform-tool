@@ -73,7 +73,6 @@ export class VectorContainer extends PIXI.Container {
 
 
     onTransformComplete(e) {
-        console.log('[ TRANSFORM COMPLETE ]');
         this.drawSvg(0, 0, this.width, this.height);
 
         // 텍스쳐를 새로 불러오지 않을때 TEXTURE_UPDATE 를 통해 다시 setTarget 되도록 해야 한다.
