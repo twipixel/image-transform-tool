@@ -1,4 +1,4 @@
-import {Calc} from './../utils/Calculator';
+import {Calc} from '../utils/Calculator';
 import {ToolControlType} from './ToolControlType';
 
 export class ToolControl extends PIXI.Sprite {

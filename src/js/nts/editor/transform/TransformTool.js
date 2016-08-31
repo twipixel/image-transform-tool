@@ -1,9 +1,9 @@
-import {Mouse} from './../utils/Mouse';
-import {Calc} from './../utils/Calculator';
-import {PointUtil} from './../utils/PointUtil';
+import {Mouse} from '../utils/Mouse';
+import {Calc} from '../utils/Calculator';
+import {PointUtil} from '../utils/PointUtil';
 import {ToolControl} from './ToolControl';
 import {ToolControlType} from './ToolControlType';
-import {VectorContainer} from './../ui/VectorContainer';
+import {VectorContainer} from '../view/VectorContainer';
 
 
 export class TransformTool {

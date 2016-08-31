@@ -1,5 +1,5 @@
-import {VectorContainer} from './ui/VectorContainer';
-import {TransformTool} from './transform/TransformTool';
+import {VectorContainer} from '../view/VectorContainer';
+import {TransformTool} from '../transform/TransformTool';
 
 export class StickerMain {
     constructor(rootLayer, stickerLayer) {

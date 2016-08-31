@@ -1,4 +1,4 @@
-import {Mouse} from './nts/editor/sticker/utils/Mouse';
+import {Mouse} from './nts/editor/utils/Mouse';
 import {StickerMain} from './nts/editor/sticker/StickerMain';
 
 
