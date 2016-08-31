@@ -262,11 +262,10 @@ export class TransformTool {
     }
 
 
-    scale(e) {
+    scaleCorner(e) {
         var currentControl = e.target;
         var currentMousePoint = e.currentMousePoint;
 
-        var n = 1;
         var currentPoint = this.invertTransform.apply(currentMousePoint);
         var startPoint = this.invertTransform.apply(this.startMousePoint);
         var vector = PointUtil.subtract(currentPoint, startPoint);
@@ -277,20 +276,57 @@ export class TransformTool {
 
         var w = wh.x * 2;
         var h = wh.y * 2;
-        var ratioW = (vector.x / w);
-        var ratioH = (vector.y / h);
-        var scaleX = 1 + (n * ratioW);
-        var scaleY = 1 + (n * ratioH);
+        var scaleX = 1 + (vector.x / w);
+        var scaleY = 1 + (vector.y / h);
+
+        var abs_scalex = Math.abs(scaleX);
+        var abs_scaley = Math.abs(scaleY);
+
+        var op_scalex = scaleX > 0 ? 1: -1;
+        var op_scaley = scaleY > 0 ? 1: -1;
+
+        if(abs_scalex > abs_scaley)
+            scaleY = abs_scalex * op_scaley;
+        else
+            scaleX = abs_scaley * op_scalex;
+
         scaleX = scaleX + this._diffScaleX;
         scaleY = scaleY + this._diffScaleY;
         this.target.scale = {x: scaleX, y: scaleY};
     }
 
 
+    scaleMiddle(e, isScaleHorizontal = true) {
+        var currentControl = e.target;
+        var currentMousePoint = e.currentMousePoint;
+
+        var scaleX = 1;
+        var scaleY = 1;
+
+        var currentPoint = this.invertTransform.apply(currentMousePoint);
+        var startPoint = this.invertTransform.apply(this.startMousePoint);
+        var vector = PointUtil.subtract(currentPoint, startPoint);
+
+        var currentControl = this.invertTransform.apply(currentControl.globalPoint);
+        var centerPoint = this.invertTransform.apply(this.c.mc.globalPoint);
+        var wh = PointUtil.subtract(currentControl, centerPoint);
+
+        var w = wh.x * 2;
+        var h = wh.y * 2;
+
+        if(isScaleHorizontal)
+            scaleX = 1 + (vector.x / w);
+        else
+            scaleY = 1 + (vector.y / h);
+
+        this.target.scale = {x: scaleX, y: scaleY};
+    }
+
+
     move(e) {
         var change = e.changeMovement;
-        this.target.x += change.x;
-        this.target.y += change.y;
+        this.target.x += change.x / this.containerScaleX;
+        this.target.y += change.y / this.containerScaleY;
     }
 
 
@@ -301,13 +337,17 @@ export class TransformTool {
             case ToolControlType.TOP_RIGHT:
             case ToolControlType.BOTTOM_LEFT:
             case ToolControlType.BOTTOM_RIGHT:
-                this.scale(e);
+                this.scaleCorner(e);
                 break;
 
             case ToolControlType.MIDDLE_LEFT:
             case ToolControlType.MIDDLE_RIGHT:
+                this.scaleMiddle(e, true);
+                break;
+
             case ToolControlType.TOP_CENTER:
             case ToolControlType.BOTTOM_CENTER:
+                this.scaleMiddle(e, false);
                 break;
 
             case ToolControlType.MIDDLE_CENTER:
@@ -384,7 +424,7 @@ export class TransformTool {
     getPivot(control) {
         switch (control.type) {
             case ToolControlType.DELETE:
-                return this.c.de;
+                return this.c.mc;
             case ToolControlType.ROTATION:
                 return this.c.mc;
             case ToolControlType.TOP_LEFT:
@@ -435,7 +475,6 @@ export class TransformTool {
 
     onControlMoveStart(e) {
         this.startMousePoint = {x: e.currentMousePoint.x, y: e.currentMousePoint.y};
-
         this.setPivotByControl(e.target);
         this.updatePrevTargetLt();
     }
