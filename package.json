@@ -1,5 +1,5 @@
 {
-  "name": "study-sticker",
+  "name": "sticker",
   "version": "1.0.0",
   "description": "",
   "main": "electron.js",
@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/twipixel/study-sticker.git"
+    "url": "git+https://github.com/twipixel/sticker.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/twipixel/study-sticker/issues"
+    "url": "https://github.com/twipixel/sticker/issues"
   },
-  "homepage": "https://github.com/twipixel/study-sticker#readme",
+  "homepage": "https://github.com/twipixel/sticker#readme",
   "dependencies": {
     "es6-map": "^0.1.3",
     "jquery": "^1.12.3",
