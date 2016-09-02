@@ -4,6 +4,7 @@ canvg를 통해 Vector를 Canvas에 표시하고 변형 툴로 이미지의 스�
 # 설치
 1. bower install
 2. npm install
+3. npm install --save-dev electron-prebuilt
 
 # 실행
 npm start
