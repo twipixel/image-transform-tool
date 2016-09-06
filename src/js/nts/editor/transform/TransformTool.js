@@ -13,9 +13,9 @@ export class TransformTool {
         return 'transformComplete';
     }
 
-    constructor(rootLayer, stickerLayer, options) {
-        this.rootLayer = rootLayer;
-        this.stickerLayer = stickerLayer;
+    constructor(stageLayer, targetLayer, options) {
+        this.stageLayer = stageLayer;
+        this.targetLayer = targetLayer;
 
         this.options = options || {
                 canvasOffsetX: 0,
@@ -26,18 +26,10 @@ export class TransformTool {
                 //rotationLineLength: 25
             };
 
-        console.log('');
-        console.log('new TransformTool()');
-        console.log('-----------------------------------');
-        for (var prop in this.options)
-            console.log(prop + ':' + this.options[prop]);
-        console.log('-----------------------------------');
-
         this.deleteButtonSize = 28;
-        this.deleteButtonSizeHalf = this.deleteButtonSize / 2;
         this.canvasOffsetX = this.options.canvasOffsetX;
         this.canvasOffsetY = this.options.canvasOffsetY;
-        // stickerLayer의 스케일이 1이 아닌 경우 스케일을 넘겨 줍니다.
+        // targetLayer의 스케일이 1이 아닌 경우 스케일을 넘겨 줍니다.
         this.containerScaleX = this.options.containerScaleX;
         this.containerScaleY = this.options.containerScaleY;
         this.deleteButtonOffsetY = this.options.deleteButtonOffsetY || 0;
@@ -52,7 +44,7 @@ export class TransformTool {
         this.invertTransform = new PIXI.Matrix();
 
         this.g = this.graphics = new PIXI.Graphics();
-        this.rootLayer.addChild(this.graphics);
+        this.stageLayer.addChild(this.graphics);
 
         this.target = null;
         this._targetTextureUpdateListener = null;
@@ -96,20 +88,20 @@ export class TransformTool {
         };
 
         // 맨 아래에 위치시킵니다.
-        this.rootLayer.addChild(this.c.mc);
+        this.stageLayer.addChild(this.c.mc);
         this.c.mc.on(ToolControl.MOVE_START, this.onControlMoveStart.bind(this));
         this.c.mc.on(ToolControl.MOVE, this.onControlMove.bind(this));
         this.c.mc.on(ToolControl.MOVE_END, this.onControlMoveEnd.bind(this));
 
-        this.rootLayer.addChild(this.c.rde);
-        this.rootLayer.addChild(this.c.rtl);
-        this.rootLayer.addChild(this.c.rtc);
-        this.rootLayer.addChild(this.c.rtr);
-        this.rootLayer.addChild(this.c.rml);
-        this.rootLayer.addChild(this.c.rmr);
-        this.rootLayer.addChild(this.c.rbl);
-        this.rootLayer.addChild(this.c.rbc);
-        this.rootLayer.addChild(this.c.rbr);
+        this.stageLayer.addChild(this.c.rde);
+        this.stageLayer.addChild(this.c.rtl);
+        this.stageLayer.addChild(this.c.rtc);
+        this.stageLayer.addChild(this.c.rtr);
+        this.stageLayer.addChild(this.c.rml);
+        this.stageLayer.addChild(this.c.rmr);
+        this.stageLayer.addChild(this.c.rbl);
+        this.stageLayer.addChild(this.c.rbc);
+        this.stageLayer.addChild(this.c.rbr);
 
         for (var prop in this.controls) {
             var control = this.controls[prop];
@@ -118,12 +110,12 @@ export class TransformTool {
 
             switch (control.type) {
                 case ToolControlType.DELETE:
-                    this.rootLayer.addChild(control);
+                    this.stageLayer.addChild(control);
                     control.on('click', this.onDelete.bind(this));
                     break;
 
                 case ToolControlType.ROTATION:
-                    //this.rootLayer.addChild(control);
+                    //this.stageLayer.addChild(control);
                     control.on(ToolControl.ROTATE_START, this.onRotateStart.bind(this));
                     control.on(ToolControl.ROTATE, this.onRotate.bind(this));
                     control.on(ToolControl.ROTATE_END, this.onRotateEnd.bind(this));
@@ -137,7 +129,7 @@ export class TransformTool {
                 case ToolControlType.BOTTOM_LEFT:
                 case ToolControlType.BOTTOM_RIGHT:
                 case ToolControlType.BOTTOM_CENTER:
-                    this.rootLayer.addChild(control);
+                    this.stageLayer.addChild(control);
                     control.on(ToolControl.MOVE_START, this.onControlMoveStart.bind(this));
                     control.on(ToolControl.MOVE, this.onControlMove.bind(this));
                     control.on(ToolControl.MOVE_END, this.onControlMoveEnd.bind(this));
@@ -492,9 +484,9 @@ export class TransformTool {
             c.defaultCursor = 'inherit';
         }
 
-        this.rootLayer.buttonMode = true;
-        this.rootLayer.interactive = true;
-        this.rootLayer.defaultCursor = currentCursor;
+        this.stageLayer.buttonMode = true;
+        this.stageLayer.interactive = true;
+        this.stageLayer.defaultCursor = currentCursor;
 
         //document.getElementById('canvas').style.cursor = Mouse.currentCursorStyle;
         //this.emit(Cropper.CHANGE_CURSOR, {currentCursorStyle: defaultCursor});
@@ -516,9 +508,9 @@ export class TransformTool {
             c.defaultCursor = 'inherit';
         }
 
-        this.rootLayer.buttonMode = false;
-        this.rootLayer.interactive = false;
-        this.rootLayer.defaultCursor = 'inherit';
+        this.stageLayer.buttonMode = false;
+        this.stageLayer.interactive = false;
+        this.stageLayer.defaultCursor = 'inherit';
     };
 
 
