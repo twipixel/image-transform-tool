@@ -471,8 +471,6 @@ export class TransformTool {
     enableCurrentStyleCursor() {
         if (this.target === null) return;
 
-        var currentCursor = Mouse.currentCursorStyle;
-        console.log('!!!!    enableCurrentStyleCursor(), Mouse.currentCursorStyle:', Mouse.currentCursorStyle);
         this.target.buttonMode = false;
         this.target.interactive = false;
         this.target.defaultCursor = 'inherit';
@@ -486,7 +484,7 @@ export class TransformTool {
 
         this.stageLayer.buttonMode = true;
         this.stageLayer.interactive = true;
-        this.stageLayer.defaultCursor = currentCursor;
+        this.stageLayer.defaultCursor = Mouse.currentCursorStyle;
 
         //document.getElementById('canvas').style.cursor = Mouse.currentCursorStyle;
         //this.emit(Cropper.CHANGE_CURSOR, {currentCursorStyle: defaultCursor});
@@ -496,7 +494,6 @@ export class TransformTool {
     disableCurrentStyleCursor() {
         if (this.target === null) return;
 
-        console.log('****  disableCurrentStyleCursor()');
         this.target.buttonMode = true;
         this.target.interactive = true;
         this.target.defaultCursor = 'inherit';
