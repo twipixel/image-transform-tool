@@ -1,9 +1,10 @@
-import {Mouse} from '../utils/Mouse';
-import {Calc} from '../utils/Calculator';
-import {PointUtil} from '../utils/PointUtil';
+import {Mouse} from './../utils/Mouse';
+import {Calc} from './../utils/Calculator';
+import {PointUtil} from './../utils/PointUtil';
 import {ToolControl} from './ToolControl';
 import {ToolControlType} from './ToolControlType';
-import {VectorContainer} from '../view/VectorContainer';
+import {RotationControlType} from './RotationControlType';
+import {VectorContainer} from './../view/VectorContainer';
 
 
 export class TransformTool {
@@ -21,24 +22,26 @@ export class TransformTool {
                 canvasOffsetY: 0,
                 containerScaleX: 0,
                 containerScaleY: 0,
-                deleteButtonOffsetY: 20,
-                rotationLineLength: 25
+                deleteButtonOffsetY: 0,
+                //rotationLineLength: 25
             };
 
         console.log('');
         console.log('new TransformTool()');
         console.log('-----------------------------------');
-        for(var prop in this.options)
+        for (var prop in this.options)
             console.log(prop + ':' + this.options[prop]);
         console.log('-----------------------------------');
 
+        this.deleteButtonSize = 28;
+        this.deleteButtonSizeHalf = this.deleteButtonSize / 2;
         this.canvasOffsetX = this.options.canvasOffsetX;
         this.canvasOffsetY = this.options.canvasOffsetY;
         // stickerLayer의 스케일이 1이 아닌 경우 스케일을 넘겨 줍니다.
         this.containerScaleX = this.options.containerScaleX;
         this.containerScaleY = this.options.containerScaleY;
-        this.rotationLineLength = this.options.rotationLineLength || 25;
-        this.deleteButtonOffsetY = this.options.deleteButtonOffsetY || 20;
+        this.deleteButtonOffsetY = this.options.deleteButtonOffsetY || 0;
+        //this.rotationLineLength = this.options.rotationLineLength || 25;
 
         this.initialize();
     };
@@ -56,40 +59,22 @@ export class TransformTool {
 
 
         var deleteButtonOptions = {
-            size: 10,
-            alpha: 1,
-            thickness: 1,
-            color: 0xFFFFFF,
-            defaultCursor: 'pointer',
             canvasOffsetX: this.canvasOffsetX,
             canvasOffsetY: this.canvasOffsetY
         };
 
         var rotationOptions = {
-            size: 10,
-            alpha: 1,
-            thickness: 1,
-            color: 0xFF3300,
-            defaultCursor: 'pointer',
             canvasOffsetX: this.canvasOffsetX,
             canvasOffsetY: this.canvasOffsetY
         };
 
         var controlOptions = {
-            size: 10,
-            alpha: 1,
-            thickness: 1,
-            color: 0xFFFFFF,
-            defaultCursor: 'pointer',
             canvasOffsetX: this.canvasOffsetX,
             canvasOffsetY: this.canvasOffsetY
         };
 
-
-
         this.c = this.controls = {
             de: new ToolControl(ToolControlType.DELETE, deleteButtonOptions),
-            ro: new ToolControl(ToolControlType.ROTATION, rotationOptions),
             tl: new ToolControl(ToolControlType.TOP_LEFT, controlOptions),
             tc: new ToolControl(ToolControlType.TOP_CENTER, controlOptions),
             tr: new ToolControl(ToolControlType.TOP_RIGHT, controlOptions),
@@ -98,7 +83,16 @@ export class TransformTool {
             bl: new ToolControl(ToolControlType.BOTTOM_LEFT, controlOptions),
             bc: new ToolControl(ToolControlType.BOTTOM_CENTER, controlOptions),
             br: new ToolControl(ToolControlType.BOTTOM_RIGHT, controlOptions),
-            mc: new ToolControl(ToolControlType.MIDDLE_CENTER, controlOptions)
+            mc: new ToolControl(ToolControlType.MIDDLE_CENTER, controlOptions),
+            rde: new ToolControl(ToolControlType.ROTATION, rotationOptions, RotationControlType.DELETE),
+            rtl: new ToolControl(ToolControlType.ROTATION, rotationOptions, RotationControlType.TOP_LEFT),
+            rtc: new ToolControl(ToolControlType.ROTATION, rotationOptions, RotationControlType.TOP_CENTER),
+            rtr: new ToolControl(ToolControlType.ROTATION, rotationOptions, RotationControlType.TOP_RIGHT),
+            rml: new ToolControl(ToolControlType.ROTATION, rotationOptions, RotationControlType.MIDDLE_LEFT),
+            rmr: new ToolControl(ToolControlType.ROTATION, rotationOptions, RotationControlType.MIDDLE_RIGHT),
+            rbl: new ToolControl(ToolControlType.ROTATION, rotationOptions, RotationControlType.BOTTOM_LEFT),
+            rbc: new ToolControl(ToolControlType.ROTATION, rotationOptions, RotationControlType.BOTTOM_CENTER),
+            rbr: new ToolControl(ToolControlType.ROTATION, rotationOptions, RotationControlType.BOTTOM_RIGHT)
         };
 
         // 맨 아래에 위치시킵니다.
@@ -106,6 +100,16 @@ export class TransformTool {
         this.c.mc.on(ToolControl.MOVE_START, this.onControlMoveStart.bind(this));
         this.c.mc.on(ToolControl.MOVE, this.onControlMove.bind(this));
         this.c.mc.on(ToolControl.MOVE_END, this.onControlMoveEnd.bind(this));
+
+        this.rootLayer.addChild(this.c.rde);
+        this.rootLayer.addChild(this.c.rtl);
+        this.rootLayer.addChild(this.c.rtc);
+        this.rootLayer.addChild(this.c.rtr);
+        this.rootLayer.addChild(this.c.rml);
+        this.rootLayer.addChild(this.c.rmr);
+        this.rootLayer.addChild(this.c.rbl);
+        this.rootLayer.addChild(this.c.rbc);
+        this.rootLayer.addChild(this.c.rbr);
 
         for (var prop in this.controls) {
             var control = this.controls[prop];
@@ -119,7 +123,7 @@ export class TransformTool {
                     break;
 
                 case ToolControlType.ROTATION:
-                    this.rootLayer.addChild(control);
+                    //this.rootLayer.addChild(control);
                     control.on(ToolControl.ROTATE_START, this.onRotateStart.bind(this));
                     control.on(ToolControl.ROTATE, this.onRotate.bind(this));
                     control.on(ToolControl.ROTATE_END, this.onRotateEnd.bind(this));
@@ -144,17 +148,17 @@ export class TransformTool {
 
 
     show() {
-        if(!this.controls) return;
+        if (!this.controls) return;
         this.g.visible = true;
-        for(var prop in this.controls)
+        for (var prop in this.controls)
             this.controls[prop].visible = true;
     }
 
 
     hide() {
-        if(!this.controls) return;
+        if (!this.controls) return;
         this.g.visible = false;
-        for(var prop in this.controls)
+        for (var prop in this.controls)
             this.controls[prop].visible = false;
     }
 
@@ -181,10 +185,10 @@ export class TransformTool {
 
 
     releaseTarget() {
-        if(this.target === null)
+        if (this.target === null)
             return;
 
-        if(this._targetTextureUpdateListener !== null) {
+        if (this._targetTextureUpdateListener !== null) {
             this.target.off(VectorContainer.TEXTURE_UPDATE, this._targetTextureUpdateListener);
         }
 
@@ -200,7 +204,7 @@ export class TransformTool {
 
 
     removeTextureUpdateEvent() {
-        if(this._targetTextureUpdateListener !== null) {
+        if (this._targetTextureUpdateListener !== null) {
             this.target.off(VectorContainer.TEXTURE_UPDATE, this._targetTextureUpdateListener);
         }
     }
@@ -221,7 +225,7 @@ export class TransformTool {
         var w = localBounds.width * scaleSignX;
         var h = localBounds.height * scaleSignY;
         var deleteButtonOffsetY = this.deleteButtonOffsetY * scaleSignY;
-        var rotationLineLength = this.rotationLineLength * scaleSignY;
+        //var rotationLineLength = this.rotationLineLength * scaleSignY;
 
         this.c.tl.localPoint = new PIXI.Point(0, 0);
         this.c.tr.localPoint = new PIXI.Point(w, 0);
@@ -232,10 +236,19 @@ export class TransformTool {
         this.c.ml.localPoint = PointUtil.interpolate(this.c.bl.localPoint, this.c.tl.localPoint, .5);
         this.c.mr.localPoint = PointUtil.interpolate(this.c.br.localPoint, this.c.tr.localPoint, .5);
         this.c.mc.localPoint = PointUtil.interpolate(this.c.bc.localPoint, this.c.tc.localPoint, .5);
-        //this.c.de.localPoint = PointUtil.add(this.c.tl.localPoint.clone(), new PIXI.Point(0, this.deleteButtonOffsetY));
-        //this.c.ro.localPoint = PointUtil.add(this.c.tc.localPoint.clone(), new PIXI.Point(0, this.rotationLineLength));
         this.c.de.localPoint = PointUtil.add(this.c.tl.localPoint.clone(), new PIXI.Point(0, deleteButtonOffsetY));
-        this.c.ro.localPoint = PointUtil.add(this.c.tc.localPoint.clone(), new PIXI.Point(0, rotationLineLength));
+        //this.c.ro.localPoint = PointUtil.add(this.c.tc.localPoint.clone(), new PIXI.Point(0, rotationLineLength));
+
+        var c = this.c;
+        this.c.rde.localPoint = new PIXI.Point(c.de.localPoint.x, c.de.localPoint.y);
+        this.c.rtl.localPoint = new PIXI.Point(c.tl.localPoint.x, c.tl.localPoint.y);
+        this.c.rtc.localPoint = new PIXI.Point(c.tc.localPoint.x, c.tc.localPoint.y);
+        this.c.rtr.localPoint = new PIXI.Point(c.tr.localPoint.x, c.tr.localPoint.y);
+        this.c.rml.localPoint = new PIXI.Point(c.ml.localPoint.x, c.ml.localPoint.y);
+        this.c.rmr.localPoint = new PIXI.Point(c.mr.localPoint.x, c.mr.localPoint.y);
+        this.c.rbl.localPoint = new PIXI.Point(c.bl.localPoint.x, c.bl.localPoint.y);
+        this.c.rbc.localPoint = new PIXI.Point(c.bc.localPoint.x, c.bc.localPoint.y);
+        this.c.rbr.localPoint = new PIXI.Point(c.br.localPoint.x, c.br.localPoint.y);
 
         for (var prop in this.controls) {
             var control = this.controls[prop];
@@ -282,10 +295,10 @@ export class TransformTool {
         var abs_scalex = Math.abs(scaleX);
         var abs_scaley = Math.abs(scaleY);
 
-        var op_scalex = scaleX > 0 ? 1: -1;
-        var op_scaley = scaleY > 0 ? 1: -1;
+        var op_scalex = scaleX > 0 ? 1 : -1;
+        var op_scaley = scaleY > 0 ? 1 : -1;
 
-        if(abs_scalex > abs_scaley)
+        if (abs_scalex > abs_scaley)
             scaleY = abs_scalex * op_scaley;
         else
             scaleX = abs_scaley * op_scalex;
@@ -314,7 +327,7 @@ export class TransformTool {
         var w = wh.x * 2;
         var h = wh.y * 2;
 
-        if(isScaleHorizontal)
+        if (isScaleHorizontal)
             scaleX = 1 + (vector.x / w);
         else
             scaleY = 1 + (vector.y / h);
@@ -362,7 +375,7 @@ export class TransformTool {
         var transform = this.target.worldTransform.clone();
         var globalPoints = {
             de: this.deleteButtonPosition,
-            ro: this.rotateControlPosition,
+            //ro: this.rotateControlPosition,
             tl: transform.apply(this.c.tl.localPoint),
             tr: transform.apply(this.c.tr.localPoint),
             tc: transform.apply(this.c.tc.localPoint),
@@ -371,18 +384,27 @@ export class TransformTool {
             bc: transform.apply(this.c.bc.localPoint),
             ml: transform.apply(this.c.ml.localPoint),
             mr: transform.apply(this.c.mr.localPoint),
-            mc: transform.apply(this.c.mc.localPoint)
+            mc: transform.apply(this.c.mc.localPoint),
+            rde: this.deleteButtonPosition,
+            rtl: transform.apply(this.c.rtl.localPoint),
+            rtc: transform.apply(this.c.rtc.localPoint),
+            rtr: transform.apply(this.c.rtr.localPoint),
+            rml: transform.apply(this.c.rml.localPoint),
+            rmr: transform.apply(this.c.rmr.localPoint),
+            rbl: transform.apply(this.c.rbl.localPoint),
+            rbc: transform.apply(this.c.rbc.localPoint),
+            rbr: transform.apply(this.c.rbr.localPoint),
         };
 
         g.clear();
-        g.lineStyle(1, 0xFF3300);
+        g.lineStyle(0.5, 0xFFFFFF);
         g.moveTo(globalPoints.tl.x, globalPoints.tl.y);
         g.lineTo(globalPoints.tr.x, globalPoints.tr.y);
         g.lineTo(globalPoints.br.x, globalPoints.br.y);
         g.lineTo(globalPoints.bl.x, globalPoints.bl.y);
         g.lineTo(globalPoints.tl.x, globalPoints.tl.y);
         g.moveTo(globalPoints.tc.x, globalPoints.tc.y);
-        g.lineTo(globalPoints.ro.x, globalPoints.ro.y);
+        //g.lineTo(globalPoints.ro.x, globalPoints.ro.y);
 
         for (var prop in this.controls) {
             var p = globalPoints[prop];
@@ -449,6 +471,57 @@ export class TransformTool {
     }
 
 
+    //////////////////////////////////////////////////////////////////////////
+    // Cursor
+    //////////////////////////////////////////////////////////////////////////
+
+
+    enableCurrentStyleCursor() {
+        if (this.target === null) return;
+
+        var currentCursor = Mouse.currentCursorStyle;
+        console.log('!!!!    enableCurrentStyleCursor(), Mouse.currentCursorStyle:', Mouse.currentCursorStyle);
+        this.target.buttonMode = false;
+        this.target.interactive = false;
+        this.target.defaultCursor = 'inherit';
+
+        for(var prop in this.c) {
+            var c = this.c[prop];
+            c.buttonMode = false;
+            c.interactive = false;
+            c.defaultCursor = 'inherit';
+        }
+
+        this.rootLayer.buttonMode = true;
+        this.rootLayer.interactive = true;
+        this.rootLayer.defaultCursor = currentCursor;
+
+        //document.getElementById('canvas').style.cursor = Mouse.currentCursorStyle;
+        //this.emit(Cropper.CHANGE_CURSOR, {currentCursorStyle: defaultCursor});
+    };
+
+
+    disableCurrentStyleCursor() {
+        if (this.target === null) return;
+
+        console.log('****  disableCurrentStyleCursor()');
+        this.target.buttonMode = true;
+        this.target.interactive = true;
+        this.target.defaultCursor = 'inherit';
+
+        for(var prop in this.c) {
+            var c = this.c[prop];
+            c.buttonMode = true;
+            c.interactive = true;
+            c.defaultCursor = 'inherit';
+        }
+
+        this.rootLayer.buttonMode = false;
+        this.rootLayer.interactive = false;
+        this.rootLayer.defaultCursor = 'inherit';
+    };
+
+
     onDelete(e) {
         console.log('Delete Click');
     }
@@ -456,6 +529,7 @@ export class TransformTool {
 
     onRotateStart(e) {
         this.setPivotByControl(e.target);
+        this.enableCurrentStyleCursor();
     }
 
 
@@ -470,6 +544,7 @@ export class TransformTool {
     onRotateEnd(e) {
         this.update();
         this.c.mc.drawCenter(this.target.rotation, this.target.width, this.target.height);
+        this.disableCurrentStyleCursor();
     }
 
 
@@ -477,6 +552,7 @@ export class TransformTool {
         this.startMousePoint = {x: e.currentMousePoint.x, y: e.currentMousePoint.y};
         this.setPivotByControl(e.target);
         this.updatePrevTargetLt();
+        this.enableCurrentStyleCursor();
     }
 
 
@@ -489,6 +565,7 @@ export class TransformTool {
 
     onControlMoveEnd(e) {
         this.target.emit(TransformTool.TRANSFORM_COMPLETE);
+        this.disableCurrentStyleCursor();
     }
 
 
@@ -496,11 +573,10 @@ export class TransformTool {
         var target = e.target;
         var width = target.width;
         var height = target.height;
-        this.setPivotByLocalPoint({x:0, y:0});
+        this.setPivotByLocalPoint({x: 0, y: 0});
         this.update();
         this.c.mc.drawCenter(this.target.rotation, this.target.width, this.target.height);
     }
-
 
 
     get lt() {
@@ -508,17 +584,24 @@ export class TransformTool {
     }
 
     get deleteButtonPosition() {
-        if(!this.c)
+        if (!this.c)
             return new PIXI.Point(0, 0);
 
         var transform = this.target.worldTransform.clone();
         var tl = transform.apply(this.c.tl.localPoint);
         var ml = transform.apply(this.c.ml.localPoint);
-        return PointUtil.getAddedInterpolate(tl, ml, this.deleteButtonOffsetY);
+        //return PointUtil.getAddedInterpolate(tl, ml, this.deleteButtonOffsetY);
+        return PointUtil.add(PointUtil.getAddedInterpolate(tl, ml, this.deleteButtonOffsetY), new PIXI.Point(-this.deleteButtonSize, -this.deleteButtonSize));
     }
 
+
+    /**
+     * NOT USE
+     * 회전 컨트롤이 모든 컨트롤 뒤에 배치되도록 변경되어 사용하지 않습니다.
+     * @returns {*}
+     */
     get rotateControlPosition() {
-        if(!this.c)
+        if (!this.c)
             return new PIXI.Point(0, 0);
 
         var transform = this.target.worldTransform.clone();
@@ -526,8 +609,6 @@ export class TransformTool {
         var ro = transform.apply(this.c.ro.localPoint);
         return PointUtil.getAddedInterpolate(tc, ro, this.rotationLineLength);
     }
-
-
 
 
 }

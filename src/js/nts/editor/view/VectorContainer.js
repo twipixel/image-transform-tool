@@ -1,5 +1,5 @@
-import {Calc} from '../utils/Calculator';
-import {TransformTool} from '../transform/TransformTool';
+import {Calc} from './../utils/Calculator';
+import {TransformTool} from './../transform/TransformTool';
 
 export class VectorContainer extends PIXI.Container {
 

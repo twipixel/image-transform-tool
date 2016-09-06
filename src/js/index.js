@@ -14,7 +14,8 @@ function initailize() {
     renderer = new PIXI.CanvasRenderer(canvas.width, canvas.height, {
         view: canvas,
         autoResize: true,
-        backgroundColor: 0xe5e5e5
+        backgroundColor: 0x999999,
+        //backgroundColor: 0x0D99FC
     });
 
     Mouse.renderer = renderer;

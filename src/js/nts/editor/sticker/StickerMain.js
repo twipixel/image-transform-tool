@@ -10,16 +10,16 @@ export class StickerMain {
 
         this.stickers = [];
         this.svgs = [
-            './img/svg-modify/amazon.svg',
-            './img/svg-modify/dribbble.svg',
-            './img/svg-modify/facebook.svg',
-            './img/svg-modify/foursquare.svg',
-            './img/svg-modify/periscope.svg',
-            './img/svg-modify/pinterest.svg',
-            './img/svg-modify/shutterstock.svg',
-            './img/svg-modify/skype.svg',
-            './img/svg-modify/whatsapp.svg',
-            './img/svg-modify/wordpress.svg'
+            './img/svg/amazon.svg',
+            './img/svg/dribbble.svg',
+            './img/svg/facebook.svg',
+            './img/svg/foursquare.svg',
+            './img/svg/periscope.svg',
+            './img/svg/pinterest.svg',
+            './img/svg/shutterstock.svg',
+            './img/svg/skype.svg',
+            './img/svg/whatsapp.svg',
+            './img/svg/wordpress.svg'
         ];
 
         this.initialize();
@@ -69,8 +69,8 @@ export class StickerMain {
         var options = {
             canvasOffsetX: 0,
             canvasOffsetY: 0,
-            rotationLineLength: 25,
-            deleteButtonOffsetY: 20,
+            deleteButtonOffsetY: 0,
+            //rotationLineLength: 25,
             containerScaleX: this.stickerLayer.scale.x,
             containerScaleY: this.stickerLayer.scale.y
         };

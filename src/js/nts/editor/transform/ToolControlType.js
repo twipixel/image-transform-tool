@@ -44,7 +44,6 @@ export class ToolControlType {
         return 'bottomRight';
     }
 
-
     constructor(){
 
     }
