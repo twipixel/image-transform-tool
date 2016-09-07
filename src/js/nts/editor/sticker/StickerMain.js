@@ -2,10 +2,10 @@ import {VectorContainer} from '../view/VectorContainer';
 import {TransformTool} from '../transform/TransformTool';
 
 export class StickerMain {
-    constructor(rootLayer, stickerLayer) {
-        console.log('StickerMain(' + rootLayer + ', ' + stickerLayer + ')');
+    constructor(stageLayer, stickerLayer) {
+        console.log('StickerMain(' + stageLayer + ', ' + stickerLayer + ')');
 
-        this.rootLayer = rootLayer;
+        this.stageLayer = stageLayer;
         this.stickerLayer = stickerLayer;
 
         this.stickers = [];
@@ -28,11 +28,14 @@ export class StickerMain {
 
 
     initialize() {
+        this.isCreate = false;
         this.createStickers();
     };
 
 
     createStickers() {
+        if(this.isCreate === true) return;
+
         this.loadStickerCount = 0;
         this.totalSticker = 4 + parseInt(Math.random() * this.svgs.length - 3);
         console.log('createStickers(), totalSticker:', this.totalSticker);
@@ -42,14 +45,35 @@ export class StickerMain {
             var sticker = new VectorContainer();
             sticker.x = parseInt(Math.random() * 800);
             sticker.y = parseInt(Math.random() * 600);
-            sticker.on('click', this.onStickerClick.bind(this));
-            sticker.on('mousedown', this.onStickerDown.bind(this));
-            sticker.on('mouseup', this.onStickerUp.bind(this));
-            sticker.on(VectorContainer.LOAD_COMPLETE, this.onLoadComplete.bind(this));
+
+            sticker._stickerMouseUpListener = this.onStickerMouseUp.bind(this);
+            sticker._stickerMouseDownListener = this.onStickerMouseDown.bind(this);
+            sticker._stickerDeleteClickListener = this.onStickerDeleteClick.bind(this);
+            sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
+
+            sticker.on('mouseup', sticker._stickerMouseUpListener);
+            sticker.on('mousedown', sticker._stickerMouseDownListener);
+            sticker.on(TransformTool.DELETE, sticker._stickerDeleteClickListener);
+            sticker.on(VectorContainer.LOAD_COMPLETE, sticker._stickerLoadCompleteListener);
             sticker.load(url);
             this.stickerLayer.addChild(sticker);
             this.stickers[i] = sticker;
         }
+
+        this.isCreate = true;
+    }
+
+
+    show() {
+        for(var i=0; i<this.stickers.length; i++)
+            this.stickers[i].visible = true;
+        this.transformTool.show();
+    }
+
+    hide() {
+        for(var i=0; i<this.stickers.length; i++)
+            this.stickers[i].visible = false;
+        this.transformTool.hide();
     }
 
 
@@ -60,12 +84,6 @@ export class StickerMain {
 
     startTest() {
         console.log('START TEST');
-
-        // 컨테이너에 스케일이 있는 경우 스케일 값을 전달해줍니다.
-        //this.stickerLayer.scale.x = 0.75;
-        //this.stickerLayer.scale.y = 0.75;
-        //this.stickerLayer.scale.x = 1.5;
-        //this.stickerLayer.scale.y = 1.5;
         this.stickerLayer.updateTransform();
 
         var options = {
@@ -77,7 +95,7 @@ export class StickerMain {
             containerScaleY: this.stickerLayer.scale.y
         };
 
-        this.transformTool = new TransformTool(this.rootLayer, this.stickerLayer, options);
+        this.transformTool = new TransformTool(this.stageLayer, this.stickerLayer, options);
     }
 
 
@@ -94,7 +112,7 @@ export class StickerMain {
     }
 
 
-    onStickerDown(e) {
+    onStickerMouseDown(e) {
         e.stopPropagation();
         this.downTarget = e.target;
         this.downMouseX = e.data.global.x;
@@ -102,7 +120,7 @@ export class StickerMain {
     }
 
 
-    onStickerUp(e) {
+    onStickerMouseUp(e) {
         e.stopPropagation();
         var upMouseX = e.data.global.x;
         var upMouseY = e.data.global.y;
@@ -112,6 +130,25 @@ export class StickerMain {
             Math.abs(this.downMouseY - upMouseY) < 10) {
 
             this.onStickerClick(e);
+        }
+    }
+
+
+    onStickerDeleteClick(target) {
+        var deleteTarget = target;
+        deleteTarget.off('mouseup', deleteTarget._stickerMouseUpListener);
+        deleteTarget.off('mousedown', deleteTarget._stickerMouseDownListener);
+        deleteTarget.off(TransformTool.DELETE, deleteTarget._stickerDeleteClickListener);
+        deleteTarget.off(VectorContainer.LOAD_COMPLETE, deleteTarget._stickerLoadCompleteListener);
+
+        for(var i=0; i<this.stickers.length; i++) {
+            var sticker = this.stickers[i];
+            if(sticker === deleteTarget) {
+                this.stickers.splice(i, 1);
+                this.stickerLayer.removeChild(sticker);
+                this.transformTool.releaseTarget();
+                sticker.destroy();
+            }
         }
     }
 

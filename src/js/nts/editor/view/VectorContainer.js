@@ -30,12 +30,12 @@ export class VectorContainer extends PIXI.Container {
 
 
     initialize() {
+        this.image = null;
         this.scaleSignX = 1;
         this.scaleSignY = 1;
         this.isFirstLoad = true;
         this.interactive = true;
 
-        //TODO 외부에서 하나의 캔버스로 사용할 수 있도록 변경 고려
         this.canvgCanvas = document.createElement('CANVAS');
         this.canvgCanvas.id = 'canvgCanvas';
         this.canvgContext = this.canvgCanvas.getContext('2d');
@@ -45,6 +45,11 @@ export class VectorContainer extends PIXI.Container {
 
     addEvent() {
         this.on(TransformTool.TRANSFORM_COMPLETE, this.onTransformComplete);
+    }
+
+
+    removeEvent() {
+        this.off(TransformTool.TRANSFORM_COMPLETE, this.onTransformComplete);
     }
 
 
@@ -69,6 +74,20 @@ export class VectorContainer extends PIXI.Container {
         this.canvgCanvas.width = w;
         this.canvgCanvas.height = h;
         this.canvgContext.drawSvg(this.url, x, y, w, h, {renderCallback: this.onDrawComplete.bind(this)});
+    }
+
+
+    destroy() {
+        this.removeEvent();
+
+        if(this.image !== null) {
+            this.removeChild(this.image);
+            this.image.destroy();
+        }
+
+        document.body.removeChild(this.canvgCanvas);
+        this.canvgContext = null;
+        this.canvgCanvas = null;
     }
 
 

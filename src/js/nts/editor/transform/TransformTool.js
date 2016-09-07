@@ -9,9 +9,18 @@ import {VectorContainer} from './../view/VectorContainer';
 
 export class TransformTool {
 
+    static get DELETE() {
+        return 'delete';
+    }
+
+    static get SET_TARGET() { 
+        return 'setTarget'; 
+    }
+
     static get TRANSFORM_COMPLETE() {
         return 'transformComplete';
     }
+
 
     constructor(stageLayer, targetLayer, options) {
         this.stageLayer = stageLayer;
@@ -36,6 +45,7 @@ export class TransformTool {
         //this.rotationLineLength = this.options.rotationLineLength || 25;
 
         this.initialize();
+        this.addEvent();
     };
 
 
@@ -139,6 +149,11 @@ export class TransformTool {
     };
 
 
+    addEvent() {
+        this.stageLayer.on(TransformTool.SET_TARGET, this.onSetTarget.bind(this)); 
+    }
+
+
     show() {
         if (!this.controls) return;
         this.g.visible = true;
@@ -173,17 +188,16 @@ export class TransformTool {
 
         this.update();
         this.c.mc.drawCenter(this.target.rotation, this.width, this.height);
+
+        this.stageLayer.emit(TransformTool.SET_TARGET, pixiSprite);
     };
 
 
     releaseTarget() {
-        if (this.target === null)
-            return;
+        if (this.target === null) return;
 
-        if (this._targetTextureUpdateListener !== null) {
-            this.target.off(VectorContainer.TEXTURE_UPDATE, this._targetTextureUpdateListener);
-        }
-
+        this.hide();
+        this.removeTextureUpdateEvent();
         this.target = null;
         this._targetTextureUpdateListener = null;
     }
@@ -364,6 +378,7 @@ export class TransformTool {
 
     draw() {
         var g = this.g;
+        g.visible = true;
         var transform = this.target.worldTransform.clone();
         var globalPoints = {
             de: this.deleteButtonPosition,
@@ -508,9 +523,14 @@ export class TransformTool {
     };
 
 
+    onSetTarget(target) {
+        if(this.target !== target) this.releaseTarget();
+    }
+
+
     onDelete(e) {
         if(!this.target) return;
-        console.log('Delete Click');
+        this.target.emit(TransformTool.DELETE, this.target);
     }
 
 
