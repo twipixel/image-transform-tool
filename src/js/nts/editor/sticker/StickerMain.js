@@ -43,6 +43,8 @@ export class StickerMain {
             sticker.x = parseInt(Math.random() * 800);
             sticker.y = parseInt(Math.random() * 600);
             sticker.on('click', this.onStickerClick.bind(this));
+            sticker.on('mousedown', this.onStickerDown.bind(this));
+            sticker.on('mouseup', this.onStickerUp.bind(this));
             sticker.on(VectorContainer.LOAD_COMPLETE, this.onLoadComplete.bind(this));
             sticker.load(url);
             this.stickerLayer.addChild(sticker);
@@ -89,6 +91,28 @@ export class StickerMain {
         var target = e.target;
         this.stickerLayer.setChildIndex(target, this.stickerLayer.children.length - 1);
         this.transformTool.setTarget(target);
+    }
+
+
+    onStickerDown(e) {
+        e.stopPropagation();
+        this.downTarget = e.target;
+        this.downMouseX = e.data.global.x;
+        this.downMouseY = e.data.global.y;
+    }
+
+
+    onStickerUp(e) {
+        e.stopPropagation();
+        var upMouseX = e.data.global.x;
+        var upMouseY = e.data.global.y;
+
+        if(this.downTarget === e.target &&
+            Math.abs(this.downMouseX - upMouseX) < 10 &&
+            Math.abs(this.downMouseY - upMouseY) < 10) {
+
+            this.onStickerClick(e);
+        }
     }
 
 
