@@ -35,16 +35,6 @@ export class VectorContainer extends PIXI.Container {
         this.scaleSignY = 1;
         this.isFirstLoad = true;
         this.interactive = true;
-        this._snpashot = {
-            url: '', svg: '', x: 0, y: 0, width: 0, height: 0,
-            transform: {
-                x: this.x,
-                y: this.y,
-                scaleX: this.scale.x,
-                scaleY: this.scale.y,
-                rotation: this.rotation
-            }
-        };
 
         this.canvgCanvas = document.createElement('CANVAS');
         this.canvgCanvas.id = 'canvgCanvas';
@@ -135,17 +125,6 @@ export class VectorContainer extends PIXI.Container {
             this.image.updateTransform();
             this.emit(VectorContainer.TEXTURE_UPDATE, {target:this, scaleSignX:this.scaleSignX, scaleSignY:this.scaleSignY});
         }
-
-        this._snapshot = {url: this.url, svg: this.svg,
-            x: this.drawX, y: this.drawY, width: this.drawWidth, height: this.drawHeight,
-            transform: {
-                x: this.x,
-                y: this.y,
-                scaleX: this.scale.x,
-                scaleY: this.scale.y,
-                rotation: this.rotation
-            }
-        };
     }
 
 
@@ -159,7 +138,17 @@ export class VectorContainer extends PIXI.Container {
 
 
     get snapshot() {
-        return this._snapshot;
+        return {
+            url: this.url, svg: this.svg,
+            x: this.drawX, y: this.drawY, width: this.drawWidth, height: this.drawHeight,
+            transform: {
+                x: this.x,
+                y: this.y,
+                scaleX: this.scale.x,
+                scaleY: this.scale.y,
+                rotation: this.rotation
+            }
+        };
     }
 
 

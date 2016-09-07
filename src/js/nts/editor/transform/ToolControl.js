@@ -98,7 +98,7 @@ export class ToolControl extends PIXI.Sprite {
         var buttonRectHalf = buttonRectSize / 2;
 
         this.g.clear();
-        this.g.beginFill(0xFF33FF, 0);
+        this.g.beginFill(0xFF33FF, 0.0);
         this.g.drawRect(-buttonRectHalf, -buttonRectHalf, buttonRectSize, buttonRectSize);
         this.g.beginFill(0xFFFFFF, 1);
         this.g.drawRect(-outerRectHalf, -outerRectHalf, outerRectSize, outerRectSize);
