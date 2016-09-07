@@ -29,38 +29,78 @@ export class StickerMain {
 
     initialize() {
         this.isCreate = false;
-        this.createStickers();
-    };
+        this.testCreateStickers();
+    }
 
 
-    createStickers() {
-        if(this.isCreate === true) return;
+    createSticker(url, x, y, width, height) {
+        var sticker = new VectorContainer();
+        sticker.x = x;
+        sticker.y = y;
+        sticker._stickerMouseDownListener = this.onStickerMouseDown.bind(this);
+        sticker._stickerDeleteClickListener = this.onStickerDeleteClick.bind(this);
+        sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
+        sticker.on('mousedown', sticker._stickerMouseDownListener);
+        sticker.on(TransformTool.DELETE, sticker._stickerDeleteClickListener);
+        sticker.on(VectorContainer.LOAD_COMPLETE, sticker._stickerLoadCompleteListener);
+        sticker.load(url, 0, 0, width, height);
+        this.stickerLayer.addChild(sticker);
+        this.stickers.push(sticker);
+        return sticker;
+    }
 
-        this.loadStickerCount = 0;
-        this.totalSticker = 4 + parseInt(Math.random() * this.svgs.length - 3);
-        console.log('createStickers(), totalSticker:', this.totalSticker);
 
-        for(var i=0; i<this.totalSticker; i++) {
-            var url = this.svgs[i];
+    deleteSticker(target) {
+        if(target === null) return;
+
+        target.off('mousedown', target._stickerMouseDownListener);
+        target.off(TransformTool.DELETE, target._stickerDeleteClickListener);
+        target.off(VectorContainer.LOAD_COMPLETE, target._stickerLoadCompleteListener);
+
+        for(var i=0; i<this.stickers.length; i++) {
+            var sticker = this.stickers[i];
+            if(sticker === target) {
+                this.stickers.splice(i, 1);
+                this.stickerLayer.removeChild(sticker);
+                this.transformTool.releaseTarget();
+                sticker.destroy();
+            }
+        }
+    }
+
+
+    restore(snapshot) {
+        if(!snapshot) return;
+
+        this.stickers = null;
+        this.stickers = [];
+
+        for(var i=0; i<snapshot.length; i++) {
+            var vo = snapshot[i];
             var sticker = new VectorContainer();
-            sticker.x = parseInt(Math.random() * 800);
-            sticker.y = parseInt(Math.random() * 600);
 
-            sticker._stickerMouseUpListener = this.onStickerMouseUp.bind(this);
+            var transform = vo.transform;
+            sticker.x = transform.x;
+            sticker.y = transform.y;
+            sticker.scale.x = transform.scaleX;
+            sticker.scale.y = transform.scaleY;
+            sticker.rotation = transform.rotation;
             sticker._stickerMouseDownListener = this.onStickerMouseDown.bind(this);
             sticker._stickerDeleteClickListener = this.onStickerDeleteClick.bind(this);
             sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
-
-            sticker.on('mouseup', sticker._stickerMouseUpListener);
             sticker.on('mousedown', sticker._stickerMouseDownListener);
             sticker.on(TransformTool.DELETE, sticker._stickerDeleteClickListener);
             sticker.on(VectorContainer.LOAD_COMPLETE, sticker._stickerLoadCompleteListener);
-            sticker.load(url);
+            sticker.load(vo.url, vo.x, vo.y, vo.width, vo.height);
             this.stickerLayer.addChild(sticker);
-            this.stickers[i] = sticker;
+            this.stickers.push(sticker);
         }
+    }
 
-        this.isCreate = true;
+
+    releaseTarget() {
+        if(!this.transformTool) return;
+        this.transformTool.releaseTarget();
     }
 
 
@@ -70,10 +110,21 @@ export class StickerMain {
         this.transformTool.show();
     }
 
+
     hide() {
         for(var i=0; i<this.stickers.length; i++)
             this.stickers[i].visible = false;
         this.transformTool.hide();
+    }
+
+
+    clear() {
+        console.log('           clear, this.stickers.length:', this.stickers.length);
+        var cloneStickers = this.stickers.slice(0);
+        for(var i=0; i<cloneStickers.length; i++)
+            this.deleteSticker(cloneStickers[i]);
+
+        console.log('           clear done, this.stickers.length:', this.stickers.length);
     }
 
 
@@ -90,7 +141,6 @@ export class StickerMain {
             canvasOffsetX: 0,
             canvasOffsetY: 0,
             deleteButtonOffsetY: 0,
-            //rotationLineLength: 25,
             containerScaleX: this.stickerLayer.scale.x,
             containerScaleY: this.stickerLayer.scale.y
         };
@@ -108,48 +158,18 @@ export class StickerMain {
     onStickerClick(e) {
         var target = e.target;
         this.stickerLayer.setChildIndex(target, this.stickerLayer.children.length - 1);
-        this.transformTool.setTarget(target);
+        this.transformTool.setTarget(e);
     }
 
 
     onStickerMouseDown(e) {
         e.stopPropagation();
-        this.downTarget = e.target;
-        this.downMouseX = e.data.global.x;
-        this.downMouseY = e.data.global.y;
-    }
-
-
-    onStickerMouseUp(e) {
-        e.stopPropagation();
-        var upMouseX = e.data.global.x;
-        var upMouseY = e.data.global.y;
-
-        if(this.downTarget === e.target &&
-            Math.abs(this.downMouseX - upMouseX) < 10 &&
-            Math.abs(this.downMouseY - upMouseY) < 10) {
-
-            this.onStickerClick(e);
-        }
+        this.onStickerClick(e);
     }
 
 
     onStickerDeleteClick(target) {
-        var deleteTarget = target;
-        deleteTarget.off('mouseup', deleteTarget._stickerMouseUpListener);
-        deleteTarget.off('mousedown', deleteTarget._stickerMouseDownListener);
-        deleteTarget.off(TransformTool.DELETE, deleteTarget._stickerDeleteClickListener);
-        deleteTarget.off(VectorContainer.LOAD_COMPLETE, deleteTarget._stickerLoadCompleteListener);
-
-        for(var i=0; i<this.stickers.length; i++) {
-            var sticker = this.stickers[i];
-            if(sticker === deleteTarget) {
-                this.stickers.splice(i, 1);
-                this.stickerLayer.removeChild(sticker);
-                this.transformTool.releaseTarget();
-                sticker.destroy();
-            }
-        }
+        this.deleteSticker(target);
     }
 
 
@@ -158,6 +178,7 @@ export class StickerMain {
             case 27: //consts.KeyCode.ESC:
                 break;
             case 32: //consts.KeyCode.SPACE:
+                this.testRandomCreateSticker();
                 break;
             case 49: //consts.KeyCode.NUM_1:
                 break;
@@ -172,10 +193,50 @@ export class StickerMain {
             case 54: //consts.KeyCode.NUM_6:
                 break;
         }
-    };
+    }
+
 
     resize() {
 
-    };
+    }
+
+
+    get snapshot() {
+        var snapshot = [];
+        for(var i=0; i<this.stickers.length; i++) {
+            snapshot[i] = this.stickers[i].snapshot;
+            console.log(snapshot[i]);
+        }
+
+        console.log('           snapshot.length:', snapshot.length, snapshot);
+        return snapshot;
+    }
+
+
+    testRandomCreateSticker() {
+        var randomIndex = parseInt(Math.random() * this.svgs.length);
+        var url = this.svgs[randomIndex];
+        var sticker = this.createSticker(url, 0, 0, 100, 100);
+        sticker.x = parseInt(Math.random() * 800);
+        sticker.y = parseInt(Math.random() * 600);
+    }
+
+
+    testCreateStickers() {
+        if(this.isCreate === true) return;
+
+        this.loadStickerCount = 0;
+        this.totalSticker = 4 + parseInt(Math.random() * this.svgs.length - 3);
+        console.log('createStickers(), totalSticker:', this.totalSticker);
+
+        for(var i=0; i<this.totalSticker; i++) {
+            var url = this.svgs[i];
+            var sticker = this.createSticker(url, 0, 0, 100, 100);
+            sticker.x = parseInt(Math.random() * 800);
+            sticker.y = parseInt(Math.random() * 600);
+        }
+
+        this.isCreate = true;
+    }
 }
 

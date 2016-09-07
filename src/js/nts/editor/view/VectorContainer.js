@@ -35,6 +35,16 @@ export class VectorContainer extends PIXI.Container {
         this.scaleSignY = 1;
         this.isFirstLoad = true;
         this.interactive = true;
+        this._snpashot = {
+            url: '', svg: '', x: 0, y: 0, width: 0, height: 0,
+            transform: {
+                x: this.x,
+                y: this.y,
+                scaleX: this.scale.x,
+                scaleY: this.scale.y,
+                rotation: this.rotation
+            }
+        };
 
         this.canvgCanvas = document.createElement('CANVAS');
         this.canvgCanvas.id = 'canvgCanvas';
@@ -59,21 +69,32 @@ export class VectorContainer extends PIXI.Container {
     }
 
 
+    setSVG(dom, x = 0, y = 0, width = 100, height = 100){
+        this.svg = dom;
+        this.drawSvg(x, y, width, height);
+    }
+
+
     setPivot(localPoint) {
         this.pivot = localPoint;
     }
 
 
-    drawSvg(x, y, w, h) {
-        var signX = (w < 0) ? -1 : 1;
-        var signY = (h < 0) ? -1 : 1;
+    drawSvg(x, y, width, height) {
+        this.drawX = x;
+        this.drawY = y;
+        this.drawWidth = width;
+        this.drawHeight = height;
+
+        var signX = (width < 0) ? -1 : 1;
+        var signY = (height < 0) ? -1 : 1;
         this.scaleSignX = this.scaleSignX * signX;
         this.scaleSignY = this.scaleSignY * signY;
-        w = Math.abs(w);
-        h = Math.abs(h);
-        this.canvgCanvas.width = w;
-        this.canvgCanvas.height = h;
-        this.canvgContext.drawSvg(this.url, x, y, w, h, {renderCallback: this.onDrawComplete.bind(this)});
+        width = Math.abs(width);
+        height = Math.abs(height);
+        this.canvgCanvas.width = width;
+        this.canvgCanvas.height = height;
+        this.canvgContext.drawSvg(this.url || this.svg, x, y, width, height, {renderCallback: this.onDrawComplete.bind(this)});
     }
 
 
@@ -93,9 +114,6 @@ export class VectorContainer extends PIXI.Container {
 
     onTransformComplete(e) {
         this.drawSvg(0, 0, this.width, this.height);
-
-        // 텍스쳐를 새로 불러오지 않을때 TEXTURE_UPDATE 를 통해 다시 setTarget 되도록 해야 한다.
-        //this.emit(VectorContainer.TEXTURE_UPDATE, {target:this, scaleSignX:this.scaleSignX, scaleSignY:this.scaleSignY});
     }
 
 
@@ -106,6 +124,8 @@ export class VectorContainer extends PIXI.Container {
         if(this.isFirstLoad === true) {
             this.isFirstLoad = false;
             this.image = new PIXI.Sprite(new PIXI.Texture.fromCanvas(this.canvgCanvas));
+            // 랜더링 되야할 객체 표기
+            this.image.renderableObject = true;
             this.addChild(this.image);
             this.emit(VectorContainer.LOAD_COMPLETE, {target:this});
         } else {
@@ -115,8 +135,32 @@ export class VectorContainer extends PIXI.Container {
             this.image.updateTransform();
             this.emit(VectorContainer.TEXTURE_UPDATE, {target:this, scaleSignX:this.scaleSignX, scaleSignY:this.scaleSignY});
         }
+
+        this._snapshot = {url: this.url, svg: this.svg,
+            x: this.drawX, y: this.drawY, width: this.drawWidth, height: this.drawHeight,
+            transform: {
+                x: this.x,
+                y: this.y,
+                scaleX: this.scale.x,
+                scaleY: this.scale.y,
+                rotation: this.rotation
+            }
+        };
     }
 
+
+    get ID(){
+        return this._id;
+    }
+
+    set ID(id){
+        this._id = id;
+    }
+
+
+    get snapshot() {
+        return this._snapshot;
+    }
 
 
     toString() {

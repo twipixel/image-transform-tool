@@ -170,7 +170,8 @@ export class TransformTool {
     }
 
 
-    setTarget(pixiSprite) {
+    setTarget(e) {
+        var pixiSprite = e.target;
         // TODO 테스트 코드
         window.target = window.t = pixiSprite;
 
@@ -188,14 +189,13 @@ export class TransformTool {
 
         this.update();
         this.c.mc.drawCenter(this.target.rotation, this.width, this.height);
+        this.c.mc.emit('mousedown', e);
 
         this.stageLayer.emit(TransformTool.SET_TARGET, pixiSprite);
     };
 
 
     releaseTarget() {
-        if (this.target === null) return;
-
         this.hide();
         this.removeTextureUpdateEvent();
         this.target = null;
@@ -210,7 +210,7 @@ export class TransformTool {
 
 
     removeTextureUpdateEvent() {
-        if (this._targetTextureUpdateListener !== null) {
+        if (this._targetTextureUpdateListener !== null && this.target !== null) {
             this.target.off(VectorContainer.TEXTURE_UPDATE, this._targetTextureUpdateListener);
         }
     }
