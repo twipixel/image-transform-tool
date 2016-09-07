@@ -86,7 +86,9 @@ export class StickerMain {
 
 
     onStickerClick(e) {
-        this.transformTool.setTarget(e.target);
+        var target = e.target;
+        this.stickerLayer.setChildIndex(target, this.stickerLayer.children.length - 1);
+        this.transformTool.setTarget(target);
     }
 
 
