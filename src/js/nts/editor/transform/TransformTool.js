@@ -172,7 +172,7 @@ export class TransformTool {
         //this._diffScaleY = this.target.scale.y - 1;
 
         this.update();
-        this.c.mc.drawCenter(this.target.rotation, this.target.width, this.target.height);
+        this.c.mc.drawCenter(this.target.rotation, this.width, this.height);
     };
 
 
@@ -485,9 +485,6 @@ export class TransformTool {
         this.stageLayer.buttonMode = true;
         this.stageLayer.interactive = true;
         this.stageLayer.defaultCursor = Mouse.currentCursorStyle;
-
-        //document.getElementById('canvas').style.cursor = Mouse.currentCursorStyle;
-        //this.emit(Cropper.CHANGE_CURSOR, {currentCursorStyle: defaultCursor});
     };
 
 
@@ -512,32 +509,36 @@ export class TransformTool {
 
 
     onDelete(e) {
+        if(!this.target) return;
         console.log('Delete Click');
     }
 
 
     onRotateStart(e) {
+        if(!this.target) return;
         this.setPivotByControl(e.target);
         this.enableCurrentStyleCursor();
     }
 
 
     onRotate(e) {
+        if(!this.target) return;
         this.target.rotation += e.changeRadian;
-
         this.draw();
         this.updatePrevTargetLt();
     }
 
 
     onRotateEnd(e) {
+        if(!this.target) return;
         this.update();
-        this.c.mc.drawCenter(this.target.rotation, this.target.width, this.target.height);
+        this.c.mc.drawCenter(this.target.rotation, this.width, this.height);
         this.disableCurrentStyleCursor();
     }
 
 
     onControlMoveStart(e) {
+        if(!this.target) return;
         this.startMousePoint = {x: e.currentMousePoint.x, y: e.currentMousePoint.y};
         this.setPivotByControl(e.target);
         this.updatePrevTargetLt();
@@ -546,6 +547,7 @@ export class TransformTool {
 
 
     onControlMove(e) {
+        if(!this.target) return;
         this.doTransform(e);
         this.draw();
         this.updatePrevTargetLt();
@@ -553,6 +555,7 @@ export class TransformTool {
 
 
     onControlMoveEnd(e) {
+        if(!this.target) return;
         this.target.emit(TransformTool.TRANSFORM_COMPLETE);
         this.disableCurrentStyleCursor();
     }
@@ -564,7 +567,7 @@ export class TransformTool {
         var height = target.height;
         this.setPivotByLocalPoint({x: 0, y: 0});
         this.update();
-        this.c.mc.drawCenter(this.target.rotation, this.target.width, this.target.height);
+        this.c.mc.drawCenter(this.target.rotation, this.width, this.height);
     }
 
 
@@ -599,5 +602,14 @@ export class TransformTool {
         return PointUtil.getAddedInterpolate(tc, ro, this.rotationLineLength);
     }
 
+
+    get width() {
+        return this.target.width * this.containerScaleX;
+    }
+
+
+    get height() {
+        return this.target.height * this.containerScaleY;
+    }
 
 }
