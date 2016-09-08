@@ -29,8 +29,6 @@ export class TransformTool {
         this.options = options || {
                 canvasOffsetX: 0,
                 canvasOffsetY: 0,
-                containerScaleX: 0,
-                containerScaleY: 0,
                 deleteButtonOffsetY: 0,
                 //rotationLineLength: 25
             };
@@ -38,9 +36,6 @@ export class TransformTool {
         this.deleteButtonSize = 28;
         this.canvasOffsetX = this.options.canvasOffsetX;
         this.canvasOffsetY = this.options.canvasOffsetY;
-        // targetLayer의 스케일이 1이 아닌 경우 스케일을 넘겨 줍니다.
-        this.containerScaleX = this.options.containerScaleX;
-        this.containerScaleY = this.options.containerScaleY;
         this.deleteButtonOffsetY = this.options.deleteButtonOffsetY || 0;
         //this.rotationLineLength = this.options.rotationLineLength || 25;
 
@@ -151,7 +146,20 @@ export class TransformTool {
 
 
     addEvent() {
-        this.stageLayer.on(TransformTool.SET_TARGET, this.onSetTarget.bind(this)); 
+        this.stageLayer.on(TransformTool.SET_TARGET, this.onSetTarget.bind(this));
+        window.document.addEventListener('mouseup', this.onMouseUp.bind(this));
+        if (!this.stageLayer.eventTargets){
+            this.stageLayer.eventTargets = [];
+        }
+        this.downCnt = 0;
+    }
+
+    onMouseUp(e){
+        this.downCnt--;
+        if (this.downCnt < 0){
+            this.releaseTarget();
+        }
+        this.downCnt = 0;
     }
 
 
@@ -179,14 +187,6 @@ export class TransformTool {
         this.target = pixiSprite;
         this.removeTextureUpdateEvent();
         this.addTextureUpdateEvent();
-
-        //현재는 scale 후 스케일로 1로 강제 조정하기 때문에 diffScale의 차이가 없습니다.
-        this._diffScaleX = 0;
-        this._diffScaleY = 0;
-
-        //타겟의 스케일이 1로 변하지 않았을 때는 차이 값을 저장했다가 변형 시 반영해야 합니다.
-        //this._diffScaleX = this.target.scale.x - 1;
-        //this._diffScaleY = this.target.scale.y - 1;
 
         this.update();
         this.c.mc.drawCenter(this.target.rotation, this.width, this.height);
@@ -310,8 +310,6 @@ export class TransformTool {
         else
             scaleX = abs_scaley * op_scalex;
 
-        scaleX = scaleX + this._diffScaleX;
-        scaleY = scaleY + this._diffScaleY;
         this.target.scale = {x: scaleX, y: scaleY};
     }
 
@@ -345,8 +343,8 @@ export class TransformTool {
 
     move(e) {
         var change = e.changeMovement;
-        this.target.x += change.x / this.containerScaleX;
-        this.target.y += change.y / this.containerScaleY;
+        this.target.x += change.x / this.diffScaleX;
+        this.target.y += change.y / this.diffScaleY;
     }
 
 
@@ -441,8 +439,8 @@ export class TransformTool {
     adjustPosition() {
         var offsetX = this.lt.x - this.prevLtX;
         var offsetY = this.lt.y - this.prevLtY;
-        var noScaleOffsetX = offsetX / this.containerScaleX;
-        var noScaleOffsetY = offsetY / this.containerScaleY;
+        var noScaleOffsetX = offsetX / this.diffScaleX;
+        var noScaleOffsetY = offsetY / this.diffScaleY;
         var pivotOffsetX = offsetX - noScaleOffsetX;
         var pivotOffsetY = offsetY - noScaleOffsetY;
         this.target.x = this.target.x - offsetX + pivotOffsetX;
@@ -537,6 +535,7 @@ export class TransformTool {
 
     onRotateStart(e) {
         if(!this.target) return;
+        this.downCnt++;
         this.setPivotByControl(e.target);
         this.enableCurrentStyleCursor();
     }
@@ -560,6 +559,7 @@ export class TransformTool {
 
     onControlMoveStart(e) {
         if(!this.target) return;
+        this.downCnt++;
         this.startMousePoint = {x: e.currentMousePoint.x, y: e.currentMousePoint.y};
         this.setPivotByControl(e.target);
         this.updatePrevTargetLt();
@@ -629,13 +629,23 @@ export class TransformTool {
     }
 
 
-    get width() {
-        return this.target.width * this.containerScaleX;
+    get diffScaleX() {
+        var matrix = this.target.worldTransform;
+        return Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b);
+    }
+
+    get diffScaleY() {
+        var matrix = this.target.worldTransform;
+        return Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d);
     }
 
 
+    get width() {
+        return this.target.width * this.diffScaleX;
+    }
+
     get height() {
-        return this.target.height * this.containerScaleY;
+        return this.target.height * this.diffScaleY;
     }
 
 }

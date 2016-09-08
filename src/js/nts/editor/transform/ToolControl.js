@@ -230,7 +230,6 @@ export class ToolControl extends PIXI.Sprite {
         this._mouseUpListener = this.onMouseUp.bind(this);
 
         window.document.addEventListener('mousemove', this._mouseMoveListener);
-        window.document.addEventListener('mouseup', this._mouseUpListener);
     };
 
 
@@ -269,7 +268,8 @@ export class ToolControl extends PIXI.Sprite {
         }
 
         this.addMouseMoveEvent();
-        this.removeMouseDownEvent();
+        window.document.addEventListener('mouseup', this._mouseUpListener);
+        // this.removeMouseDownEvent();
     };
 
 
@@ -356,7 +356,7 @@ export class ToolControl extends PIXI.Sprite {
             });
         }
 
-        this.addMouseDownEvent();
+        // this.addMouseDownEvent();
         this.removeMouseMoveEvent();
     };
 

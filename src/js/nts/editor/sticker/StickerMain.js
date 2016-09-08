@@ -141,8 +141,6 @@ export class StickerMain {
             canvasOffsetX: 0,
             canvasOffsetY: 0,
             deleteButtonOffsetY: 0,
-            containerScaleX: this.stickerLayer.scale.x,
-            containerScaleY: this.stickerLayer.scale.y
         };
 
         this.transformTool = new TransformTool(this.stageLayer, this.stickerLayer, options);
@@ -204,11 +202,15 @@ export class StickerMain {
     get snapshot() {
         var snapshot = [];
         for(var i=0; i<this.stickers.length; i++) {
-            snapshot[i] = this.stickers[i].snapshot;
-            console.log(snapshot[i]);
+            var vo = this.stickers[i].snapshot;
+            vo.childIndex = this.stickerLayer.getChildIndex(this.stickers[i]);
+            snapshot[i] = vo;
         }
 
-        console.log('           snapshot.length:', snapshot.length, snapshot);
+        snapshot.sort(function (a, b) {
+            return a.childIndex < b.childIndex ? -1 : a.childIndex > b.childIndex ? 1 : 0;
+        });
+
         return snapshot;
     }
 
