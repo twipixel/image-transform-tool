@@ -129,6 +129,7 @@ export class TransformTool {
                     control.on(ToolControl.ROTATE_START, this.onRotateStart.bind(this));
                     control.on(ToolControl.ROTATE, this.onRotate.bind(this));
                     control.on(ToolControl.ROTATE_END, this.onRotateEnd.bind(this));
+                    control.on(ToolControl.CHANGE_ROTATION_CURSOR, this.onChangeRotationCursor.bind(this));
                     break;
 
                 case ToolControlType.TOP_LEFT:
@@ -578,6 +579,11 @@ export class TransformTool {
         if(!this.target) return;
         this.target.emit(TransformTool.TRANSFORM_COMPLETE);
         this.disableCurrentStyleCursor();
+    }
+
+
+    onChangeRotationCursor(cursor) {
+        this.stageLayer.defaultCursor = cursor;
     }
 
 
