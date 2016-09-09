@@ -36,6 +36,8 @@ export class VectorContainer extends PIXI.Container {
         this.isFirstLoad = true;
         this.interactive = true;
 
+        // 랜더링 되야할 객체 표기
+        this.renderableObject = true;
         this.canvgCanvas = document.createElement('CANVAS');
         this.canvgCanvas.id = 'canvgCanvas';
         this.canvgContext = this.canvgCanvas.getContext('2d');
@@ -55,12 +57,16 @@ export class VectorContainer extends PIXI.Container {
 
     load(url, x = 0, y = 0, width = 100, height = 100) {
         this.url = url;
+        this.originW = width;
+        this.originH = height;
         this.drawSvg(x, y, width, height);
     }
 
 
     setSVG(dom, x = 0, y = 0, width = 100, height = 100){
         this.svg = dom;
+        this.originW = width;
+        this.originH = height;
         this.drawSvg(x, y, width, height);
     }
 
@@ -101,6 +107,22 @@ export class VectorContainer extends PIXI.Container {
         this.canvgCanvas = null;
     }
 
+    checkAlphaPoint(e){
+        var mPoint = e.data.global;
+        var t = this.worldTransform;
+
+        var point = t.applyInverse(mPoint);
+
+
+        var data = this.canvgContext.getImageData(point.x, point.y, 1, 1);
+
+        console.log(data.data[3]);
+
+        if (data.data[3] == 0){
+            return true;
+        }
+        return false;
+    }
 
     onTransformComplete(e) {
         this.drawSvg(0, 0, this.width, this.height);
@@ -114,8 +136,6 @@ export class VectorContainer extends PIXI.Container {
         if(this.isFirstLoad === true) {
             this.isFirstLoad = false;
             this.image = new PIXI.Sprite(new PIXI.Texture.fromCanvas(this.canvgCanvas));
-            // 랜더링 되야할 객체 표기
-            this.image.renderableObject = true;
             this.addChild(this.image);
             this.emit(VectorContainer.LOAD_COMPLETE, {target:this});
         } else {
