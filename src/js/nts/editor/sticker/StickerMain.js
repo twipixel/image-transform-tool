@@ -162,9 +162,7 @@ export class StickerMain {
 
     onStickerMouseDown(e) {
         var target = e.target;
-        if (target.checkAlphaPoint(e)){
-            return;
-        }
+        //if (target.checkAlphaPoint(e)) return;
         e.stopPropagation();
         this.onStickerClick(e);
     }

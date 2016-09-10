@@ -21,6 +21,21 @@ export class TransformTool {
         return 'transformComplete';
     }
 
+    static get SELECT(){
+        return 'select';
+    }
+
+    static get DESELECT(){
+        return 'deselect';
+    }
+
+    static get REQ_INPUT(){
+        return 'requestInput';
+    }
+    static get DBCLICK(){
+        return 'dbClick';
+    }
+
 
     constructor(stageLayer, targetLayer, options) {
         this.stageLayer = stageLayer;
@@ -97,6 +112,7 @@ export class TransformTool {
         this.c.mc.on(ToolControl.MOVE_START, this.onControlMoveStart.bind(this));
         this.c.mc.on(ToolControl.MOVE, this.onControlMove.bind(this));
         this.c.mc.on(ToolControl.MOVE_END, this.onControlMoveEnd.bind(this));
+        this.c.mc.on(ToolControl.DBCLICK, this.onControlDBClick.bind(this));
 
         this.stageLayer.addChild(this.c.rde);
         this.stageLayer.addChild(this.c.rtl);
@@ -112,6 +128,7 @@ export class TransformTool {
             var control = this.controls[prop];
             control.visible = false;
             control.centerPoint = this.controls.mc;
+            control.targetLayer = this.targetLayer;
 
             switch (control.type) {
                 case ToolControlType.DELETE:
@@ -156,7 +173,9 @@ export class TransformTool {
 
     onMouseUp(e){
         this.downCnt--;
-        if (this.downCnt < 0){
+        if (this.downCnt < 0 && this.target){
+            console.log(this.target);
+            this.target.emit(TransformTool.DESELECT);
             this.releaseTarget();
         }
         this.downCnt = 0;
@@ -178,21 +197,26 @@ export class TransformTool {
             this.controls[prop].visible = false;
     }
 
+    activeTarget(target){
+        window.target = window.t = target;
 
-    setTarget(e) {
-        var pixiSprite = e.target;
-        // TODO 테스트 코드
-        window.target = window.t = pixiSprite;
-
-        this.target = pixiSprite;
+        this.target = target;
         this.removeTextureUpdateEvent();
         this.addTextureUpdateEvent();
 
         this.update();
         this.c.mc.drawCenter(this.target.rotation, this.width, this.height);
-        this.c.mc.emit('mousedown', e);
 
-        this.stageLayer.emit(TransformTool.SET_TARGET, pixiSprite);
+        this.stageLayer.emit(TransformTool.SET_TARGET, target);
+    }
+
+    setTarget(e) {
+        var pixiSprite = e.target;
+        // TODO 테스트 코드
+
+        this.activeTarget(pixiSprite);
+
+        this.c.mc.emit('mousedown', e);
     };
 
 
@@ -342,9 +366,9 @@ export class TransformTool {
 
 
     move(e) {
-        var change = e.changeMovement;
-        this.target.x += change.x / this.diffScaleX;
-        this.target.y += change.y / this.diffScaleY;
+        var change = e.targetChangeMovement;
+        this.target.x += change.x;
+        this.target.y += change.y;
     }
 
 
@@ -581,6 +605,10 @@ export class TransformTool {
         this.disableCurrentStyleCursor();
     }
 
+    onControlDBClick(e){
+        if(!this.target) return;
+        this.target.emit(TransformTool.DBCLICK, {target: this.target});
+    }
 
     onChangeRotationCursor(cursor) {
         this.stageLayer.defaultCursor = cursor;

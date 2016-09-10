@@ -31,6 +31,14 @@ export class ToolControl extends PIXI.Sprite {
     }
 
 
+    static get DBCLICK_TIME(){
+        return 400;
+    }
+    static get DBCLICK(){
+        return 'dbClick';
+    }
+
+
     constructor(type, options, rotationControlType) {
         super();
         this.type = type;
@@ -242,7 +250,21 @@ export class ToolControl extends PIXI.Sprite {
 
     onMouseDown(e) {
         e.stopPropagation();
-        this.prevMousePoint = this.currentMousePoint = {x: e.data.global.x, y: e.data.global.y};
+        var globalPoint = {x: e.data.global.x, y: e.data.global.y};
+        this.prevMousePoint = this.currentMousePoint = globalPoint;
+        this.targetPrevMousePoint = this.targetCurrentMousePoint = this.targetLayer.toLocal(globalPoint);
+
+        var time = new Date().getTime();
+
+        if (this.startTime && this.type == ToolControlType.MIDDLE_CENTER){
+            console.log(time, this.startTime, time - this.startTime, ToolControl.DBCLICK_TIME);
+            if (time - this.startTime < ToolControl.DBCLICK_TIME){
+                this.emit(ToolControl.DBCLICK);
+                this.startTime = null;
+                return;
+            }
+        }
+        this.startTime = time;
 
         if(this.type === ToolControlType.ROTATION) {
             this.prevRotation = this.currentRotation = Calc.getRotation(this.centerPoint.globalPoint, {
@@ -263,7 +285,8 @@ export class ToolControl extends PIXI.Sprite {
             this.emit(ToolControl.MOVE_START, {
                 target: this,
                 type: this.type,
-                currentMousePoint: this.currentMousePoint
+                currentMousePoint: this.currentMousePoint,
+                targetCurrentMousePoint: this.targetCurrentMousePoint
             });
         }
 
@@ -274,11 +297,18 @@ export class ToolControl extends PIXI.Sprite {
 
 
     onMouseMove(e) {
-        this.currentMousePoint = {x: e.clientX - this.canvasOffsetX, y: e.clientY - this.canvasOffsetY};
+        var globalPoint = {x: e.clientX - this.canvasOffsetX, y: e.clientY - this.canvasOffsetY};
+        this.currentMousePoint = globalPoint;
+        this.targetCurrentMousePoint = this.targetLayer.toLocal(globalPoint);
 
         this.changeMovement = {
             x: this.currentMousePoint.x - this.prevMousePoint.x,
             y: this.currentMousePoint.y - this.prevMousePoint.y
+        };
+
+        this.targetChangeMovement = {
+            x: this.targetCurrentMousePoint.x - this.targetPrevMousePoint.x,
+            y: this.targetCurrentMousePoint.y - this.targetPrevMousePoint.y
         };
 
         if(this.type === ToolControlType.ROTATION) {
@@ -307,21 +337,32 @@ export class ToolControl extends PIXI.Sprite {
                 type: this.type,
                 prevMousePoint: this.prevMousePoint,
                 changeMovement: this.changeMovement,
-                currentMousePoint: this.currentMousePoint
+                currentMousePoint: this.currentMousePoint,
+                targetPrevMousePoint: this.targetPrevMousePoint,
+                targetChangeMovement: this.targetChangeMovement,
+                targetCurrentMousePoint: this.targetCurrentMousePoint,
             });
         }
 
         this.prevRotation = this.currentRotation;
         this.prevMousePoint = this.currentMousePoint;
+        this.targetPrevMousePoint = this.targetCurrentMousePoint;
     };
 
 
     onMouseUp(e) {
-        this.currentMousePoint = {x: e.clientX - this.canvasOffsetX, y: e.clientY - this.canvasOffsetY};
+        var globalPoint = {x: e.clientX - this.canvasOffsetX, y: e.clientY - this.canvasOffsetY};
+        this.currentMousePoint = globalPoint;
+        this.targetCurrentMousePoint = this.targetLayer.toLocal(globalPoint);
 
         this.changeMovement = {
             x: this.currentMousePoint.x - this.prevMousePoint.x,
             y: this.currentMousePoint.y - this.prevMousePoint.y
+        };
+
+        this.targetChangeMovement = {
+            x: this.targetCurrentMousePoint.x - this.targetPrevMousePoint.x,
+            y: this.targetCurrentMousePoint.y - this.targetPrevMousePoint.y
         };
 
         if(this.type === ToolControlType.ROTATION) {
@@ -352,7 +393,10 @@ export class ToolControl extends PIXI.Sprite {
                 type: this.type,
                 prevMousePoint: this.prevMousePoint,
                 changeMovement: this.changeMovement,
-                currentMousePoint: this.currentMousePoint
+                currentMousePoint: this.currentMousePoint,
+                targetPrevMousePoint: this.targetPrevMousePoint,
+                targetChangeMovement: this.targetChangeMovement,
+                targetCurrentMousePoint: this.targetCurrentMousePoint,
             });
         }
 
@@ -408,5 +452,15 @@ export class ToolControl extends PIXI.Sprite {
     get cursorIndex() {
         return parseInt(this.angle / 45);
     }
+
+
+    set targetLayer(value) {
+        this._targetLayer = value;
+    }
+
+    get targetLayer() {
+        return this._targetLayer;
+    }
+
 
 }
