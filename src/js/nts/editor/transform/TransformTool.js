@@ -198,6 +198,8 @@ export class TransformTool {
     }
 
     activeTarget(target){
+
+        // TODO 테스트 코드
         window.target = window.t = target;
 
         this.target = target;
@@ -206,7 +208,6 @@ export class TransformTool {
 
         this.update();
         this.c.mc.drawCenter(this.target.rotation, this.width, this.height);
-
         this.stageLayer.emit(TransformTool.SET_TARGET, target);
     }
 
@@ -626,7 +627,10 @@ export class TransformTool {
 
 
     get lt() {
-        return this.target.toGlobal({x: 0, y: 0});
+        this.target.displayObjectUpdateTransform();
+        var transform = this.target.worldTransform.clone();
+        transform.rotate(-this.targetLayer.rotation);
+        return transform.apply({x: 0, y: 0});
     }
 
     get deleteButtonPosition() {

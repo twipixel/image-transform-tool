@@ -1,4 +1,5 @@
 import {Mouse} from './nts/editor/utils/Mouse';
+import {Calc} from './nts/editor/utils/Calculator';
 import {StickerMain} from './nts/editor/sticker/StickerMain';
 
 
@@ -22,6 +23,11 @@ function initailize() {
     stage = new PIXI.Container(0xE6E9EC);
     rootLayer = new PIXI.Container(0xE6E9EC);
     stickerLayer = new PIXI.Container(0xE6E9EC);
+
+
+    // 컨테이너에 scale과 rotation 이 있을 때를 고려해서 만들었습니다
+    //stickerLayer.scale = {x: 1.2, y: 1.2};
+    //stickerLayer.rotation = Calc.toRadians(40);
 
     stage.addChild(stickerLayer);
     stage.addChild(rootLayer);
