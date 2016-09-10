@@ -42,17 +42,11 @@ export class TransformTool {
         this.targetLayer = targetLayer;
 
         this.options = options || {
-                canvasOffsetX: 0,
-                canvasOffsetY: 0,
                 deleteButtonOffsetY: 0,
-                //rotationLineLength: 25
             };
 
         this.deleteButtonSize = 28;
-        this.canvasOffsetX = this.options.canvasOffsetX;
-        this.canvasOffsetY = this.options.canvasOffsetY;
         this.deleteButtonOffsetY = this.options.deleteButtonOffsetY || 0;
-        //this.rotationLineLength = this.options.rotationLineLength || 25;
 
         this.initialize();
         this.addEvent();
@@ -69,21 +63,9 @@ export class TransformTool {
         this.target = null;
         this._targetTextureUpdateListener = null;
 
-
-        var deleteButtonOptions = {
-            canvasOffsetX: this.canvasOffsetX,
-            canvasOffsetY: this.canvasOffsetY
-        };
-
-        var rotationOptions = {
-            canvasOffsetX: this.canvasOffsetX,
-            canvasOffsetY: this.canvasOffsetY
-        };
-
-        var controlOptions = {
-            canvasOffsetX: this.canvasOffsetX,
-            canvasOffsetY: this.canvasOffsetY
-        };
+        var controlOptions = {};
+        var rotationOptions = {};
+        var deleteButtonOptions = {};
 
         this.c = this.controls = {
             de: new ToolControl(ToolControlType.DELETE, deleteButtonOptions),

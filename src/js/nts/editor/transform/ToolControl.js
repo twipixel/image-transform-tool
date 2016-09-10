@@ -39,13 +39,10 @@ export class ToolControl extends PIXI.Sprite {
     }
 
 
-    constructor(type, options, rotationControlType) {
+    constructor(type, options = {}, rotationControlType = RotationControlType.NONE) {
         super();
         this.type = type;
-        this.options = options || {
-                canvasOffsetX: 0,
-                canvasOffsetY: 0,
-            };
+        this.options = options;
         this.rotationControlType = rotationControlType;
 
         this.currentRadian = 0;
@@ -54,10 +51,7 @@ export class ToolControl extends PIXI.Sprite {
         this.buttonMode = true;
         this.interactive = true;
         this.defaultCursor = 'inherit';
-
         this._localPoint = new PIXI.Point();
-        this.canvasOffsetX = this.options.canvasOffsetX;
-        this.canvasOffsetY = this.options.canvasOffsetY;
 
         this.initialize();
         this.render();
@@ -297,7 +291,7 @@ export class ToolControl extends PIXI.Sprite {
 
 
     onMouseMove(e) {
-        var globalPoint = {x: e.clientX - this.canvasOffsetX, y: e.clientY - this.canvasOffsetY};
+        var globalPoint = Mouse.global;
         this.currentMousePoint = globalPoint;
         this.targetCurrentMousePoint = this.targetLayer.toLocal(globalPoint);
 
@@ -312,10 +306,7 @@ export class ToolControl extends PIXI.Sprite {
         };
 
         if(this.type === ToolControlType.ROTATION) {
-            this.currentRotation = Calc.getRotation(this.centerPoint.globalPoint, {
-                x: e.clientX - this.canvasOffsetX,
-                y: e.clientY - this.canvasOffsetY
-            });
+            this.currentRotation = Calc.getRotation(this.centerPoint.globalPoint, Mouse.global);
 
             this.changeRotation = this.currentRotation - this.prevRotation;
             this.absChangeRotation = (this.changeRotation < 0) ? this.changeRotation * -1 : this.changeRotation;
@@ -351,7 +342,7 @@ export class ToolControl extends PIXI.Sprite {
 
 
     onMouseUp(e) {
-        var globalPoint = {x: e.clientX - this.canvasOffsetX, y: e.clientY - this.canvasOffsetY};
+        var globalPoint = Mouse.global;
         this.currentMousePoint = globalPoint;
         this.targetCurrentMousePoint = this.targetLayer.toLocal(globalPoint);
 
@@ -367,10 +358,7 @@ export class ToolControl extends PIXI.Sprite {
 
         if(this.type === ToolControlType.ROTATION) {
 
-            this.currentRotation = Calc.getRotation(this.centerPoint.globalPoint, {
-                x: e.clientX - this.canvasOffsetX,
-                y: e.clientY - this.canvasOffsetY
-            });
+            this.currentRotation = Calc.getRotation(this.centerPoint.globalPoint, Mouse.global);
 
             this.changeRotation = this.currentRotation - this.prevRotation;
             this.absChangeRotation = (this.changeRotation < 0) ? this.changeRotation * -1 : this.changeRotation;

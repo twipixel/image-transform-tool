@@ -1,6 +1,6 @@
 export class RotationControlType {
-    static get NOT_THE_TYPE() {
-        return 'rotationNotTheType';
+    static get NONE() {
+        return 'rotationNone';
     }
 
     static get DELETE() {

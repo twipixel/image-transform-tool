@@ -2,9 +2,10 @@ import {VectorContainer} from '../view/VectorContainer';
 import {TransformTool} from '../transform/TransformTool';
 
 export class StickerMain {
-    constructor(stageLayer, stickerLayer) {
+    constructor(renderer, stageLayer, stickerLayer) {
         console.log('StickerMain(' + stageLayer + ', ' + stickerLayer + ')');
 
+        this.renderer = renderer;
         this.stageLayer = stageLayer;
         this.stickerLayer = stickerLayer;
 
@@ -138,8 +139,6 @@ export class StickerMain {
         this.stickerLayer.updateTransform();
 
         var options = {
-            canvasOffsetX: 0,
-            canvasOffsetY: 0,
             deleteButtonOffsetY: 0,
         };
 
@@ -162,7 +161,7 @@ export class StickerMain {
 
     onStickerMouseDown(e) {
         var target = e.target;
-        //if (target.checkAlphaPoint(e)) return;
+        //if (target.checkAlphaPoint(e.data.global)) return;
         e.stopPropagation();
         this.onStickerClick(e);
     }
