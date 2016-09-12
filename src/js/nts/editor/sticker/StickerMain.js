@@ -43,6 +43,9 @@ export class StickerMain {
         target.off('mousedown', target._stickerMouseDownListener);
         target.off(TransformTool.DELETE, target._stickerDeleteClickListener);
         target.off(VectorContainer.LOAD_COMPLETE, target._stickerLoadCompleteListener);
+        target._stickerMouseDownListener = null;
+        target._stickerDeleteClickListener = null;
+        target._stickerLoadCompleteListener = null;
 
         for(var i=0; i<this.stickers.length; i++) {
             var sticker = this.stickers[i];
@@ -50,7 +53,8 @@ export class StickerMain {
                 this.stickers.splice(i, 1);
                 this.stickerLayer.removeChild(sticker);
                 this.transformTool.releaseTarget();
-                sticker.destroy();
+                sticker.delete();
+                sticker = null;
             }
         }
     }
@@ -146,11 +150,13 @@ export class StickerMain {
     onKeyUp(e) {
         switch (e.keyCode) {
             case 27: //consts.KeyCode.ESC:
+                this.clear();
                 break;
             case 32: //consts.KeyCode.SPACE:
-                this.testRandomCreateSticker();
+                this.testCreateStickers();
                 break;
             case 49: //consts.KeyCode.NUM_1:
+                this.testRandomCreateSticker();
                 break;
             case 50: //consts.KeyCode.NUM_2:
                 break;
@@ -196,7 +202,6 @@ export class StickerMain {
             './img/svg/wordpress.svg'
         ];
 
-        this.testRandomCreateSticker();
         window.document.addEventListener('keyup', this.onKeyUp.bind(this));
     }
 
@@ -216,9 +221,9 @@ export class StickerMain {
 
         for(var i=0; i<this.totalSticker; i++) {
             var url = this.svgs[i];
-            var sticker = this.createSticker(url, 0, 0, 100, 100);
-            sticker.x = parseInt(Math.random() * 800);
-            sticker.y = parseInt(Math.random() * 600);
+            var randomX = parseInt(Math.random() * 400);
+            var randomY = parseInt(Math.random() * 400);
+            var sticker = this.createSticker(url, randomX, randomY, 100, 100);
         }
     }
 }

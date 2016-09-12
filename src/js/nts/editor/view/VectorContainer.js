@@ -36,22 +36,23 @@ export class VectorContainer extends PIXI.Container {
         this.isFirstLoad = true;
         this.interactive = true;
 
-        // 랜더링 되야할 객체 표기
-        this.renderableObject = true;
         this.canvgCanvas = document.createElement('CANVAS');
         this.canvgCanvas.id = 'canvgCanvas';
         this.canvgContext = this.canvgCanvas.getContext('2d');
-        document.body.appendChild(this.canvgCanvas);
     };
 
 
     addEvent() {
-        this.on(TransformTool.TRANSFORM_COMPLETE, this.onTransformComplete);
+        this.drawCompleteListener = this.onDrawComplete.bind(this);
+        this.transformCompleteListener = this.onTransformComplete.bind(this);
+        this.on(TransformTool.TRANSFORM_COMPLETE, this.transformCompleteListener);
     }
 
 
     removeEvent() {
-        this.off(TransformTool.TRANSFORM_COMPLETE, this.onTransformComplete);
+        this.off(TransformTool.TRANSFORM_COMPLETE, this.transformCompleteListener);
+        this.drawCompleteListener = null;
+        this.transformCompleteListener = null;
     }
 
 
@@ -63,7 +64,7 @@ export class VectorContainer extends PIXI.Container {
     }
 
 
-    setSVG(dom, x = 0, y = 0, width = 100, height = 100){
+    setSVG(dom, x = 0, y = 0, width = 100, height = 100) {
         this.svg = dom;
         this.originW = width;
         this.originH = height;
@@ -90,39 +91,64 @@ export class VectorContainer extends PIXI.Container {
         height = Math.abs(height);
         this.canvgCanvas.width = width;
         this.canvgCanvas.height = height;
-        this.canvgContext.drawSvg(this.url || this.svg, x, y, width, height, {renderCallback: this.onDrawComplete.bind(this)});
+        this.canvgContext.drawSvg(this.url || this.svg, x, y, width, height, {renderCallback: this.drawCompleteListener});
+        //canvg(this.canvgCanvas, this.url, {offsetX:x, offsetY:y, scaleWidth:width, scaleHeight:height});
+        //canvg(this.canvgCanvas, this.url, {offsetX:x, offsetY:y, scaleWidth:width, scaleHeight:height, renderCallback: this.drawCompleteListener})
     }
 
 
-    destroy() {
+    delete() {
         this.removeEvent();
+        this.interactive = false;
 
-        if(this.image !== null) {
+        if (this.image !== null) {
+            this.image.texture.destroy();
+            this.image.texture = null;
             this.removeChild(this.image);
+            this.image.renderableObject = false;
             this.image.destroy();
+            this.image = null;
         }
 
-        document.body.removeChild(this.canvgCanvas);
-        this.canvgContext = null;
+        this.purge(this);
+        this.destroy();
         this.canvgCanvas = null;
+        this.canvgContext = null;
+        this.drawCompleteListener = null;
+        this.transformCompleteListener = null;
     }
 
-    checkAlphaPoint(e){
-        var mPoint = e.data.global;
-        var t = this.worldTransform;
 
-        var point = t.applyInverse(mPoint);
+    purge(d) {
+        var a = d.attributes, i, l, n;
+        if (a) {
+            for (i = a.length - 1; i >= 0; i -= 1) {
+                n = a[i].name;
+                if (typeof d[n] === 'function') {
+                    d[n] = null;
+                }
+            }
+        }
+        a = d.childNodes;
+        if (a) {
+            l = a.length;
+            for (i = 0; i < l; i += 1) {
+                purge(d.childNodes[i]);
+            }
+        }
+    }
 
 
-        var data = this.canvgContext.getImageData(point.x, point.y, 1, 1);
+    checkAlphaPoint(globalMPoint) {
+        let point = this.worldTransform.applyInverse(globalMPoint);
+        let data = this.canvgContext.getImageData(point.x, point.y, 1, 1);
 
-        console.log(data.data[3]);
-
-        if (data.data[3] == 0){
+        if (data.data[3] == 0) {
             return true;
         }
         return false;
     }
+
 
     onTransformComplete(e) {
         this.drawSvg(0, 0, this.width, this.height);
@@ -130,32 +156,37 @@ export class VectorContainer extends PIXI.Container {
 
 
     onDrawComplete() {
-        //TODO 테스트 코드
-        window.target = this;
-
-        if(this.isFirstLoad === true) {
+        if (this.isFirstLoad === true) {
             this.isFirstLoad = false;
             this.image = new PIXI.Sprite(new PIXI.Texture.fromCanvas(this.canvgCanvas));
+            this.image.renderableObject = true;
             this.addChild(this.image);
-            this.emit(VectorContainer.LOAD_COMPLETE, {target:this});
+            this.emit(VectorContainer.LOAD_COMPLETE, {target: this});
         } else {
-            this.scale = {x:1, y:1};
-            this.image.scale = {x:this.scaleSignX, y:this.scaleSignY};
+            this.scale = {x: 1, y: 1};
+            this.image.scale = {x: this.scaleSignX, y: this.scaleSignY};
             this.image.texture.update();
             this.image.updateTransform();
-            this.emit(VectorContainer.TEXTURE_UPDATE, {target:this, scaleSignX:this.scaleSignX, scaleSignY:this.scaleSignY});
+            this.emit(VectorContainer.TEXTURE_UPDATE, {
+                target: this,
+                scaleSignX: this.scaleSignX,
+                scaleSignY: this.scaleSignY
+            });
         }
     }
 
 
-    get ID(){
+    get ID() {
         return this._id;
     }
 
-    set ID(id){
+    set ID(id) {
         this._id = id;
     }
 
+    get scaleForOrigin() {
+        return {x: this.width / this.originW, y: this.height / this.originH};
+    }
 
     get snapshot() {
         return {

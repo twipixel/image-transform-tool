@@ -146,7 +146,8 @@ export class TransformTool {
 
     addEvent() {
         this.stageLayer.on(TransformTool.SET_TARGET, this.onSetTarget.bind(this));
-        window.document.addEventListener('mouseup', this.onMouseUp.bind(this));
+
+        //this.stageLayer.root.on('mouseup', this.onMouseUp.bind(this));
         if (!this.stageLayer.eventTargets){
             this.stageLayer.eventTargets = [];
         }
@@ -157,6 +158,7 @@ export class TransformTool {
         this.downCnt--;
         if (this.downCnt < 0 && this.target){
             this.target.emit(TransformTool.DESELECT);
+            this.target.visible = true;
             this.releaseTarget();
         }
         this.downCnt = 0;
@@ -179,10 +181,6 @@ export class TransformTool {
     }
 
     activeTarget(target){
-
-        // TODO 테스트 코드
-        window.target = window.t = target;
-
         this.target = target;
         this.removeTextureUpdateEvent();
         this.addTextureUpdateEvent();
