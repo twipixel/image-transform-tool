@@ -156,7 +156,6 @@ export class TransformTool {
     onMouseUp(e){
         this.downCnt--;
         if (this.downCnt < 0 && this.target){
-            console.log(this.target);
             this.target.emit(TransformTool.DESELECT);
             this.releaseTarget();
         }
@@ -195,10 +194,7 @@ export class TransformTool {
 
     setTarget(e) {
         var pixiSprite = e.target;
-        // TODO 테스트 코드
-
         this.activeTarget(pixiSprite);
-
         this.c.mc.emit('mousedown', e);
     };
 
