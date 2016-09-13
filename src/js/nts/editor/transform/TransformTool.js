@@ -32,6 +32,7 @@ export class TransformTool {
     static get REQ_INPUT(){
         return 'requestInput';
     }
+
     static get DBCLICK(){
         return 'dbClick';
     }
@@ -41,12 +42,9 @@ export class TransformTool {
         this.stageLayer = stageLayer;
         this.targetLayer = targetLayer;
 
-        this.options = options || {
-                deleteButtonOffsetY: 0,
-            };
-
+        this.options = options || { deleteButtonOffsetY: 0 };
         this.deleteButtonSize = 28;
-        this.deleteButtonOffsetY = this.options.deleteButtonOffsetY || 0;
+        this.deleteButtonOffsetY = this.options.deleteButtonOffsetY;
 
         this.initialize();
         this.addEvent();
@@ -54,13 +52,13 @@ export class TransformTool {
 
 
     initialize() {
+        this.target = null;
         this.transform = new PIXI.Matrix();
         this.invertTransform = new PIXI.Matrix();
 
         this.g = this.graphics = new PIXI.Graphics();
         this.stageLayer.addChild(this.graphics);
 
-        this.target = null;
         this._targetTextureUpdateListener = null;
 
         var controlOptions = {};
@@ -147,12 +145,13 @@ export class TransformTool {
     addEvent() {
         this.stageLayer.on(TransformTool.SET_TARGET, this.onSetTarget.bind(this));
 
-        //this.stageLayer.root.on('mouseup', this.onMouseUp.bind(this));
+        this.stageLayer.root.on('mouseup', this.onMouseUp.bind(this));
         if (!this.stageLayer.eventTargets){
             this.stageLayer.eventTargets = [];
         }
         this.downCnt = 0;
     }
+
 
     onMouseUp(e){
         this.downCnt--;
@@ -166,7 +165,8 @@ export class TransformTool {
 
 
     show() {
-        if (!this.controls) return;
+        if (!this.controls || this.g.visible) return;
+
         this.g.visible = true;
         for (var prop in this.controls)
             this.controls[prop].visible = true;
@@ -174,11 +174,12 @@ export class TransformTool {
 
 
     hide() {
-        if (!this.controls) return;
+        if (!this.controls || this.g.visible === false) return;
         this.g.visible = false;
         for (var prop in this.controls)
             this.controls[prop].visible = false;
     }
+
 
     activeTarget(target){
         this.target = target;
@@ -190,14 +191,17 @@ export class TransformTool {
         this.stageLayer.emit(TransformTool.SET_TARGET, target);
     }
 
+
     setTarget(e) {
         var pixiSprite = e.target;
+        pixiSprite.emit(TransformTool.SET_TARGET, pixiSprite);
         this.activeTarget(pixiSprite);
         this.c.mc.emit('mousedown', e);
     };
 
 
     releaseTarget() {
+        if(this.target === null) return;
         this.hide();
         this.removeTextureUpdateEvent();
         this.target = null;
@@ -219,6 +223,7 @@ export class TransformTool {
 
 
     update() {
+        if(this.target === null) return;
         this.setControls();
         this.updateTransform();
         this.draw();
@@ -582,10 +587,12 @@ export class TransformTool {
         this.disableCurrentStyleCursor();
     }
 
+
     onControlDBClick(e){
         if(!this.target) return;
         this.target.emit(TransformTool.DBCLICK, {target: this.target});
     }
+
 
     onChangeRotationCursor(cursor) {
         this.stageLayer.defaultCursor = cursor;

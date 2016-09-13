@@ -14,6 +14,7 @@ export class StickerMain {
 
     initialize() {
         this.stickers = [];
+        this.isRestore = false;
         this.stickerLayer.updateTransform();
         var options = { deleteButtonOffsetY: 0 };
         this.transformTool = new TransformTool(this.stageLayer, this.stickerLayer, options);
@@ -28,9 +29,11 @@ export class StickerMain {
         sticker.y = y;
         sticker._stickerMouseDownListener = this.onStickerMouseDown.bind(this);
         sticker._stickerDeleteClickListener = this.onStickerDeleteClick.bind(this);
+        sticker._stickerSetTargetListener = this.onSetTarget.bind(this);
         sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
         sticker.on('mousedown', sticker._stickerMouseDownListener);
         sticker.on(TransformTool.DELETE, sticker._stickerDeleteClickListener);
+        sticker.on(TransformTool.SET_TARGET, sticker._stickerSetTargetListener);
         sticker.on(VectorContainer.LOAD_COMPLETE, sticker._stickerLoadCompleteListener);
         sticker.load(url, 0, 0, width, height);
         return sticker;
@@ -65,6 +68,9 @@ export class StickerMain {
 
         this.stickers = null;
         this.stickers = [];
+        this.isRestore = true;
+        this.restoreCount = 0;
+        this.restoreTotal = snapshot.length;
 
         for(var i=0; i<snapshot.length; i++) {
             var vo = snapshot[i];
@@ -78,6 +84,7 @@ export class StickerMain {
             sticker.scale.x = transform.scaleX;
             sticker.scale.y = transform.scaleY;
             sticker.rotation = transform.rotation;
+            sticker.childIndex = vo.childIndex;
             sticker._stickerMouseDownListener = this.onStickerMouseDown.bind(this);
             sticker._stickerDeleteClickListener = this.onStickerDeleteClick.bind(this);
             sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
@@ -90,7 +97,6 @@ export class StickerMain {
 
 
     releaseTarget() {
-        if(!this.transformTool) return;
         this.transformTool.releaseTarget();
     }
 
@@ -116,14 +122,18 @@ export class StickerMain {
     }
 
 
-    resize() {
-
+    update() {
+        this.transformTool.update();
     }
 
 
     onLoadComplete(e) {
-        this.stickerLayer.updateTransform();
-        this.transformTool.activeTarget(e.target);
+        if(this.isRestore === false) {
+            this.stickerLayer.updateTransform();
+            this.transformTool.activeTarget(e.target);
+        } else {
+            if(++this.restoreCount == this.restoreTotal) this.isRestore = false;
+        }
     }
 
 
@@ -147,6 +157,11 @@ export class StickerMain {
     }
 
 
+    onSetTarget(target) {
+
+    }
+
+
     onKeyUp(e) {
         switch (e.keyCode) {
             case 27: //consts.KeyCode.ESC:
@@ -156,9 +171,10 @@ export class StickerMain {
                 this.testCreateStickers();
                 break;
             case 49: //consts.KeyCode.NUM_1:
-                this.testRandomCreateSticker();
+                console.log('modefied:', this.modified);
                 break;
             case 50: //consts.KeyCode.NUM_2:
+                console.log('lastSticker:', this.lastSticker);
                 break;
             case 51: //consts.KeyCode.NUM_3:
                 break;
@@ -185,6 +201,17 @@ export class StickerMain {
         });
 
         return snapshot;
+    }
+
+
+    get modified() {
+        return this.stickers.length !== 0;
+    }
+
+    get lastSticker() {
+        if(this.stickers.length === 0) return null;
+        return this.stickerLayer.getChildAt( this.stickerLayer.children.length - 1 );
+        //this.stickers[this.stickers.length - 1];
     }
 
 

@@ -110,32 +110,11 @@ export class VectorContainer extends PIXI.Container {
             this.image = null;
         }
 
-        this.purge(this);
         this.destroy();
         this.canvgCanvas = null;
         this.canvgContext = null;
         this.drawCompleteListener = null;
         this.transformCompleteListener = null;
-    }
-
-
-    purge(d) {
-        var a = d.attributes, i, l, n;
-        if (a) {
-            for (i = a.length - 1; i >= 0; i -= 1) {
-                n = a[i].name;
-                if (typeof d[n] === 'function') {
-                    d[n] = null;
-                }
-            }
-        }
-        a = d.childNodes;
-        if (a) {
-            l = a.length;
-            for (i = 0; i < l; i += 1) {
-                purge(d.childNodes[i]);
-            }
-        }
     }
 
 
@@ -197,7 +176,8 @@ export class VectorContainer extends PIXI.Container {
                 y: this.y,
                 scaleX: this.scale.x,
                 scaleY: this.scale.y,
-                rotation: this.rotation
+                rotation: this.rotation,
+                childIndex: this.parent.getChildIndex(this)
             }
         };
     }
