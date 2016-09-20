@@ -25,8 +25,10 @@ export class StickerMain {
         var sticker = new VectorContainer();
         this.stickerLayer.addChild(sticker);
         this.stickers.push(sticker);
+        sticker.pivot = {x: width / 2, y: height/2};
         sticker.x = x;
         sticker.y = y;
+        sticker.rotation = -this.stickerLayer.rotation;
         sticker._stickerMouseDownListener = this.onStickerMouseDown.bind(this);
         sticker._stickerDeleteClickListener = this.onStickerDeleteClick.bind(this);
         sticker._stickerSetTargetListener = this.onSetTarget.bind(this);
@@ -214,9 +216,18 @@ export class StickerMain {
     }
 
     get lastSticker() {
+
         if(this.stickers.length === 0) return null;
-        return this.stickerLayer.getChildAt( this.stickerLayer.children.length - 1 );
-        //this.stickers[this.stickers.length - 1];
+
+        let children = this.stickerLayer.children;
+
+        for( var i = children.length; i--; ){
+
+            if( this.stickers.indexOf( children[i] ) != -1 )
+                return children[i];
+        }
+
+        return null;
     }
 
 
@@ -253,9 +264,13 @@ export class StickerMain {
 
         for(var i=0; i<this.totalSticker; i++) {
             var url = this.svgs[i];
-            var randomX = parseInt(Math.random() * 400);
-            var randomY = parseInt(Math.random() * 400);
-            var sticker = this.createSticker(url, randomX, randomY, 100, 100);
+            if(i === 0) {
+                var sticker = this.createSticker(url, 0, 0, 100, 100);
+            } else {
+                var randomX = parseInt(Math.random() * 400);
+                var randomY = parseInt(Math.random() * 400);
+                var sticker = this.createSticker(url, randomX, randomY, 100, 100);
+            }
         }
     }
 }
