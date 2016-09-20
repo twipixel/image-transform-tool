@@ -27,12 +27,13 @@ function initailize() {
 
     // 컨테이너에 scale과 rotation 이 있을 때를 고려해서 만들었습니다
     //stickerLayer.scale = {x: 1.2, y: 1.2};
-    //stickerLayer.rotation = Calc.toRadians(40);
+    stickerLayer.rotation = Calc.toRadians(40);
 
     stage.addChild(stickerLayer);
     stage.addChild(rootLayer);
 
     stickerMain = new StickerMain(renderer, rootLayer, stickerLayer);
+    stickerMain.testCreateStickers();
 
     updateLoop();
     resizeWindow();

@@ -145,7 +145,8 @@ export class TransformTool {
     addEvent() {
         this.stageLayer.on(TransformTool.SET_TARGET, this.onSetTarget.bind(this));
 
-        this.stageLayer.root.on('mouseup', this.onMouseUp.bind(this));
+        //this.stageLayer.root.on('mouseup', this.onMouseUp.bind(this));
+        window.document.addEventListener('mouseup', this.onMouseUp.bind(this));
         if (!this.stageLayer.eventTargets){
             this.stageLayer.eventTargets = [];
         }
@@ -265,7 +266,7 @@ export class TransformTool {
 
         for (var prop in this.controls) {
             var control = this.controls[prop];
-            control.transform = this.transform;
+            control.target = this.target;
         }
     }
 
@@ -274,11 +275,6 @@ export class TransformTool {
         this.transform = this.target.worldTransform.clone();
         this.invertTransform = this.transform.clone();
         this.invertTransform.invert();
-
-        for (var prop in this.controls) {
-            var control = this.controls[prop];
-            control.transform = this.transform;
-        }
     }
 
 

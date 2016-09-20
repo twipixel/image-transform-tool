@@ -127,6 +127,11 @@ export class StickerMain {
     }
 
 
+    resize() {
+
+    }
+
+
     onLoadComplete(e) {
         if(this.isRestore === false) {
             this.stickerLayer.updateTransform();
@@ -146,7 +151,7 @@ export class StickerMain {
 
     onStickerMouseDown(e) {
         var target = e.target;
-        //if (target.checkAlphaPoint(e.data.global)) return;
+        if (target.checkAlphaPoint(e.data.global)) return;
         e.stopPropagation();
         this.onStickerClick(e);
     }
