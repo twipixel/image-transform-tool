@@ -275,6 +275,11 @@ export class TransformTool {
         this.transform = this.target.worldTransform.clone();
         this.invertTransform = this.transform.clone();
         this.invertTransform.invert();
+
+        for (var prop in this.controls) {
+            var control = this.controls[prop];
+            control.transform = this.transform;
+        }
     }
 
 
