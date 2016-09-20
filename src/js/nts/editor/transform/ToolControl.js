@@ -369,12 +369,6 @@ export class ToolControl extends PIXI.Sprite {
 
 
     get angle() {
-        /*var point = this.toLocal(this.position);
-        var center = this.toLocal(this.centerPoint.position);
-        var angle = Math.round(Calc.getRotation(center, point));
-        angle = (angle < 0) ? angle + 360 : angle;
-        return angle;*/
-
         var angle = Calc.getSkewX(this.target.worldTransform);
         angle = (angle < 0) ? angle + 360 : angle;
         return angle;
@@ -382,9 +376,7 @@ export class ToolControl extends PIXI.Sprite {
 
 
     get cursorIndex() {
-        console.log('angle:', this.angle, 'cursorIndex:', this._cursorIndex);
-        //return parseInt(this.angle / 45);
-        return this.getAngleIndex() + this._cursorIndex;
+        return (this.getAngleIndex() + this.getCursorIndex()) % 8;
     }
 
 
@@ -487,50 +479,172 @@ export class ToolControl extends PIXI.Sprite {
 
 
     getCursorIndex() {
-        console.log('getCursorIndex, type:', this.type);
-        switch (this.type) {
-            case ToolControlType.TOP_CENTER:
-                return 0;
-            case ToolControlType.TOP_RIGHT:
-                return 1;
-            case ToolControlType.MIDDLE_RIGHT:
-                return 2;
-            case ToolControlType.BOTTOM_RIGHT:
-                return 3;
-            case ToolControlType.BOTTOM_CENTER:
-                return 4;
-            case ToolControlType.BOTTOM_LEFT:
-                return 5;
-            case ToolControlType.MIDDLE_LEFT:
-                return 6;
-            case ToolControlType.TOP_LEFT:
-                return 7;
-            case ToolControlType.ROTATION:
-                return this.getRotationCursorIndex();
+        if(this.type === ToolControlType.ROTATION) return this.getRotationCursorIndex();
+
+        var scaleSingX = (this.target) ? this.target.scaleSignX : 1;
+        var scaleSingY = (this.target) ? this.target.scaleSignY : 1;
+
+        if(scaleSingX === 1 && scaleSingY === 1) {
+            switch (this.type) {
+                case ToolControlType.TOP_CENTER:
+                    return 0;
+                case ToolControlType.TOP_RIGHT:
+                    return 1;
+                case ToolControlType.MIDDLE_RIGHT:
+                    return 2;
+                case ToolControlType.BOTTOM_RIGHT:
+                    return 3;
+                case ToolControlType.BOTTOM_CENTER:
+                    return 4;
+                case ToolControlType.BOTTOM_LEFT:
+                    return 5;
+                case ToolControlType.MIDDLE_LEFT:
+                    return 6;
+                case ToolControlType.TOP_LEFT:
+                    return 7;
+            }
+        } else if(scaleSingX === 1 && scaleSingY === -1) {
+            switch (this.type) {
+                case ToolControlType.TOP_CENTER:
+                    return 4;
+                case ToolControlType.TOP_RIGHT:
+                    return 3;
+                case ToolControlType.MIDDLE_RIGHT:
+                    return 2;
+                case ToolControlType.BOTTOM_RIGHT:
+                    return 1;
+                case ToolControlType.BOTTOM_CENTER:
+                    return 0;
+                case ToolControlType.BOTTOM_LEFT:
+                    return 7;
+                case ToolControlType.MIDDLE_LEFT:
+                    return 6;
+                case ToolControlType.TOP_LEFT:
+                    return 5;
+            }
+        } else if(scaleSingX === -1 && scaleSingY === -1) {
+            switch (this.type) {
+                case ToolControlType.TOP_CENTER:
+                    return 4;
+                case ToolControlType.TOP_RIGHT:
+                    return 5;
+                case ToolControlType.MIDDLE_RIGHT:
+                    return 6;
+                case ToolControlType.BOTTOM_RIGHT:
+                    return 7;
+                case ToolControlType.BOTTOM_CENTER:
+                    return 0;
+                case ToolControlType.BOTTOM_LEFT:
+                    return 1;
+                case ToolControlType.MIDDLE_LEFT:
+                    return 2;
+                case ToolControlType.TOP_LEFT:
+                    return 3;
+            }
+        } else {
+            switch (this.type) {
+                case ToolControlType.TOP_CENTER:
+                    return 0;
+                case ToolControlType.TOP_RIGHT:
+                    return 7;
+                case ToolControlType.MIDDLE_RIGHT:
+                    return 6;
+                case ToolControlType.BOTTOM_RIGHT:
+                    return 5;
+                case ToolControlType.BOTTOM_CENTER:
+                    return 4;
+                case ToolControlType.BOTTOM_LEFT:
+                    return 3;
+                case ToolControlType.MIDDLE_LEFT:
+                    return 2;
+                case ToolControlType.TOP_LEFT:
+                    return 1;
+            }
         }
     }
 
 
     getRotationCursorIndex() {
-        console.log('getRotationCursorIndex(), rotationControlType:', this.rotationControlType);
-        switch (this.rotationControlType) {
-            case RotationControlType.TOP_CENTER:
-                return 0;
-            case RotationControlType.TOP_RIGHT:
-                return 1;
-            case RotationControlType.MIDDLE_RIGHT:
-                return 2;
-            case RotationControlType.BOTTOM_RIGHT:
-                return 3;
-            case RotationControlType.BOTTOM_CENTER:
-                return 4;
-            case RotationControlType.BOTTOM_LEFT:
-                return 5;
-            case RotationControlType.MIDDLE_LEFT:
-                return 6;
-            case RotationControlType.TOP_LEFT:
-            case RotationControlType.DELETE:
-                return 7;
+        var scaleSingX = (this.target) ? this.target.scaleSignX : 1;
+        var scaleSingY = (this.target) ? this.target.scaleSignY : 1;
+
+        if(scaleSingX === 1 && scaleSingY === 1) {
+            switch (this.rotationControlType) {
+                case RotationControlType.TOP_CENTER:
+                    return 0;
+                case RotationControlType.TOP_RIGHT:
+                    return 1;
+                case RotationControlType.MIDDLE_RIGHT:
+                    return 2;
+                case RotationControlType.BOTTOM_RIGHT:
+                    return 3;
+                case RotationControlType.BOTTOM_CENTER:
+                    return 4;
+                case RotationControlType.BOTTOM_LEFT:
+                    return 5;
+                case RotationControlType.MIDDLE_LEFT:
+                    return 6;
+                case RotationControlType.TOP_LEFT:
+                case RotationControlType.DELETE:
+                    return 7;
+            }
+        } else if(scaleSingX === 1 && scaleSingY === -1) {
+            switch (this.rotationControlType) {
+                case RotationControlType.TOP_CENTER:
+                    return 4;
+                case RotationControlType.TOP_RIGHT:
+                    return 3;
+                case RotationControlType.MIDDLE_RIGHT:
+                    return 2;
+                case RotationControlType.BOTTOM_RIGHT:
+                    return 1;
+                case RotationControlType.BOTTOM_CENTER:
+                    return 0;
+                case RotationControlType.BOTTOM_LEFT:
+                    return 7;
+                case RotationControlType.MIDDLE_LEFT:
+                    return 6;
+                case RotationControlType.TOP_LEFT:
+                    return 5;
+            }
+        } else if(scaleSingX === -1 && scaleSingY === -1) {
+            switch (this.rotationControlType) {
+                case ToolControlType.TOP_CENTER:
+                    return 4;
+                case RotationControlType.TOP_RIGHT:
+                    return 5;
+                case RotationControlType.MIDDLE_RIGHT:
+                    return 6;
+                case RotationControlType.BOTTOM_RIGHT:
+                    return 7;
+                case RotationControlType.BOTTOM_CENTER:
+                    return 0;
+                case RotationControlType.BOTTOM_LEFT:
+                    return 1;
+                case RotationControlType.MIDDLE_LEFT:
+                    return 2;
+                case RotationControlType.TOP_LEFT:
+                    return 3;
+            }
+        } else {
+            switch (this.rotationControlType) {
+                case RotationControlType.TOP_CENTER:
+                    return 0;
+                case RotationControlType.TOP_RIGHT:
+                    return 7;
+                case RotationControlType.MIDDLE_RIGHT:
+                    return 6;
+                case RotationControlType.BOTTOM_RIGHT:
+                    return 5;
+                case RotationControlType.BOTTOM_CENTER:
+                    return 4;
+                case RotationControlType.BOTTOM_LEFT:
+                    return 3;
+                case RotationControlType.MIDDLE_LEFT:
+                    return 2;
+                case RotationControlType.TOP_LEFT:
+                    return 1;
+            }
         }
     }
 }
