@@ -5,6 +5,32 @@ import {ToolControl} from './ToolControl';
 import {ToolControlType} from './ToolControlType';
 import {RotationControlType} from './RotationControlType';
 import {VectorContainer} from './../view/VectorContainer';
+import {map, each} from "../utils/util";
+
+
+const _collection = {
+
+    tl: null,
+    tr: null,
+    tc: null,
+    bl: null,
+    br: null,
+    bc: null,
+    ml: null,
+    mr: null,
+    mc: null,
+
+    rtl: null,
+    rtc: null,
+    rtr: null,
+    rml: null,
+    rmr: null,
+    rbl: null,
+    rbc: null,
+    rbr: null
+};
+
+const _dragRange = 10;
 
 
 export class TransformTool {
@@ -48,6 +74,9 @@ export class TransformTool {
 
         this.initialize();
         this.addEvent();
+
+        this._px = 0;
+        this._py = 0;
     };
 
 
@@ -58,8 +87,6 @@ export class TransformTool {
 
         this.g = this.graphics = new PIXI.Graphics();
         this.stageLayer.addChild(this.graphics);
-
-        this._targetTextureUpdateListener = null;
 
         var controlOptions = {};
         var rotationOptions = {};
@@ -143,42 +170,63 @@ export class TransformTool {
 
 
     addEvent() {
-        this.stageLayer.on(TransformTool.SET_TARGET, this.onSetTarget.bind(this));
 
-        //this.stageLayer.root.on('mouseup', this.onMouseUp.bind(this));
+        this.stageLayer.on(TransformTool.SET_TARGET, this.onSetTarget.bind(this));
+        //this.stageLayer.root.on( "mousedown", this.onMouseDown, this );
+        //this.stageLayer.root.on( 'mouseup', this.onMouseUp, this );
+
+        window.document.addEventListener('mousedown', this.onMouseUp.bind(this));
         window.document.addEventListener('mouseup', this.onMouseUp.bind(this));
-        if (!this.stageLayer.eventTargets){
-            this.stageLayer.eventTargets = [];
-        }
         this.downCnt = 0;
     }
 
+    onMouseDown(e){
+
+        if( e.data.originalEvent.target != this.stageLayer.renderer.view ) return;
+
+        this._px = e.data.global.x;
+        this._py = e.data.global.y;
+    }
 
     onMouseUp(e){
+
+        if( e.data.originalEvent.target != this.stageLayer.renderer.view ) return;
+
         this.downCnt--;
-        if (this.downCnt < 0 && this.target){
-            this.target.emit(TransformTool.DESELECT);
-            this.target.visible = true;
-            this.releaseTarget();
+
+        if ( this.downCnt < 0 && this.target ){
+
+            let dx = e.data.global.x - this._px,
+                dy = e.data.global.y - this._py;
+
+            if( dx * dx + dy * dy <= _dragRange * _dragRange ){
+
+                this.target.emit(TransformTool.DESELECT);
+                this.target.visible = true;
+                this.releaseTarget();
+            }
         }
+
         this.downCnt = 0;
     }
 
 
     show() {
+
         if (!this.controls || this.g.visible) return;
 
         this.g.visible = true;
-        for (var prop in this.controls)
-            this.controls[prop].visible = true;
+
+        each( this.controls, e => e.visible = true );
     }
 
 
     hide() {
         if (!this.controls || this.g.visible === false) return;
+
         this.g.visible = false;
-        for (var prop in this.controls)
-            this.controls[prop].visible = false;
+
+        each( this.controls, e => e.visible = false );
     }
 
 
@@ -206,19 +254,19 @@ export class TransformTool {
         this.hide();
         this.removeTextureUpdateEvent();
         this.target = null;
-        this._targetTextureUpdateListener = null;
     }
 
 
     addTextureUpdateEvent() {
-        this._targetTextureUpdateListener = this.onTextureUpdate.bind(this);
-        this.target.on(VectorContainer.TEXTURE_UPDATE, this._targetTextureUpdateListener);
+        this.target._targetTextureUpdateListener = this.onTextureUpdate.bind(this);
+        this.target.on(VectorContainer.TEXTURE_UPDATE, this.target._targetTextureUpdateListener);
     }
 
 
     removeTextureUpdateEvent() {
-        if (this._targetTextureUpdateListener !== null && this.target !== null) {
-            this.target.off(VectorContainer.TEXTURE_UPDATE, this._targetTextureUpdateListener);
+        if (this.target !== null && this.target._targetTextureUpdateListener !== null) {
+            this.target.off(VectorContainer.TEXTURE_UPDATE, this.target._targetTextureUpdateListener);
+            this.target._targetTextureUpdateListener = null;
         }
     }
 
@@ -348,8 +396,15 @@ export class TransformTool {
     }
 
 
+    /**
+     * 타겟 객체 이동
+     * @param  {[type]} e [description]
+     * @return {[type]}   [description]
+     */
     move(e) {
+
         var change = e.targetChangeMovement;
+
         this.target.x += change.x;
         this.target.y += change.y;
     }
@@ -383,6 +438,9 @@ export class TransformTool {
 
 
     draw() {
+
+        this.stageLayer.updateTransform();
+
         var g = this.g;
         g.visible = true;
         var transform = this.target.worldTransform.clone();
@@ -411,13 +469,8 @@ export class TransformTool {
 
         g.clear();
         g.lineStyle(0.5, 0xFFFFFF);
-        g.moveTo(globalPoints.tl.x, globalPoints.tl.y);
-        g.lineTo(globalPoints.tr.x, globalPoints.tr.y);
-        g.lineTo(globalPoints.br.x, globalPoints.br.y);
-        g.lineTo(globalPoints.bl.x, globalPoints.bl.y);
-        g.lineTo(globalPoints.tl.x, globalPoints.tl.y);
-        g.moveTo(globalPoints.tc.x, globalPoints.tc.y);
-        //g.lineTo(globalPoints.ro.x, globalPoints.ro.y);
+
+        this.drawRect( g, globalPoints );
 
         for (var prop in this.controls) {
             var p = globalPoints[prop];
@@ -426,6 +479,57 @@ export class TransformTool {
             c.y = p.y;
             c.visible = true;
         }
+    }
+
+    /**
+     * 트랜스폼 툴의 선과 컨트롤 객체 위치를 업데이트한다.
+     * 1. target이 있는 경우에만 업데이트한다.
+     * 2. target의 worldTransform을 통해 global 좌표를 계산한다.
+     * @return {[type]} [description]
+     */
+    updateGraphics(){
+
+        if( !this.target ) return;
+
+        this.stageLayer.updateTransform();
+
+        this.g.visible = true;
+
+        let locals = this.c,
+            transform = this.target.worldTransform,
+            globals = map( _collection, (e, key)=> transform.apply( locals[key].localPoint ) );
+
+        globals.de =
+        globals.rde = this.deleteButtonPosition;
+
+        this.g.clear();
+        this.g.lineStyle(0.5, 0xFFFFFF);
+
+        this.drawRect( this.g, globals );
+
+        each( this.controls, (e, key)=>{
+
+            e.x = globals[key].x;
+            e.y = globals[key].y;
+
+            e.visible = true;
+        });
+    }
+
+    /**
+     * 주어진 graphics 객체를 사용하여 사각형을 그린다.
+     * 1. points 객체에 좌상단(tl), 우상단(tr), 우하단(br), 좌하단(bl) 4개의 points가 있다.
+     * @param  {[type]} g      [description]
+     * @param  {[type]} points [description]
+     * @return {[type]}        [description]
+     */
+    drawRect( g, points ){
+
+        g.moveTo(points.tl.x, points.tl.y);
+        g.lineTo(points.tr.x, points.tr.y);
+        g.lineTo(points.br.x, points.br.y);
+        g.lineTo(points.bl.x, points.bl.y);
+        g.lineTo(points.tl.x, points.tl.y);
     }
 
 

@@ -33,8 +33,9 @@ export class VectorContainer extends PIXI.Container {
         this.image = null;
         this.scaleSignX = 1;
         this.scaleSignY = 1;
-        this.isFirstLoad = true;
         this.interactive = true;
+        this.isFirstLoad = true;
+        this.renderableObject = true;
 
         this.canvgCanvas = document.createElement('CANVAS');
         this.canvgCanvas.id = 'canvgCanvas';
@@ -92,8 +93,14 @@ export class VectorContainer extends PIXI.Container {
         this.canvgCanvas.width = width;
         this.canvgCanvas.height = height;
         this.canvgContext.drawSvg(this.url || this.svg, x, y, width, height, {renderCallback: this.drawCompleteListener});
-        //canvg(this.canvgCanvas, this.url, {offsetX:x, offsetY:y, scaleWidth:width, scaleHeight:height});
-        //canvg(this.canvgCanvas, this.url, {offsetX:x, offsetY:y, scaleWidth:width, scaleHeight:height, renderCallback: this.drawCompleteListener})
+        // this.canvgContext.drawSvg(this.url || this.svg, x, y, width, height);
+        //
+        // if(this.image === null) {
+        //     this.image = new PIXI.Sprite(new PIXI.Texture.fromCanvas(this.canvgCanvas));
+        //     this.image.renderableObject = true;
+        //     this.addChild(this.image);
+        //     this.emit(VectorContainer.LOAD_COMPLETE, {target: this});
+        // }
     }
 
 
@@ -111,6 +118,10 @@ export class VectorContainer extends PIXI.Container {
         }
 
         this.destroy();
+        if(this.svg && this.svg.parentNode){
+            this.svg.parentNode.removeChild(this.svg);
+        }
+        this.svg = null;
         this.canvgCanvas = null;
         this.canvgContext = null;
         this.drawCompleteListener = null;
@@ -153,6 +164,16 @@ export class VectorContainer extends PIXI.Container {
             });
         }
     }
+    //     this.scale = {x: 1, y: 1};
+    //     this.image.scale = {x: this.scaleSignX, y: this.scaleSignY};
+    //     this.image.texture.update();
+    //     this.image.updateTransform();
+    //     this.emit(VectorContainer.TEXTURE_UPDATE, {
+    //         target: this,
+    //         scaleSignX: this.scaleSignX,
+    //         scaleSignY: this.scaleSignY
+    //     });
+    // }
 
 
     get ID() {

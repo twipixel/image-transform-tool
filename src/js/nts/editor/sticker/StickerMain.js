@@ -1,8 +1,14 @@
 import {VectorContainer} from '../view/VectorContainer';
 import {TransformTool} from '../transform/TransformTool';
 
-export class StickerMain {
+export class StickerMain extends PIXI.utils.EventEmitter {
+
+    static get SELECTED() {
+        return 'selected';
+    }
+
     constructor(renderer, stageLayer, stickerLayer) {
+        super();
         this.renderer = renderer;
         this.stageLayer = stageLayer;
         this.stickerLayer = stickerLayer;
@@ -31,11 +37,9 @@ export class StickerMain {
         sticker.rotation = -this.stickerLayer.rotation;
         sticker._stickerMouseDownListener = this.onStickerMouseDown.bind(this);
         sticker._stickerDeleteClickListener = this.onStickerDeleteClick.bind(this);
-        sticker._stickerSetTargetListener = this.onSetTarget.bind(this);
         sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
         sticker.on('mousedown', sticker._stickerMouseDownListener);
         sticker.on(TransformTool.DELETE, sticker._stickerDeleteClickListener);
-        sticker.on(TransformTool.SET_TARGET, sticker._stickerSetTargetListener);
         sticker.on(VectorContainer.LOAD_COMPLETE, sticker._stickerLoadCompleteListener);
         sticker.load(url, 0, 0, width, height);
         return sticker;
@@ -98,6 +102,12 @@ export class StickerMain {
     }
 
 
+    updateTransformTool(){
+
+        this.transformTool.updateGraphics();
+    }
+
+
     releaseTarget() {
         this.transformTool.releaseTarget();
     }
@@ -148,12 +158,13 @@ export class StickerMain {
         var target = e.target;
         this.stickerLayer.setChildIndex(target, this.stickerLayer.children.length - 1);
         this.transformTool.setTarget(e);
+        this.emit(StickerMain.SELECTED, target);
     }
 
 
     onStickerMouseDown(e) {
         var target = e.target;
-        if (target.checkAlphaPoint(e.data.global)) return;
+        //if (target.checkAlphaPoint(e.data.global)) return;
         e.stopPropagation();
         this.onStickerClick(e);
     }
@@ -161,11 +172,6 @@ export class StickerMain {
 
     onStickerDeleteClick(target) {
         this.deleteSticker(target);
-    }
-
-
-    onSetTarget(target) {
-
     }
 
 
@@ -260,17 +266,14 @@ export class StickerMain {
 
     testCreateStickers() {
         if(this.stickers.length !== 0) return;
-        this.totalSticker = 4 + parseInt(Math.random() * this.svgs.length - 3);
+        this.totalSticker = 10;
 
         for(var i=0; i<this.totalSticker; i++) {
-            var url = this.svgs[i];
-            if(i === 0) {
-                var sticker = this.createSticker(url, 0, 0, 100, 100);
-            } else {
-                var randomX = parseInt(Math.random() * 400);
-                var randomY = parseInt(Math.random() * 400);
-                var sticker = this.createSticker(url, randomX, randomY, 100, 100);
-            }
+            var randomIndex = parseInt(Math.random() * this.svgs.length);
+            var url = this.svgs[randomIndex];
+            var randomX = parseInt(Math.random() * 400);
+            var randomY = parseInt(Math.random() * 400);
+            var sticker = this.createSticker(url, randomX, randomY, 100, 100);
         }
     }
 }

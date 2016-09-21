@@ -33,7 +33,7 @@ export class ToolControl extends PIXI.Sprite {
         return 'dbClick';
     }
     static get DBCLICK_TIME(){
-        return 400;
+        return 200;
     }
 
 
@@ -183,15 +183,19 @@ export class ToolControl extends PIXI.Sprite {
 
         var time = new Date().getTime();
 
-        if (this.startTime && this.type == ToolControlType.MIDDLE_CENTER){
-            console.log(time, this.startTime, time - this.startTime, ToolControl.DBCLICK_TIME);
+        if (this.startTime && this.type == ToolControlType.MIDDLE_CENTER && this.downTarget && this.downTarget == this){
+
             if (time - this.startTime < ToolControl.DBCLICK_TIME){
                 this.emit(ToolControl.DBCLICK);
                 this.startTime = null;
+                this.downTarget = null;
                 return;
             }
         }
         this.startTime = time;
+        if (e.target == this){
+            this.downTarget = this;
+        }
 
         if(this.type === ToolControlType.ROTATION) {
             this.prevRotation = this.currentRotation = Calc.getRotation(this.centerPoint.globalPoint, {
@@ -220,13 +224,19 @@ export class ToolControl extends PIXI.Sprite {
         this.addMouseMoveEvent();
         window.document.addEventListener('mouseup', this._mouseUpListener);
         // this.removeMouseDownEvent();
+
+        this.prevMousePoint = this.targetPrevMousePoint = null;
     };
 
 
     onMouseMove(e) {
+
         var globalPoint = Mouse.global;
         this.currentMousePoint = globalPoint;
         this.targetCurrentMousePoint = this.targetLayer.toLocal(globalPoint);
+
+        this.prevMousePoint = this.prevMousePoint || this.currentMousePoint;
+        this.targetPrevMousePoint = this.targetPrevMousePoint || this.targetCurrentMousePoint;
 
         this.changeMovement = {
             x: this.currentMousePoint.x - this.prevMousePoint.x,
@@ -278,6 +288,9 @@ export class ToolControl extends PIXI.Sprite {
         var globalPoint = Mouse.global;
         this.currentMousePoint = globalPoint;
         this.targetCurrentMousePoint = this.targetLayer.toLocal(globalPoint);
+
+        this.prevMousePoint = this.prevMousePoint || this.currentMousePoint;
+        this.targetPrevMousePoint = this.targetPrevMousePoint || this.targetCurrentMousePoint;
 
         this.changeMovement = {
             x: this.currentMousePoint.x - this.prevMousePoint.x,
