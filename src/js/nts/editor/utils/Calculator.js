@@ -43,6 +43,9 @@ export class Calc {
         return ((180 / Math.PI) * Math.atan2(py.y, py.x));
     }
 
+    static snapTo(num, snap) {
+        return Math.round(num / snap) * snap;
+    }
 
     //////////////////////////////////////////////////////////////////////////
     // Utils

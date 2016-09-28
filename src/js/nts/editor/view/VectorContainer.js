@@ -4,11 +4,23 @@ import {TransformTool} from './../transform/TransformTool';
 export class VectorContainer extends PIXI.Container {
 
     /**
+     * VectorContainer 최대 넓이와 높이
+     * 캔버스 최대 사이즈가 IE Mobile 에서는 4,096 픽셀이며 IE 에서는 8,192 픽셀입니다.
+     */
+    static get MAX_WIDTH() {
+        return 4000;
+    }
+
+    static get MAX_HEIGHT() {
+        return 4000;
+    }
+
+    /**
      * Vector가 처음 로드 되었을 때 이벤트
      * @returns {string}
      * @constructor
      */
-    static LOAD_COMPLETE() {
+    static get LOAD_COMPLETE() {
         return 'drawComplete';
     }
 
@@ -17,7 +29,7 @@ export class VectorContainer extends PIXI.Container {
      * @returns {string}
      * @constructor
      */
-    static TEXTURE_UPDATE() {
+    static get TEXTURE_UPDATE() {
         return 'textureUpdate';
     }
 
@@ -90,9 +102,13 @@ export class VectorContainer extends PIXI.Container {
         this.scaleSignY = this.scaleSignY * signY;
         width = Math.abs(width);
         height = Math.abs(height);
+        width = (width > VectorContainer.MAX_WIDTH) ? VectorContainer.MAX_WIDTH : width;
+        height = (height > VectorContainer.MAX_HEIGHT) ? VectorContainer.MAX_HEIGHT : height;
         this.canvgCanvas.width = width;
         this.canvgCanvas.height = height;
-        this.canvgContext.drawSvg(this.url || this.svg, x, y, width, height, {renderCallback: this.drawCompleteListener});
+        this.canvgContext.drawSvg(this.url || this.svg, x, y, width, height, {
+            renderCallback: this.drawCompleteListener.call(this)
+        });
         // this.canvgContext.drawSvg(this.url || this.svg, x, y, width, height);
         //
         // if(this.image === null) {
@@ -122,6 +138,7 @@ export class VectorContainer extends PIXI.Container {
             this.svg.parentNode.removeChild(this.svg);
         }
         this.svg = null;
+        this.canvgCanvas.svg = null;
         this.canvgCanvas = null;
         this.canvgContext = null;
         this.drawCompleteListener = null;

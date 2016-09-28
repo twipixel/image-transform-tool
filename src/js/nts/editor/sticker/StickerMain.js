@@ -3,8 +3,16 @@ import {TransformTool} from '../transform/TransformTool';
 
 export class StickerMain extends PIXI.utils.EventEmitter {
 
+    static get DELETED() {
+        return 'deleted';
+    }
+
     static get SELECTED() {
         return 'selected';
+    }
+
+    static get DESELECTED() {
+        return 'deselected';
     }
 
     constructor(renderer, stageLayer, stickerLayer) {
@@ -36,10 +44,14 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         sticker.y = y;
         sticker.rotation = -this.stickerLayer.rotation;
         sticker._stickerMouseDownListener = this.onStickerMouseDown.bind(this);
-        sticker._stickerDeleteClickListener = this.onStickerDeleteClick.bind(this);
+        sticker._stickerDeleteListener = this.onStickerDelete.bind(this);
+        sticker._stickerSelectListener = this.onStickerSelect.bind(this);
+        sticker._stickerDeselectListener = this.onStickerDeselect.bind(this);
         sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
         sticker.on('mousedown', sticker._stickerMouseDownListener);
-        sticker.on(TransformTool.DELETE, sticker._stickerDeleteClickListener);
+        sticker.on(TransformTool.DELETE, sticker._stickerDeleteListener);
+        sticker.on(TransformTool.SELECT, sticker._stickerSelectListener);
+        sticker.on(TransformTool.DESELECT, sticker._stickerDeselectListener);
         sticker.on(VectorContainer.LOAD_COMPLETE, sticker._stickerLoadCompleteListener);
         sticker.load(url, 0, 0, width, height);
         return sticker;
@@ -50,10 +62,14 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         if(target === null) return;
 
         target.off('mousedown', target._stickerMouseDownListener);
-        target.off(TransformTool.DELETE, target._stickerDeleteClickListener);
+        target.off(TransformTool.DELETE, target._stickerDeleteListener);
+        target.off(TransformTool.SELECT, target._stickerSelectListener);
+        target.off(TransformTool.DESELECT, target._stickerDeselectListener);
         target.off(VectorContainer.LOAD_COMPLETE, target._stickerLoadCompleteListener);
         target._stickerMouseDownListener = null;
-        target._stickerDeleteClickListener = null;
+        target._stickerDeleteListener = null;
+        target._stickerSelectListener = null;
+        target._stickerDeselectListener = null;
         target._stickerLoadCompleteListener = null;
 
         for(var i=0; i<this.stickers.length; i++) {
@@ -92,10 +108,14 @@ export class StickerMain extends PIXI.utils.EventEmitter {
             sticker.rotation = transform.rotation;
             sticker.childIndex = vo.childIndex;
             sticker._stickerMouseDownListener = this.onStickerMouseDown.bind(this);
-            sticker._stickerDeleteClickListener = this.onStickerDeleteClick.bind(this);
+            sticker._stickerDeleteListener = this.onStickerDelete.bind(this);
+            sticker._stickerSelectListener = this.onStickerSelect.bind(this);
+            sticker._stickerDeselectListener = this.onStickerDeselect.bind(this);
             sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
             sticker.on('mousedown', sticker._stickerMouseDownListener);
-            sticker.on(TransformTool.DELETE, sticker._stickerDeleteClickListener);
+            sticker.on(TransformTool.DELETE, sticker._stickerDeleteListener);
+            sticker.on(TransformTool.SELECT, sticker._stickerSelectListener);
+            sticker.on(TransformTool.DESELECT, sticker._stickerDeselectListener);
             sticker.on(VectorContainer.LOAD_COMPLETE, sticker._stickerLoadCompleteListener);
             sticker.load(vo.url, vo.x, vo.y, vo.width, vo.height);
         }
@@ -158,7 +178,6 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         var target = e.target;
         this.stickerLayer.setChildIndex(target, this.stickerLayer.children.length - 1);
         this.transformTool.setTarget(e);
-        this.emit(StickerMain.SELECTED, target);
     }
 
 
@@ -170,8 +189,19 @@ export class StickerMain extends PIXI.utils.EventEmitter {
     }
 
 
-    onStickerDeleteClick(target) {
+    onStickerDelete(target) {
         this.deleteSticker(target);
+        this.emit(StickerMain.DELETED, target);
+    }
+
+
+    onStickerSelect(target) {
+        this.emit(StickerMain.SELECTED, target);
+    }
+
+
+    onStickerDeselect(target) {
+        this.emit(StickerMain.DESELECTED, target);
     }
 
 
@@ -184,10 +214,9 @@ export class StickerMain extends PIXI.utils.EventEmitter {
                 this.testCreateStickers();
                 break;
             case 49: //consts.KeyCode.NUM_1:
-                console.log('modefied:', this.modified);
+                this.deleteSticker(this.target);
                 break;
             case 50: //consts.KeyCode.NUM_2:
-                console.log('lastSticker:', this.lastSticker);
                 break;
             case 51: //consts.KeyCode.NUM_3:
                 break;
@@ -234,6 +263,10 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         }
 
         return null;
+    }
+
+    get target() {
+        return this.transformTool.target;
     }
 
 

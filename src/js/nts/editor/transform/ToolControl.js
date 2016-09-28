@@ -42,6 +42,7 @@ export class ToolControl extends PIXI.Sprite {
         this.type = type;
         this.options = options;
         this.rotationControlType = rotationControlType;
+        this.rotationCursorList = options.rotationCursorList;
         this._cursorIndex = this.getCursorIndex();
 
         this.currentRadian = 0;
@@ -132,21 +133,25 @@ export class ToolControl extends PIXI.Sprite {
 
 
     drawDeleteButton() {
-        this.texture = PIXI.Texture.fromImage('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAAAAXNSR0IArs4c6QAAAbBJREFUSA1jZGBgmALEdAMsUJve0MlGESY6WQS3ZtRCeFBQizEapNQKSbg5RAXpmTNnQnx9fcXgutAYqamp8iA1aMJYucxAUS8g/oZVFir4////r9OmTQu9cePGg5s3b35FVpuUlCTX09MTWFBQsPXWrVsocsjqoGwuoiw8d+7cx9evXz+fPn166O3btx9ev379C8iA+Ph4mf7+/qCEhIQVmzZteoXFAnQhLljRhi6BwZ83b96jv3//rp07d244MzPzKnZ2dqYJEyYEJycnr9y4ceNLDA04BIi2EKR/4cKFT4CWrpk1a1YYiJ+WlrZq3bp1L0BsYgFRiQbZsJ8/f/6D8UG+hLGJpUnyYVBQkATId7m5uWtAFoPYwOBdC/I51S309/cXB8UfMDWuXbJkyVOQBcDgXQmN0/WgOCbGUqJSKSgPAn0RWVxcvH7BggWPYQaDUisoq4BS77t3716AUjNMDgfNxQiUANX4eCtgUKaeOXPm6dmzZz/EZhDIQfX19XYmJiZrsMkjiYkQZSGSBkqZozU+pSGIqZ/kjItpBGkioxaSFl5EqIaVpSJEqKWKEgDQRKPq0bAFxgAAAABJRU5ErkJggg==');
+        this.deleteTexture = PIXI.Texture.fromImage('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAbCAYAAACN1PRVAAAB2UlEQVRIie2VTUsqYRTHj2M4MhHUIKLDCC58QxHdulHEnWsXfYco0kUUVHKDXqgJLtw2fYC+haDixpUgA8KIgsj4Hm1qTCf03EW3W9xL40yCtPC/eRbnPOd3Dvyf8+gA4AYWpJU/5/0CWCZiAZC/WsKWsK/DotEoPZlMjg0Gg25WIURMzwXLZrMPLpfrajQaHVutVoMSiCTJk7lgAAD1ev05Fov9arVaB6FQaP1jLBKJ0IiYttlsF7Is49wwgNcJE4nEbaFQ2Ha73dQbKJfLbdM0fSqK4lhNHR287kZV64plWbLZbO47nc7LWq22ZzabzwaDwYuauwBgWpmd8y5RFMcEQfxAxHQymbzTAAIAjdYPh8MbiJj2+/3XHMdtqnGpZpjRaCTsdrsxn8/v+Hw+rlKpPAWDwZ/D4fDQ4/GsEoS6nvUAEAeAoVJSPB43F4vFXYvFct5oNEaICP1+X65Wq7VMJrPF83xVEIQnREVDUjMNQlEUIUnSEcMw551OR/43HggE1kqlUtLr9XKCICg1rfyfsSxLSpJ05HA4Lnu93n8gAIByufyo1+tPeJ7fTaVSTqV6mqyvJIZhyG63O55Op5+laLO+ktrt9syH/X22/hL2LWFvbjQtAvYb9NC0/9Sr3AYAAAAASUVORK5CYII=');
+        this.deleteOverTexture = PIXI.Texture.fromImage('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAbCAYAAACN1PRVAAABCElEQVRIie3UvWrDMBDA8VNtD8EfIojYwlPA0Rrw4HcIef9XyRAh9O/SlgaaWC4htGDBLcdJP4HupEQEedF6exW0Yiv2jzDnnIQQJMuy2YMgbVx5FMYYYozUdX23BiDLsofnfMRsAc45Yozs9/ub/OFwAEBrnQKlYSLCOI5479ntdjfQZrNJhdIxEUFrTYwRYwwAZVkugZZh39/odDot3rcIG4YBAGst1+s1tSmWYXmes91uAei6DqUU1lq897Rti1LqedjxeASgqqqb/DRNeO8ZxzEVfFxQFAXA3Tnr+54QwleX/hrTWgNgjJm9+eVy4Xw+P78bf4qmaWYvpD7FV6y/8+uv2Iq9A1yTczX16ka0AAAAAElFTkSuQmCC');
+        this.texture = this.deleteTexture;
     }
 
 
-    changeCursor(cursor) {
-        this.defaultCursor = this.getCursor();
+    hideAllRotationCursor() {
+        if(this.type !== ToolControlType.ROTATION) return;
+
+        var n = this.rotationCursorList.length;
+        for(var i = 0; i < n; i++)
+            this.rotationCursorList[i].visible = false;
     }
+
 
     addCursorEvent() {
-        this.mouseover = this.changeCursor.bind(this);
-    };
-
-
-    removeCursorEvent() {
-        this.mouseover = null;
+        this.mouseover = this.onMouseOver.bind(this);
+        this.mouseout = this.onMouseOut.bind(this);
+        this.mousemove = this.onMouseOverMove.bind(this);
     };
 
 
@@ -177,14 +182,15 @@ export class ToolControl extends PIXI.Sprite {
 
     onMouseDown(e) {
         e.stopPropagation();
+
         var globalPoint = {x: e.data.global.x, y: e.data.global.y};
+
         this.prevMousePoint = this.currentMousePoint = globalPoint;
         this.targetPrevMousePoint = this.targetCurrentMousePoint = this.targetLayer.toLocal(globalPoint);
 
         var time = new Date().getTime();
 
-        if (this.startTime && this.type == ToolControlType.MIDDLE_CENTER && this.downTarget && this.downTarget == this){
-
+        if (this.startTime && this.type == ToolControlType.MIDDLE_CENTER && this.downTarget && this.downTarget == this.target){
             if (time - this.startTime < ToolControl.DBCLICK_TIME){
                 this.emit(ToolControl.DBCLICK);
                 this.startTime = null;
@@ -193,9 +199,7 @@ export class ToolControl extends PIXI.Sprite {
             }
         }
         this.startTime = time;
-        if (e.target == this){
-            this.downTarget = this;
-        }
+        this.downTarget = this.target;
 
         if(this.type === ToolControlType.ROTATION) {
             this.prevRotation = this.currentRotation = Calc.getRotation(this.centerPoint.globalPoint, {
@@ -229,6 +233,23 @@ export class ToolControl extends PIXI.Sprite {
     };
 
 
+    /**
+     * mouse point p를 imageRect와 충돌 검사한다.
+     * 1. 충돌하지 않은 경우 p가 어느쪽에 있는지 확인 후
+     *    p0 -> p의 선분과 boundary를 이루는 4개의 선분의 교점을 찾아 반환한다.
+     * 2. 충돌한 경우 p를 그대로 반환한다.
+     * @param  {[type]} p  [description]
+     * @param  {[type]} p0 [description]
+     * @return {[type]}    [description]
+     */
+    hitTest( p, p0 ){
+
+        if( hitTestWithBoundary( p.x, p.y, ToolControl.imageRect ) ) return p;
+
+        return getIntersectionWithlines( p0.x, p0.y, p.x, p.y, _lines ) || p;
+    }
+
+
     onMouseMove(e) {
 
         var globalPoint = Mouse.global;
@@ -237,6 +258,8 @@ export class ToolControl extends PIXI.Sprite {
 
         this.prevMousePoint = this.prevMousePoint || this.currentMousePoint;
         this.targetPrevMousePoint = this.targetPrevMousePoint || this.targetCurrentMousePoint;
+
+        //this.targetCurrentMousePoint = this.hitTest( this.targetCurrentMousePoint, ToolControl.imageRect.center );
 
         this.changeMovement = {
             x: this.currentMousePoint.x - this.prevMousePoint.x,
@@ -247,6 +270,8 @@ export class ToolControl extends PIXI.Sprite {
             x: this.targetCurrentMousePoint.x - this.targetPrevMousePoint.x,
             y: this.targetCurrentMousePoint.y - this.targetPrevMousePoint.y
         };
+
+        this.moveRotationCursor();
 
         if(this.type === ToolControlType.ROTATION) {
             this.currentRotation = Calc.getRotation(this.centerPoint.globalPoint, Mouse.global);
@@ -302,6 +327,8 @@ export class ToolControl extends PIXI.Sprite {
             y: this.targetCurrentMousePoint.y - this.targetPrevMousePoint.y
         };
 
+        this.moveRotationCursor();
+
         if(this.type === ToolControlType.ROTATION) {
 
             this.currentRotation = Calc.getRotation(this.centerPoint.globalPoint, Mouse.global);
@@ -310,7 +337,6 @@ export class ToolControl extends PIXI.Sprite {
             this.absChangeRotation = (this.changeRotation < 0) ? this.changeRotation * -1 : this.changeRotation;
 
             if (this.absChangeRotation < 100) {
-
                 this.emit(ToolControl.ROTATE_END, {
                     target: this,
                     type: this.type,
@@ -338,6 +364,49 @@ export class ToolControl extends PIXI.Sprite {
         this.removeMouseMoveEvent();
     };
 
+
+    onMouseOver() {
+        this.defaultCursor = this.getCursor();
+        if(this.type === ToolControlType.DELETE) this.texture = this.deleteOverTexture;
+        if(this.type === ToolControlType.ROTATION) {
+            this.rotationCursor = this.rotationCursorList[this.cursorIndex];
+            this.rotationCursorHalfWidth = this.rotationCursor.width / 2;
+            this.rotationCursorHalfHeight = this.rotationCursor.height / 2;
+            this.moveRotationCursor();
+            this.rotationCursor.visible = true;
+        }
+    }
+
+
+    onMouseOut() {
+        if (this.type === ToolControlType.DELETE) this.texture = this.deleteTexture;
+
+        if (Mouse.defaultCursor !== 'none') {
+            this.rotationCursor = null;
+            this.hideAllRotationCursor();
+        }
+    }
+
+
+    onMouseOverMove() {
+        if (this.type === ToolControlType.ROTATION) this.moveRotationCursor();
+    }
+
+
+    moveRotationCursor() {
+        if(!this.rotationCursor || this.rotationCursor === null) return;
+
+        var cursor = this.rotationCursorList[this.cursorIndex];
+
+        if(this.rotationCursor !== cursor) {
+            this.rotationCursor.visible = false;
+            this.rotationCursor = cursor;
+            this.rotationCursor.visible = true;
+        }
+
+        this.rotationCursor.x = Mouse.globalX;
+        this.rotationCursor.y = Mouse.globalY;
+    }
 
 
     set target(value) {
@@ -470,7 +539,9 @@ export class ToolControl extends PIXI.Sprite {
 
 
     getRotationCursor() {
-        switch (this.cursorIndex) {
+        return 'none';
+
+        /*switch (this.cursorIndex) {
             case 0: // 337.5-22.5, TOP_CENTER
                 return "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAOCAYAAAA8E3wEAAAAAXNSR0IArs4c6QAAAyRJREFUOBGNVF1IU2EY9pz9z9YkRdaPIfhHiV4V3Sy80S4jijLqwvDGO/Uq6KLLqBtpN+G9SndJmSBZlDYbNjeGLWSW2CQxt0E65+bmfk7Pc/I7HRdELzx7v/d7f7/3fc+kiv8jSWemPyu6e/1Zd334qHemhrJwFDryctCWRNtyiHvyv0gflEohC0PKMmDQcZFcJCpBVwQEF/e40uLxjqQwmAggJ5PJ85AZnDACZsAK2IBKwK5DuWyBjvb0EzEY8xxkfR41IQ3MhULBt7y8fBHnI8BR4FhLS8uJ2dnZqxsbG4/hPJnNZkPAJ2BxZ2dnKhaLPfH7/bc7OztP0x5wACymErpr+Xz+Gc4mgDnUDjI7q7JDGUqn03PT09OXqqurTwaDwTu7u7tvw+Hw68HBwZnW1tavJpMpB1vFaDTmUcxqb2/vnM/newW/D5FIZKC9vf0U9LVLS0s39/b2/Llc7jlkdog5JDEjCpb9/X1vV1eXPDExkYbhWiKRqO3p6XEFAoEzkiQpCPYFSLhcrlw8HjejG1ULCwtni8Wiob6+/vvo6Gikra0tH41G39TV1V3v6+uTR0ZG4na7/Rbis9ACoPaXvXciySK40tHR8dnj8bwzGAwFh8ORHBoamkqlUu/R8nHYPALuAQ8hP81kMnNjY2OTNTU1Cfr29/d7Nzc3PzY1Na01NzdH0aFJ3LPNbKvWUias4mzAxZYpbrc7vLW15UWyBysrK43QcQ4cgQa85jiS3gW83d3d8/Q3m81q23UJuQ9qQjqSmKTEtqnSwY/NZitYLJYKVPyysbExSpsyKGhlDC3zYF7jw8PDRXQkhdHwASTlICb9tNh8prY0BwrtlZhpAAFmtre3ud5qS8D1JGNhrmBjZxoaGr5Bofnihavo2gvccWnULWUAgi81YPjzoVDoh6IoamBWhzmWEKgSlbPqAdwFwTWC7WUI97FEP9fX1/P0Ff7wkeCbxWbfgA3/HNTAomoZs3KjIhmJ1TskU6xWawmfAD8DIqNPiMCs+gKWxwBIhN4f4yjJspx2Op0sUn25SFbOoT9ENCYJ/lv68/svf72P8gunF5KUe/EFxQAAAABJRU5ErkJggg==') 14 7, auto";
             case 1: // 22.5-67.5, TOP_RIGHT
@@ -487,7 +558,7 @@ export class ToolControl extends PIXI.Sprite {
                 return "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAcCAYAAABRVo5BAAAAAXNSR0IArs4c6QAAAz9JREFUOBFtVN9LU3EU997b7nJrG+hkYWKGOEFBIhdIWFHMFx+iN4NASv+A8EXfetxTkD304rNo0INgVhhkybURbmuwcDCnDRNxOtT9cIr7cW+f83Xf23XswNn5nvP9fs4538/33Al1F0W46Nb0NIpeMmwRqFr5Nh3mSjHNCKQAAUUoxaWKTzEVWoaWKlavyCplMplei8UyoaqqVC6XRVhKUicIgiZJkkp6cnLiczgcQV6R2hAQ+LW3tzdjt9snhoeH1UgkcpWAENbm/Px8zOVyWeFTIV3IoUSWaDT65ODgwN/R0bEFn99NCwQCn5LJ5EPERNYKFkYRurq6lra3t98ripKUZblg3ORrDmR3RJB8saenR25ra/P6fL4CRLbZbDkCVO5KHehCQGKxHtqwvr7+Ynl5+QvW2tDQ0M/Dw8Mf7e3tiVAotJDL5e4jzguyhYyAzev1tubzeT8q/nU6nSmwqOC+Y9ls9juIWzw9Pb2Hc1SI/VC1y9CG1dXVp36/fxFrbXp6euH4+HgcaxnJHmuaFigWi3fh60Bik2huQta3IyMjK3izEqqtJBIJehJ2dwAfQe/AZ0JoE9QGdaGlz263+09fX1+kVCrNIMYnCEu0oWnks0wE5CqC/ubNzc3Wzs7ONKZni85WFAYHBYFG7z87FKMARABAwoTQ+2VZpMaPTiv2eOayyWQq7O7umhFz1MCwEJHCAcyenZ3t4I5XMKdNIMiNfX4Nut8tQqHdEK9IIOpdBe3xgYGBHQDdeDPnxsbGDcSldDrdC/sGhFlgBSOQvrlSPB5XRkdHi8guTE1N5XHX54h58Lm9wtQUAORc4Pg5SexJwGYzHv2rx+OJYkYzR0dHCk0PJioUDoc/VI8cZdFnFTP5bG1tbYmGoL+//zdaD2NfCwaDH1Op1INKIZhzAqhtmld7Y2Pjtf39/XeTk5Pf4OvkGb/HC/8A/NDs7Gy32Wy+Pjc3R9NUUzhQ34zFYjdbWlpeDg4OWvFpdesbWBi/R84QWQF/VretVutrMFpPrHIlgCiKKlQDUWMgTeFASkxruieRRJ2QZQMNy54Klv89qtVAVhkHeBIsmegEwaMk+mCz3SrfmJT2CcxF+wduL3Nt3V5HIgAAAABJRU5ErkJggg==') 7 14, auto";
             case 7: // 292.5-337.5, TOP_LEFT
                 return "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAAAXNSR0IArs4c6QAAA5hJREFUSA2lVklMU1EUtb/fTlIpihgIG2TYOCxYsGFDYsIGMYoTCVaKGKNpQly4YeOCuHehG5Yk6IKEhaKGUBT6EZtQJRJgQUgaSJgqQylQZvo9p/aZ30mmm9z8++5775x777vv5etOHE90Sbar8T4p3nGIcYRgeXnZhj3EodInFOZfOQ4JESSj0Vi1trZ2D/ZJqEwfNIboqCQCRNra2tKbzebnU1NT1QA3QkkWQ3QYkn/AURA9vvL6+rrkdrv9BoOhfmxsjEQm+qFcH5GDkGjBCcxIDVBGbQKJPD4+LhcXF+enp6c7RkdHWTrOcW1k734kgiASdXSzGV9LQ0NDtqIoVy0Wy+VwOCyhXNkgupCZmWn3+Xy3NSQwUwsJGAQjt0DT8/Lyznu93mp0VNvKyspAf39/V0tLi6u8vHwI82xdNTc3d2Z+fl5ZWlq6j3FM2TCOES3BKcycaW1tLQXw+5GRke7KykqvLMs78EeAtd+CgoKJYDCoBAKBm/CLksGMlXiCs4ODg3Zs9Dgcjm9YqppMplBtba3S1dX1aWJiwtXU1NRNPwkA3jc7O8tyabsslgEjkjBN1j4DBA8WFxf7CYCx6nQ6e5CRsr29/Rr+O6urqy+am5s/FxYW+piB3++/hXVsDJaaWAkisuCi0+3t7aWov4cEaNHNzs7OjwB/Nzc3dwnzkWbY2Nio93g8H0DWGy3RfzMgo8jCAuBziLjDbrd/h191uVwkeNXR0cEmEFHqdnd3H6qq6t3c3LwOP4nFHMzkQhJGYh0aGqoeHh52wVbRrl9B8DZKwDVUig4EDug12hrlXIKIBYyENzaDbVpRUfED92ANpVAmJycvwp8QJQjSEtCSOLQEPIu0xsbGIhziANu0rq6uLxQKvYFfe5gikyRwiS5GRuEm2iyVEZfrCkoVRL3lmpqaEFqyD/4D1RvrEoStegJgdyVJcu7t7UmwJTwThra2tgDn8vPzzTk5Oc92dnacer1e1el0Ybhf4vuF8wcVZqFHSR7hKXCzXa1W6ypadgt+FY/ess1mC5SUlAyjXZVoFx2qXAwkQoKvEW/Ok5mZGXdWVtZvEgglMS8aWvoGfCzbkUh4HpFbPj097QRRryAiAZ+K6E3e96IBJ6UwMnHwFgA+xWH3lJWV/WIGsPkWabsrJdB+E4KIGRlxTx6jEX4uLCxUYXysDOKJBRHrLuOMivA9cusKcILGSzIf1yT8T8VvTDX+A7nQiRk9jngZAAAAAElFTkSuQmCC') 12.5 12.5, auto";
-        }
+        }*/
     }
 
 
@@ -661,3 +732,6 @@ export class ToolControl extends PIXI.Sprite {
         }
     }
 }
+
+
+

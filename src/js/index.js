@@ -19,6 +19,10 @@ function initailize() {
         //backgroundColor: 0x0D99FC
     });
 
+    // 위치가 정수가 아닐경우 흐릿하게 보이는 문제가 있어
+    // 렌더러의 위치를 정수로 연산될 수 있도록 한다.
+    renderer.roundPixels = true;
+
     Mouse.renderer = renderer;
     stage = new PIXI.Container(0xE6E9EC);
     rootLayer = new PIXI.Container(0xE6E9EC);
