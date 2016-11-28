@@ -207,9 +207,23 @@
 <script type="text/javascript" src="libs/Animation.js"></script>
 
 <script>
-    // Install babel hooks to the browser process
-    require('babel-core/register')();
-    require('./js/index');
+
+    (function(){
+        console.log('start!');
+        console.log(navigator.userAgent.indexOf('Electron') >= 0);
+
+        if (navigator.userAgent.indexOf('Electron') >= 0) {
+            // Install babel hooks to the browser process
+            require('babel-core/register')();
+            require('./js/index');
+        } else {
+            var body = document.getElementsByTagName('body').item(0);
+            var script= document.createElement("script");
+            script.type = "text/javascript";
+            script.src="./bundle.js";
+            body.appendChild(script);
+        }
+    })();
 </script>
 
 
