@@ -1,21 +1,9 @@
 {
   "name": "image-transform-tool",
-  "version": "1.0.0",
-  "description": "",
-  "main": "electron.js",
-  "scripts": {
-    "start": "electron electron.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/twipixel/image-transform-tool.git"
-  },
+  "version": "0.0.1",
+  "license": "MIT",
   "author": "twipixel",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/twipixel/image-transform-tool/issues"
-  },
-  "homepage": "https://github.com/twipixel/image-transform-tool#readme",
+  "main": "./electron.js",
   "dependencies": {},
   "devDependencies": {
     "babel": "^6.5.2",
@@ -44,5 +32,17 @@
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.7.0",
     "webpack": "^1.12.13"
-  }
+  },
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/twipixel/image-transform-tool.git"
+  },
+  "bugs": {
+    "url": "https://github.com/twipixel/image-transform-tool/issues"
+  },
+  "homepage": "https://github.com/twipixel/image-transform-tool#readme",
+  "description": "canvg를 이용해 vector를 canvas에 표시하고 스케일과 각도를 변형합니다."
 }
