@@ -504,7 +504,8 @@ export class TransformTool extends PIXI.utils.EventEmitter {
         };
 
         g.clear();
-        g.lineStyle(0.5, 0xFFFFFF);
+        // g.lineStyle(0.5, 0xFFFFFF);
+        g.lineStyle(1, 0xFFFFFF);
 
         this.drawRect( g, globalPoints );
 

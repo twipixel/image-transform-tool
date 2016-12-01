@@ -31,12 +31,14 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         this.isRestore = false;
         this.stickerLayer.updateTransform();
         var options = { deleteButtonOffsetY: 0 };
+        this.canvas = document.getElementById('canvas');
         this.transformTool = new TransformTool(this.stageLayer, this.stickerLayer, options);
     }
 
 
     createSticker(url, x, y, width, height) {
         var sticker = new VectorContainer();
+        window['s' + this.stickers.length] = sticker;
         this.stickerLayer.addChild(sticker);
         this.stickers.push(sticker);
         sticker.pivot = {x: width / 2, y: height/2};
@@ -272,16 +274,40 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
     addDebug() {
         this.svgs = [
-            './img/svg/amazon.svg',
-            './img/svg/dribbble.svg',
-            './img/svg/facebook.svg',
-            './img/svg/foursquare.svg',
-            './img/svg/periscope.svg',
-            './img/svg/pinterest.svg',
-            './img/svg/shutterstock.svg',
-            './img/svg/skype.svg',
-            './img/svg/whatsapp.svg',
-            './img/svg/wordpress.svg'
+            './img/svg/airplane.svg',
+            './img/svg/bank.svg',
+            './img/svg/beacon.svg',
+            './img/svg/beats.svg',
+            './img/svg/bell.svg',
+            './img/svg/bicycle.svg',
+            './img/svg/box.svg',
+            './img/svg/browser.svg',
+            './img/svg/bulb.svg',
+            './img/svg/casino.svg',
+            './img/svg/chair.svg',
+            './img/svg/config.svg',
+            './img/svg/cup.svg',
+            './img/svg/folder.svg',
+            './img/svg/football.svg',
+            './img/svg/headphones.svg',
+            './img/svg/heart.svg',
+            './img/svg/laptop.svg',
+            './img/svg/letter.svg',
+            './img/svg/like.svg',
+            './img/svg/map.svg',
+            './img/svg/medal.svg',
+            './img/svg/mic.svg',
+            './img/svg/milk.svg',
+            './img/svg/pencil.svg',
+            './img/svg/picture.svg',
+            './img/svg/polaroid.svg',
+            './img/svg/printer.svg',
+            './img/svg/search.svg',
+            './img/svg/shoppingbag.svg',
+            './img/svg/speed.svg',
+            './img/svg/stopwatch.svg',
+            './img/svg/tweet.svg',
+            './img/svg/watch.svg'
         ];
 
         window.document.addEventListener('keyup', this.onKeyUp.bind(this));
@@ -299,14 +325,18 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
     testCreateStickers() {
         if(this.stickers.length !== 0) return;
-        this.totalSticker = 10;
+        var stickerSize = 100;
+        var stickerHalfSize = stickerSize / 2;
+        var canvasWidth = this.canvas.width;
+        var canvasHeight = this.canvas.height;
+        this.totalSticker = 5 + parseInt(Math.random() * this.svgs.length - 5);
 
         for(var i=0; i<this.totalSticker; i++) {
             var randomIndex = parseInt(Math.random() * this.svgs.length);
             var url = this.svgs[randomIndex];
-            var randomX = parseInt(Math.random() * 400);
-            var randomY = parseInt(Math.random() * 400);
-            var sticker = this.createSticker(url, randomX, randomY, 100, 100);
+            var randomX = stickerSize + parseInt(Math.random() * (canvasWidth - stickerSize * 2));
+            var randomY = stickerSize + parseInt(Math.random() * (canvasHeight - stickerSize * 2));
+            var sticker = this.createSticker(url, randomX, randomY, stickerSize, stickerSize);
         }
     }
 }

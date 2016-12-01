@@ -15,8 +15,11 @@ function initailize() {
     renderer = new PIXI.CanvasRenderer(canvas.width, canvas.height, {
         view: canvas,
         autoResize: true,
-        backgroundColor: 0x999999,
-        //backgroundColor: 0x0D99FC
+        backgroundColor: 0x8e44ad
+        // backgroundColor: 0x9b59b6
+        // backgroundColor: 0x222222
+        // backgroundColor: 0xF9F9F9
+        // backgroundColor: 0x333333
     });
 
     // 위치가 정수가 아닐경우 흐릿하게 보이는 문제가 있어
@@ -31,16 +34,17 @@ function initailize() {
 
     // 컨테이너에 scale과 rotation 이 있을 때를 고려해서 만들었습니다
     //stickerLayer.scale = {x: 1.2, y: 1.2};
-    stickerLayer.rotation = Calc.toRadians(40);
+    // stickerLayer.rotation = Calc.toRadians(40);
 
     stage.addChild(stickerLayer);
     stage.addChild(rootLayer);
 
     stickerMain = new StickerMain(renderer, rootLayer, stickerLayer);
-    stickerMain.testCreateStickers();
 
     updateLoop();
     resizeWindow();
+
+    stickerMain.testCreateStickers();
 }
 
 
