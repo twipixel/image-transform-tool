@@ -377,7 +377,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         if(stickerVOList != null) this.addStickerVOList = stickerVOList;
         if(!this.addStickerVOList || this.addStickerVOList.length <= 0) return;
 
-        var displayTime = 6;
+        var displayTime = 4;
         var displayDuration = displayTime * this.addStickerVOList.length;
 
         cancelAnimFrame(this.addAniId);
