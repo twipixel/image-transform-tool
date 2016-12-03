@@ -1,3 +1,4 @@
+import {Calc} from '../utils/Calculator';
 import {VectorContainer} from '../view/VectorContainer';
 import {TransformTool} from '../transform/TransformTool';
 
@@ -36,8 +37,9 @@ export class StickerMain extends PIXI.utils.EventEmitter {
     }
 
 
-    createSticker(url, x, y, width, height) {
+    createSticker(url, x, y, width, height, visible = true) {
         var sticker = new VectorContainer();
+        sticker.visible = visible;
         window['s' + this.stickers.length] = sticker;
         this.stickerLayer.addChild(sticker);
         this.stickers.push(sticker);
@@ -49,7 +51,10 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         sticker._stickerDeleteListener = this.onStickerDelete.bind(this);
         sticker._stickerSelectListener = this.onStickerSelect.bind(this);
         sticker._stickerDeselectListener = this.onStickerDeselect.bind(this);
-        sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
+
+        if(visible)
+            sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
+
         sticker.on('mousedown', sticker._stickerMouseDownListener);
         sticker.on(TransformTool.DELETE, sticker._stickerDeleteListener);
         sticker.on(TransformTool.SELECT, sticker._stickerSelectListener);
@@ -314,30 +319,101 @@ export class StickerMain extends PIXI.utils.EventEmitter {
     }
 
 
-    testRandomCreateSticker() {
-        var randomIndex = parseInt(Math.random() * this.svgs.length);
-        var url = this.svgs[randomIndex];
-        var randomX = parseInt(Math.random() * 400);
-        var randomY = parseInt(Math.random() * 400);
-        var sticker = this.createSticker(url, randomX, randomY, 100, 100);
-    }
-
-
     testCreateStickers() {
         if(this.stickers.length !== 0) return;
-        var stickerSize = 100;
-        var stickerHalfSize = stickerSize / 2;
+
+        var stickers = [];
+        var defaultSize = 100;
+        var defaultSticker = 8;
         var canvasWidth = this.canvas.width;
         var canvasHeight = this.canvas.height;
-        this.totalSticker = 5 + parseInt(Math.random() * this.svgs.length - 5);
+        var totalSticker = defaultSticker + parseInt(Math.random() * (this.svgs.length - defaultSticker));
 
-        for(var i=0; i<this.totalSticker; i++) {
+        for(var i=0; i<totalSticker; i++) {
+            var stickerSize = defaultSize + parseInt(Math.random() * 40);
+            var rotation = Calc.toRadians(Math.random() * 360);
             var randomIndex = parseInt(Math.random() * this.svgs.length);
             var url = this.svgs[randomIndex];
             var randomX = stickerSize + parseInt(Math.random() * (canvasWidth - stickerSize * 2));
             var randomY = stickerSize + parseInt(Math.random() * (canvasHeight - stickerSize * 2));
-            var sticker = this.createSticker(url, randomX, randomY, stickerSize, stickerSize);
+            var sticker = this.createSticker(url, randomX, randomY, stickerSize, stickerSize, false);
+            sticker.scale.x = sticker.scale.y = 0;
+
+            var stickerVO = {
+                sticker: sticker,
+                scale: 1,
+                rotation: rotation
+            };
+
+            stickers.push(stickerVO);
+        }
+
+        this.addStickerWithMotion(stickers);
+    }
+
+
+    addStickerWithMotion(stickerVOList = null) {
+        if(stickerVOList != null) this.addStickerVOList = stickerVOList;
+        if(!this.addStickerVOList || this.addStickerVOList.length <= 0) return;
+
+        var displayTime = 6;
+        var displayDuration = displayTime * this.addStickerVOList.length;
+
+        cancelAnimFrame(this.addAniId);
+        this.addAniId =
+            animationLoop(
+                this.startAddTween.bind(this, displayTime, stickerVOList), displayDuration, 'linear',
+                function progress() {},
+                function complete() {},
+                this
+            );
+
+        /*var stickerVO = this.addStickerVOList.shift();
+        stickerVO.sticker.visible = true;
+        cancelAnimFrame(this.addAniId);
+        this.addAniId =
+            animationLoop(
+                this.addTween.bind(this, stickerVO), 60, 'easeOutElastic',
+                function progressHandler() {},
+                this.addStickerWithMotion.bind(this),
+                this
+            );*/
+    }
+
+
+    activeLastTarget() {
+        console.log(this.stickers[this.stickers.length - 1]);
+        this.transformTool.activeTarget(this.stickers[this.stickers.length - 1]);
+    }
+
+
+    startAddTween(displayTime, stickerVOList, easeDecimal, stepDecimal, currentStep) {
+        var completeCallBack = function() {};
+
+        if(stickerVOList.length == 1)
+            completeCallBack = this.activeLastTarget.bind(this);
+
+        if(currentStep % displayTime == 0) {
+            var stickerVO = stickerVOList.shift();
+            stickerVO.sticker.visible = true;
+            animationLoop(
+                this.addTween.bind(this, stickerVO), 60, 'easeOutElastic',
+                function progress() {},
+                completeCallBack,
+                this
+            );
         }
     }
+
+
+    addTween(stickerVO, easeDecimal, stepDecimal, currentStep) {
+        var vo = stickerVO;
+        var sticker = vo.sticker;
+        var scale = 0 + (vo.scale - 0) * easeDecimal;
+        var rotation = 0 + (vo.rotation - 0) * easeDecimal;
+        sticker.scale.x = sticker.scale.y = scale;
+        sticker.rotation = rotation;
+    }
+
 }
 

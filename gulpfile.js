@@ -18,7 +18,6 @@ var watchify = require('watchify');
 // 디렉토리 설정
 var dirRoot = __dirname;
 var dirSrc = '/src';
-var dirExample = '/example';
 var dirJs = '/js';
 var dirImg = '/img';
 var dirLibs = '/libs';
@@ -42,14 +41,9 @@ gulp.task('clean', () => del(dirRoot + dirBuild + '**/*', {
 
 
 gulp.task('img', () => {
-    return gulp.src([dirRoot + dirSrc + dirImg + '**/*'])
-        .pipe(cached('img'))
-        .pipe(imagemin({
-            progressive: true,
-            svgoPlugins: [],
-            use: [pngquant()]
-        }))
-        .pipe(gulp.dest(dirRoot + dirBuild + dirSrc));
+    gulp.src(dirRoot + dirSrc + dirImg + '/**/*.*')
+    .pipe(cached('img'))
+    .pipe(gulp.dest(dirRoot + dirBuild + dirSrc + dirImg));
 });
 
 
@@ -57,10 +51,6 @@ gulp.task('html', () => {
     gulp.src(dirRoot + dirSrc + '/*.html')
         .pipe(cached('html'))
         .pipe(gulp.dest(dirRoot + dirBuild + dirSrc));
-
-    return gulp.src(dirRoot + dirExample + '/*.html')
-        .pipe(cached('example-html'))
-        .pipe(gulp.dest(dirRoot + dirBuild + dirExample));
 });
 
 
@@ -72,14 +62,14 @@ gulp.task('libs', () => {
 
 
 gulp.task('bundle', () => {
-    if (!directoryExists(dirRoot + dirBuild + dirExample)) {
-        fs.mkdirSync(dirRoot + dirBuild + dirExample);
+    if (!directoryExists(dirRoot + dirBuild + dirSrc)) {
+        fs.mkdirSync(dirRoot + dirBuild + dirSrc);
     }
 
-    return browserify(dirRoot + dirExample + dirJs + "/index.js")
+    return browserify(dirRoot + dirSrc + dirJs + "/index.js")
         .transform(babelify, {presets: ['es2015-loose']})
         .bundle()
-        .pipe(fs.createWriteStream(dirRoot + dirBuild + dirExample + '/bundle.js'));
+        .pipe(fs.createWriteStream(dirRoot + dirBuild + dirSrc + '/bundle.js'));
 });
 
 
