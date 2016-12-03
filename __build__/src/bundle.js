@@ -354,7 +354,7 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
 
         var stickers = [];
         var defaultSize = 100;
-        var defaultSticker = 8;
+        var defaultSticker = 12;
         var canvasWidth = this.canvas.width;
         var canvasHeight = this.canvas.height;
         var totalSticker = defaultSticker + parseInt(Math.random() * (this.svgs.length - defaultSticker));
