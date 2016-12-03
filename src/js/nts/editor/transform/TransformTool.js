@@ -315,6 +315,17 @@ export class TransformTool extends PIXI.utils.EventEmitter {
     }
 
 
+    visibleCursorArea(isVisiable) {
+        var drawAlpha = (isVisiable) ? 0.3 : 0.0;
+
+        for (var prop in this.controls) {
+            var control = this.controls[prop];
+            control.drawAlpha = drawAlpha;
+            control.render();
+        }
+    }
+
+
     setControls() {
         var scaleSignX = this.target.scaleSignX;
         var scaleSignY = this.target.scaleSignY;

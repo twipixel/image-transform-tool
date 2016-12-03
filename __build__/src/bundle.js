@@ -128,9 +128,11 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
         _this.renderer = renderer;
         _this.stageLayer = stageLayer;
         _this.stickerLayer = stickerLayer;
+        _this._cursorArea = false;
 
         _this.initialize();
         _this.addDebug();
+        _this.initGUI();
         return _this;
     }
 
@@ -141,6 +143,13 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
         var options = { deleteButtonOffsetY: 0 };
         this.canvas = document.getElementById('canvas');
         this.transformTool = new _TransformTool.TransformTool(this.stageLayer, this.stickerLayer, options);
+    };
+
+    StickerMain.prototype.initGUI = function initGUI() {
+        var gui = new dat.GUI();
+        var title = gui.addFolder('커서 영역 화면에 표시');
+        title.add(this, 'cursorArea');
+        title.open();
     };
 
     StickerMain.prototype.createSticker = function createSticker(url, x, y, width, height) {
@@ -423,6 +432,15 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
     };
 
     _createClass(StickerMain, [{
+        key: 'cursorArea',
+        set: function set(value) {
+            this._cursorArea = value;
+            this.transformTool.visibleCursorArea(value);
+        },
+        get: function get() {
+            return this._cursorArea;
+        }
+    }, {
         key: 'snapshot',
         get: function get() {
             var snapshot = [];
@@ -635,6 +653,7 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
         _this.interactive = true;
         _this.defaultCursor = 'inherit';
         _this._localPoint = new PIXI.Point();
+        _this.drawAlpha = 0.0;
 
         _this.initialize();
         _this.render();
@@ -684,7 +703,7 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
         var buttonRectHalf = buttonRectSize / 2;
 
         this.g.clear();
-        this.g.beginFill(0xFF33FF, 0.0);
+        this.g.beginFill(0xFF33FF, this.drawAlpha);
         this.g.drawRect(-buttonRectHalf, -buttonRectHalf, buttonRectSize, buttonRectSize);
         this.g.beginFill(0xFFFFFF, 1);
         this.g.drawRect(-outerRectHalf, -outerRectHalf, outerRectSize, outerRectSize);
@@ -696,7 +715,7 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
     ToolControl.prototype.drawCenter = function drawCenter(rotation, width, height) {
         this.rotation = rotation;
         this.g.clear();
-        this.g.beginFill(0xFF33FF, 0.0);
+        this.g.beginFill(0xFF33FF, this.drawAlpha);
         this.g.drawRect(-(width / 2), -(height / 2), width, height);
         this.g.endFill();
     };
@@ -705,7 +724,7 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
         var buttonRectSize = 22;
         var buttonRectHalf = buttonRectSize / 2;
         this.g.clear();
-        this.g.beginFill(0xFF3300, 0.0);
+        this.g.beginFill(0xFF3300, this.drawAlpha);
         this.g.drawRect(-buttonRectHalf, -buttonRectHalf, buttonRectSize, buttonRectSize);
         this.g.endFill();
     };
@@ -1704,6 +1723,16 @@ var TransformTool = exports.TransformTool = function (_PIXI$utils$EventEmit) {
         this.updateTransform();
         this.draw();
         this.updatePrevTargetLt();
+    };
+
+    TransformTool.prototype.visibleCursorArea = function visibleCursorArea(isVisiable) {
+        var drawAlpha = isVisiable ? 0.3 : 0.0;
+
+        for (var prop in this.controls) {
+            var control = this.controls[prop];
+            control.drawAlpha = drawAlpha;
+            control.render();
+        }
     };
 
     TransformTool.prototype.setControls = function setControls() {

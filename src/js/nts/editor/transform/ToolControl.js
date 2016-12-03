@@ -52,6 +52,7 @@ export class ToolControl extends PIXI.Sprite {
         this.interactive = true;
         this.defaultCursor = 'inherit';
         this._localPoint = new PIXI.Point();
+        this.drawAlpha = 0.0;
 
         this.initialize();
         this.render();
@@ -103,7 +104,7 @@ export class ToolControl extends PIXI.Sprite {
         var buttonRectHalf = buttonRectSize / 2;
 
         this.g.clear();
-        this.g.beginFill(0xFF33FF, 0.0);
+        this.g.beginFill(0xFF33FF, this.drawAlpha);
         this.g.drawRect(-buttonRectHalf, -buttonRectHalf, buttonRectSize, buttonRectSize);
         this.g.beginFill(0xFFFFFF, 1);
         this.g.drawRect(-outerRectHalf, -outerRectHalf, outerRectSize, outerRectSize);
@@ -116,7 +117,7 @@ export class ToolControl extends PIXI.Sprite {
     drawCenter(rotation, width, height) {
         this.rotation = rotation;
         this.g.clear();
-        this.g.beginFill(0xFF33FF, 0.0);
+        this.g.beginFill(0xFF33FF, this.drawAlpha);
         this.g.drawRect(-(width / 2), -(height / 2), width, height);
         this.g.endFill();
     }
@@ -126,7 +127,7 @@ export class ToolControl extends PIXI.Sprite {
         var buttonRectSize = 22;
         var buttonRectHalf = buttonRectSize / 2;
         this.g.clear();
-        this.g.beginFill(0xFF3300, 0.0);
+        this.g.beginFill(0xFF3300, this.drawAlpha);
         this.g.drawRect(-buttonRectHalf, -buttonRectHalf, buttonRectSize, buttonRectSize);
         this.g.endFill();
     }

@@ -21,9 +21,21 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         this.renderer = renderer;
         this.stageLayer = stageLayer;
         this.stickerLayer = stickerLayer;
+        this._cursorArea = false;
 
         this.initialize();
         this.addDebug();
+        this.initGUI();
+    }
+
+
+    set cursorArea(value) {
+        this._cursorArea = value;
+        this.transformTool.visibleCursorArea(value);
+    }
+
+    get cursorArea() {
+        return this._cursorArea;
     }
 
 
@@ -35,6 +47,15 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         this.canvas = document.getElementById('canvas');
         this.transformTool = new TransformTool(this.stageLayer, this.stickerLayer, options);
     }
+
+
+    initGUI() {
+        var gui = new dat.GUI();
+        var title = gui.addFolder('커서 영역 화면에 표시');
+        title.add(this, 'cursorArea');
+        title.open();
+    }
+
 
 
     createSticker(url, x, y, width, height, visible = true) {
