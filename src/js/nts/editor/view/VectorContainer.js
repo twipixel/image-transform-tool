@@ -52,7 +52,23 @@ export class VectorContainer extends PIXI.Container {
         this.canvgCanvas = document.createElement('CANVAS');
         this.canvgCanvas.id = 'canvgCanvas';
         this.canvgContext = this.canvgCanvas.getContext('2d');
+
+        this.setpixelated(this.canvgContext);
     };
+
+
+    setpixelated(context) {
+        context['imageSmoothingEnabled'] = false;
+        /* standard */
+        context['mozImageSmoothingEnabled'] = false;
+        /* Firefox */
+        context['oImageSmoothingEnabled'] = false;
+        /* Opera */
+        context['webkitImageSmoothingEnabled'] = false;
+        /* Safari */
+        context['msImageSmoothingEnabled'] = false;
+        /* IE */
+    }
 
 
     addEvent() {
@@ -134,7 +150,7 @@ export class VectorContainer extends PIXI.Container {
         }
 
         this.destroy();
-        if(this.svg && this.svg.parentNode){
+        if (this.svg && this.svg.parentNode) {
             this.svg.parentNode.removeChild(this.svg);
         }
         this.svg = null;
@@ -181,6 +197,7 @@ export class VectorContainer extends PIXI.Container {
             });
         }
     }
+
     //     this.scale = {x: 1, y: 1};
     //     this.image.scale = {x: this.scaleSignX, y: this.scaleSignY};
     //     this.image.texture.update();

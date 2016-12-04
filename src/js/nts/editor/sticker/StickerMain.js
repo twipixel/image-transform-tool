@@ -373,6 +373,9 @@ export class StickerMain extends PIXI.utils.EventEmitter {
             var url = this.svgs.splice(randomIndex, 1)[0];
             var randomX = stickerSize + parseInt(Math.random() * (canvasWidth - stickerSize * 2));
             var randomY = stickerSize + parseInt(Math.random() * (canvasHeight - stickerSize * 2));
+            randomX = Math.round(randomX);
+            randomY = Math.round(randomY);
+
             var sticker = this.createSticker(url, randomX, randomY, stickerSize, stickerSize, false);
             sticker.scale.x = sticker.scale.y = 0;
 
@@ -464,6 +467,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
         if(currentStep == vo.animationTime) {
             sticker.scale.x = sticker.scale.y = vo.scale;
+            // sticker.emit(TransformTool.TRANSFORM_COMPLETE);
         }
     }
 
