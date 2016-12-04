@@ -22,7 +22,6 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         this.renderer = renderer;
         this.stageLayer = stageLayer;
         this.stickerLayer = stickerLayer;
-        this._cursorArea = false;
 
         this.initialize();
         this.addDebug();
@@ -60,7 +59,9 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
     initialize() {
         this.stickers = [];
+        this.isDemoMode = true;
         this.isRestore = false;
+        this._cursorArea = false;
         this.stickerLayer.updateTransform();
         var options = {deleteButtonOffsetY: 0};
         this.canvas = document.getElementById('canvas');
@@ -91,12 +92,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         sticker._stickerDeleteListener = this.onStickerDelete.bind(this);
         sticker._stickerSelectListener = this.onStickerSelect.bind(this);
         sticker._stickerDeselectListener = this.onStickerDeselect.bind(this);
-
-        if (visible)
-            sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
-        else
-            sticker._stickerLoadCompleteListener = this.removeLoadingText.bind(this);
-
+        sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
         sticker.on('mousedown', sticker._stickerMouseDownListener);
         sticker.on(TransformTool.DELETE, sticker._stickerDeleteListener);
         sticker.on(TransformTool.SELECT, sticker._stickerSelectListener);
@@ -214,6 +210,8 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
 
     onLoadComplete(e) {
+        if(this.isDemoMode) return;
+
         if (this.isRestore === false) {
             this.stickerLayer.updateTransform();
             this.transformTool.activeTarget(e.target);
@@ -442,6 +440,9 @@ export class StickerMain extends PIXI.utils.EventEmitter {
     startAddTween(displayTime, stickerVOList, easeDecimal, stepDecimal, currentStep) {
 
         if (currentStep % displayTime == 0) {
+
+            this.removeLoadingText();
+
             var stickerVO = stickerVOList.shift();
             var sticker = stickerVO.sticker;
 

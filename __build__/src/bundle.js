@@ -129,7 +129,6 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
         _this.renderer = renderer;
         _this.stageLayer = stageLayer;
         _this.stickerLayer = stickerLayer;
-        _this._cursorArea = false;
 
         _this.initialize();
         _this.addDebug();
@@ -156,7 +155,9 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
 
     StickerMain.prototype.initialize = function initialize() {
         this.stickers = [];
+        this.isDemoMode = true;
         this.isRestore = false;
+        this._cursorArea = false;
         this.stickerLayer.updateTransform();
         var options = { deleteButtonOffsetY: 0 };
         this.canvas = document.getElementById('canvas');
@@ -187,9 +188,7 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
         sticker._stickerDeleteListener = this.onStickerDelete.bind(this);
         sticker._stickerSelectListener = this.onStickerSelect.bind(this);
         sticker._stickerDeselectListener = this.onStickerDeselect.bind(this);
-
-        if (visible) sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);else sticker._stickerLoadCompleteListener = this.removeLoadingText.bind(this);
-
+        sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
         sticker.on('mousedown', sticker._stickerMouseDownListener);
         sticker.on(_TransformTool.TransformTool.DELETE, sticker._stickerDeleteListener);
         sticker.on(_TransformTool.TransformTool.SELECT, sticker._stickerSelectListener);
@@ -296,6 +295,8 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
     StickerMain.prototype.resize = function resize() {};
 
     StickerMain.prototype.onLoadComplete = function onLoadComplete(e) {
+        if (this.isDemoMode) return;
+
         if (this.isRestore === false) {
             this.stickerLayer.updateTransform();
             this.transformTool.activeTarget(e.target);
@@ -440,6 +441,9 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
     StickerMain.prototype.startAddTween = function startAddTween(displayTime, stickerVOList, easeDecimal, stepDecimal, currentStep) {
 
         if (currentStep % displayTime == 0) {
+
+            this.removeLoadingText();
+
             var stickerVO = stickerVOList.shift();
             var sticker = stickerVO.sticker;
 
