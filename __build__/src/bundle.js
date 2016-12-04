@@ -183,7 +183,7 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
         sticker._stickerSelectListener = this.onStickerSelect.bind(this);
         sticker._stickerDeselectListener = this.onStickerDeselect.bind(this);
 
-        if (visible) sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
+        if (visible) sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);else sticker._stickerLoadCompleteListener = this.removeLoadingText.bind(this);
 
         sticker.on('mousedown', sticker._stickerMouseDownListener);
         sticker.on(_TransformTool.TransformTool.DELETE, sticker._stickerDeleteListener);
@@ -475,6 +475,15 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
     StickerMain.prototype.stopGuide = function stopGuide() {
         clearInterval(this._guideId);
         if (this.guideText) this.stickerLayer.removeChild(this.guideText);
+
+        this.loadingText = _Painter.Painter.getText('LOADING...', 0x1b1b1b, 0xf1c40f);
+        this.loadingText.x = this.renderer.view.width / 2;
+        this.loadingText.y = this.renderer.view.height / 2;
+        this.stickerLayer.addChild(this.loadingText);
+    };
+
+    StickerMain.prototype.removeLoadingText = function removeLoadingText() {
+        if (this.loadingText) this.stickerLayer.removeChild(this.loadingText);
     };
 
     StickerMain.prototype.doGuide = function doGuide() {

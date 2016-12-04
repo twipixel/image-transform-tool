@@ -89,6 +89,8 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
         if (visible)
             sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
+        else
+            sticker._stickerLoadCompleteListener = this.removeLoadingText.bind(this);
 
         sticker.on('mousedown', sticker._stickerMouseDownListener);
         sticker.on(TransformTool.DELETE, sticker._stickerDeleteListener);
@@ -482,6 +484,17 @@ export class StickerMain extends PIXI.utils.EventEmitter {
     stopGuide() {
         clearInterval(this._guideId);
         if (this.guideText) this.stickerLayer.removeChild(this.guideText);
+
+        this.loadingText = Painter.getText('LOADING...', 0x1b1b1b, 0xf1c40f);
+        this.loadingText.x = this.renderer.view.width / 2;
+        this.loadingText.y = this.renderer.view.height / 2;
+        this.stickerLayer.addChild(this.loadingText);
+    }
+
+
+    removeLoadingText() {
+        if(this.loadingText)
+            this.stickerLayer.removeChild(this.loadingText);
     }
 
 
