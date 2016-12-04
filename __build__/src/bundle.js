@@ -440,6 +440,7 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
 
     StickerMain.prototype.activeLastTarget = function activeLastTarget(sticker) {
         this.transformTool.activeTarget(sticker);
+        this.stickerLayer.setChildIndex(sticker, this.stickerLayer.children.length - 1);
     };
 
     StickerMain.prototype.startAddTween = function startAddTween(displayTime, stickerVOList, easeDecimal, stepDecimal, currentStep) {

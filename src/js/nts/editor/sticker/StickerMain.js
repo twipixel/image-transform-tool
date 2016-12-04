@@ -439,6 +439,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
     activeLastTarget(sticker) {
         this.transformTool.activeTarget(sticker);
+        this.stickerLayer.setChildIndex(sticker, this.stickerLayer.children.length - 1);
     }
 
 
