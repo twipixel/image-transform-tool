@@ -54,6 +54,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         var title = gui.addFolder('커서 영역 화면에 표시');
         title.add(this, 'cursorArea');
         title.open();
+        gui.close();
     }
 
 

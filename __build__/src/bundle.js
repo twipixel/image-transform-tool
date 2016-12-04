@@ -151,6 +151,7 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
         var title = gui.addFolder('커서 영역 화면에 표시');
         title.add(this, 'cursorArea');
         title.open();
+        gui.close();
     };
 
     StickerMain.prototype.createSticker = function createSticker(url, x, y, width, height) {
