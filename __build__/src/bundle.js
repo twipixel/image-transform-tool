@@ -133,8 +133,8 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
 
         _this.startGuide();
 
-        // this.initialize();
-        // this.addDebug();
+        _this.initialize();
+        _this.addDebug();
         // this.initGUI();
         // this.testCreateStickers();
         return _this;
@@ -145,8 +145,6 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
         window.removeEventListener('mouseup', this._tapOrClickListener, false);
         window.removeEventListener('touchend', this._tapOrClickListener, false);
 
-        this.initialize();
-        this.addDebug();
         this.initGUI();
         this.testCreateStickers();
     };

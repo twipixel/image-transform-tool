@@ -24,12 +24,12 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         this.stickerLayer = stickerLayer;
         this._cursorArea = false;
 
-        this.startGuide();
-
-        // this.initialize();
-        // this.addDebug();
+        this.initialize();
+        this.addDebug();
         // this.initGUI();
         // this.testCreateStickers();
+
+        this.startGuide();
     }
 
 
@@ -38,8 +38,6 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         window.removeEventListener('mouseup', this._tapOrClickListener, false);
         window.removeEventListener('touchend', this._tapOrClickListener, false);
 
-        this.initialize();
-        this.addDebug();
         this.initGUI();
         this.testCreateStickers();
     }
