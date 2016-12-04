@@ -42,6 +42,11 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         this.loadingText.y = this.renderer.view.height / 2;
         this.stickerLayer.addChild(this.loadingText);
 
+        setTimeout(this.delayTestStart.bind(this), 100);
+    }
+
+
+    delayTestStart() {
         this.initGUI();
         this.testCreateStickers();
     }

@@ -149,6 +149,10 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
         this.loadingText.y = this.renderer.view.height / 2;
         this.stickerLayer.addChild(this.loadingText);
 
+        setTimeout(this.delayTestStart.bind(this), 100);
+    };
+
+    StickerMain.prototype.delayTestStart = function delayTestStart() {
         this.initGUI();
         this.testCreateStickers();
     };
