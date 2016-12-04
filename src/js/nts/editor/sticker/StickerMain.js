@@ -1,6 +1,7 @@
 import {Calc} from '../utils/Calculator';
 import {VectorContainer} from '../view/VectorContainer';
 import {TransformTool} from '../transform/TransformTool';
+import {Painter} from './../utils/Painter';
 
 export class StickerMain extends PIXI.utils.EventEmitter {
 
@@ -23,9 +24,24 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         this.stickerLayer = stickerLayer;
         this._cursorArea = false;
 
+        this.startGuide();
+
+        // this.initialize();
+        // this.addDebug();
+        // this.initGUI();
+        // this.testCreateStickers();
+    }
+
+
+    tapOrClick(event) {
+        this.stopGuide();
+        window.removeEventListener('mouseup', this._tapOrClickListener, false);
+        window.removeEventListener('touchend', this._tapOrClickListener, false);
+
         this.initialize();
         this.addDebug();
         this.initGUI();
+        this.testCreateStickers();
     }
 
 
@@ -43,7 +59,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         this.stickers = [];
         this.isRestore = false;
         this.stickerLayer.updateTransform();
-        var options = { deleteButtonOffsetY: 0 };
+        var options = {deleteButtonOffsetY: 0};
         this.canvas = document.getElementById('canvas');
         this.transformTool = new TransformTool(this.stageLayer, this.stickerLayer, options);
     }
@@ -58,14 +74,13 @@ export class StickerMain extends PIXI.utils.EventEmitter {
     }
 
 
-
     createSticker(url, x, y, width, height, visible = true) {
         var sticker = new VectorContainer();
         sticker.visible = visible;
         window['s' + this.stickers.length] = sticker;
         this.stickerLayer.addChild(sticker);
         this.stickers.push(sticker);
-        sticker.pivot = {x: width / 2, y: height/2};
+        sticker.pivot = {x: width / 2, y: height / 2};
         sticker.x = x;
         sticker.y = y;
         sticker.rotation = -this.stickerLayer.rotation;
@@ -74,7 +89,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         sticker._stickerSelectListener = this.onStickerSelect.bind(this);
         sticker._stickerDeselectListener = this.onStickerDeselect.bind(this);
 
-        if(visible)
+        if (visible)
             sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
 
         sticker.on('mousedown', sticker._stickerMouseDownListener);
@@ -88,7 +103,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
 
     deleteSticker(target) {
-        if(target === null) return;
+        if (target === null) return;
 
         target.off('mousedown', target._stickerMouseDownListener);
         target.off(TransformTool.DELETE, target._stickerDeleteListener);
@@ -101,9 +116,9 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         target._stickerDeselectListener = null;
         target._stickerLoadCompleteListener = null;
 
-        for(var i=0; i<this.stickers.length; i++) {
+        for (var i = 0; i < this.stickers.length; i++) {
             var sticker = this.stickers[i];
-            if(sticker === target) {
+            if (sticker === target) {
                 this.stickers.splice(i, 1);
                 this.stickerLayer.removeChild(sticker);
                 this.transformTool.releaseTarget();
@@ -115,7 +130,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
 
     restore(snapshot) {
-        if(!snapshot) return;
+        if (!snapshot) return;
 
         this.stickers = null;
         this.stickers = [];
@@ -123,7 +138,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         this.restoreCount = 0;
         this.restoreTotal = snapshot.length;
 
-        for(var i=0; i<snapshot.length; i++) {
+        for (var i = 0; i < snapshot.length; i++) {
             var vo = snapshot[i];
             var sticker = new VectorContainer();
             this.stickerLayer.addChild(sticker);
@@ -151,7 +166,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
     }
 
 
-    updateTransformTool(){
+    updateTransformTool() {
 
         this.transformTool.updateGraphics();
     }
@@ -163,14 +178,14 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
 
     show() {
-        for(var i=0; i<this.stickers.length; i++)
+        for (var i = 0; i < this.stickers.length; i++)
             this.stickers[i].visible = true;
         this.transformTool.show();
     }
 
 
     hide() {
-        for(var i=0; i<this.stickers.length; i++)
+        for (var i = 0; i < this.stickers.length; i++)
             this.stickers[i].visible = false;
         this.transformTool.hide();
     }
@@ -178,7 +193,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
     clear() {
         var cloneStickers = this.stickers.slice(0);
-        for(var i=0; i<cloneStickers.length; i++)
+        for (var i = 0; i < cloneStickers.length; i++)
             this.deleteSticker(cloneStickers[i]);
     }
 
@@ -194,11 +209,11 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
 
     onLoadComplete(e) {
-        if(this.isRestore === false) {
+        if (this.isRestore === false) {
             this.stickerLayer.updateTransform();
             this.transformTool.activeTarget(e.target);
         } else {
-            if(++this.restoreCount == this.restoreTotal) this.isRestore = false;
+            if (++this.restoreCount == this.restoreTotal) this.isRestore = false;
         }
     }
 
@@ -261,7 +276,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
     get snapshot() {
         var snapshot = [];
-        for(var i=0; i<this.stickers.length; i++) {
+        for (var i = 0; i < this.stickers.length; i++) {
             var vo = this.stickers[i].snapshot;
             vo.childIndex = this.stickerLayer.getChildIndex(this.stickers[i]);
             snapshot[i] = vo;
@@ -281,13 +296,13 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
     get lastSticker() {
 
-        if(this.stickers.length === 0) return null;
+        if (this.stickers.length === 0) return null;
 
         let children = this.stickerLayer.children;
 
-        for( var i = children.length; i--; ){
+        for (var i = children.length; i--;) {
 
-            if( this.stickers.indexOf( children[i] ) != -1 )
+            if (this.stickers.indexOf(children[i]) != -1)
                 return children[i];
         }
 
@@ -342,7 +357,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
 
     testCreateStickers() {
-        if(this.stickers.length !== 0) return;
+        if (this.stickers.length !== 0) return;
 
         var stickers = [];
         var defaultSize = 100;
@@ -351,11 +366,11 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         var canvasHeight = this.canvas.height;
         var totalSticker = defaultSticker + parseInt(Math.random() * (this.svgs.length - defaultSticker));
 
-        for(var i=0; i<totalSticker; i++) {
+        for (var i = 0; i < totalSticker; i++) {
             var stickerSize = defaultSize + parseInt(Math.random() * 40);
             var rotation = Calc.toRadians(Math.random() * 360);
             var randomIndex = parseInt(Math.random() * this.svgs.length);
-            var url = this.svgs[randomIndex];
+            var url = this.svgs.splice(randomIndex, 1)[0];
             var randomX = stickerSize + parseInt(Math.random() * (canvasWidth - stickerSize * 2));
             var randomY = stickerSize + parseInt(Math.random() * (canvasHeight - stickerSize * 2));
             var sticker = this.createSticker(url, randomX, randomY, stickerSize, stickerSize, false);
@@ -375,8 +390,8 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
 
     addStickerWithMotion(stickerVOList = null) {
-        if(stickerVOList != null) this.addStickerVOList = stickerVOList;
-        if(!this.addStickerVOList || this.addStickerVOList.length <= 0) return;
+        if (stickerVOList != null) this.addStickerVOList = stickerVOList;
+        if (!this.addStickerVOList || this.addStickerVOList.length <= 0) return;
 
         var displayTime = 4;
         var displayDuration = displayTime * this.addStickerVOList.length;
@@ -385,42 +400,45 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         this.addAniId =
             animationLoop(
                 this.startAddTween.bind(this, displayTime, stickerVOList), displayDuration, 'linear',
-                function progress() {},
-                function complete() {},
+                function progress() {
+                },
+                function complete() {
+                },
                 this
             );
 
         /*var stickerVO = this.addStickerVOList.shift();
-        stickerVO.sticker.visible = true;
-        cancelAnimFrame(this.addAniId);
-        this.addAniId =
-            animationLoop(
-                this.addTween.bind(this, stickerVO), 60, 'easeOutElastic',
-                function progressHandler() {},
-                this.addStickerWithMotion.bind(this),
-                this
-            );*/
+         stickerVO.sticker.visible = true;
+         cancelAnimFrame(this.addAniId);
+         this.addAniId =
+         animationLoop(
+         this.addTween.bind(this, stickerVO), 60, 'easeOutElastic',
+         function progressHandler() {},
+         this.addStickerWithMotion.bind(this),
+         this
+         );*/
     }
 
 
     activeLastTarget() {
-        console.log(this.stickers[this.stickers.length - 1]);
         this.transformTool.activeTarget(this.stickers[this.stickers.length - 1]);
     }
 
 
     startAddTween(displayTime, stickerVOList, easeDecimal, stepDecimal, currentStep) {
-        var completeCallBack = function() {};
+        var completeCallBack = function () {
+        };
 
-        if(stickerVOList.length == 1)
+        if (stickerVOList.length == 1)
             completeCallBack = this.activeLastTarget.bind(this);
 
-        if(currentStep % displayTime == 0) {
+        if (currentStep % displayTime == 0) {
             var stickerVO = stickerVOList.shift();
             stickerVO.sticker.visible = true;
             animationLoop(
                 this.addTween.bind(this, stickerVO), 60, 'easeOutElastic',
-                function progress() {},
+                function progress() {
+                },
                 completeCallBack,
                 this
             );
@@ -435,6 +453,44 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         var rotation = 0 + (vo.rotation - 0) * easeDecimal;
         sticker.scale.x = sticker.scale.y = scale;
         sticker.rotation = rotation;
+    }
+
+
+    startGuide(delayTime = 800) {
+        this.isGuide = false;
+        this._guideId = setInterval(() => {
+                this.doGuide();
+        }, delayTime);
+
+
+        this._tapOrClickListener = this.tapOrClick.bind(this);
+        window.addEventListener('mouseup', this._tapOrClickListener, false);
+        window.addEventListener('touchend', this._tapOrClickListener, false);
+    }
+
+
+    stopGuide() {
+        clearInterval(this._guideId);
+        if (this.guideText) this.stickerLayer.removeChild(this.guideText);
+    }
+
+
+    doGuide() {
+        if (this.isGuide === false) {
+            this.isGuide = true;
+
+            if(!this.guideText) {
+                this.guideText = Painter.getText('TOUCH SCREEN', 0x1b1b1b, 0xf1c40f);
+                // this.guideText = Painter.getText('TOUCH SCREEN', 0xFFFFFF, 0x9b59b6);
+            }
+
+            this.guideText.x = this.renderer.view.width / 2;
+            this.guideText.y = this.renderer.view.height / 2;
+            this.stickerLayer.addChild(this.guideText);
+        } else {
+            this.isGuide = false;
+            if (this.guideText) this.stickerLayer.removeChild(this.guideText);
+        }
     }
 
 }

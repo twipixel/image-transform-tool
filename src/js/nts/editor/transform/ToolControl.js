@@ -690,11 +690,12 @@ export class ToolControl extends PIXI.Sprite {
                 case RotationControlType.MIDDLE_LEFT:
                     return 6;
                 case RotationControlType.TOP_LEFT:
+                case RotationControlType.DELETE:
                     return 5;
             }
         } else if(scaleSingX === -1 && scaleSingY === -1) {
             switch (this.rotationControlType) {
-                case ToolControlType.TOP_CENTER:
+                case RotationControlType.TOP_CENTER:
                     return 4;
                 case RotationControlType.TOP_RIGHT:
                     return 5;
@@ -709,6 +710,7 @@ export class ToolControl extends PIXI.Sprite {
                 case RotationControlType.MIDDLE_LEFT:
                     return 2;
                 case RotationControlType.TOP_LEFT:
+                case RotationControlType.DELETE:
                     return 3;
             }
         } else {
@@ -728,6 +730,7 @@ export class ToolControl extends PIXI.Sprite {
                 case RotationControlType.MIDDLE_LEFT:
                     return 2;
                 case RotationControlType.TOP_LEFT:
+                case RotationControlType.DELETE:
                     return 1;
             }
         }

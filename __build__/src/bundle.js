@@ -46,8 +46,6 @@ function initailize() {
 
     updateLoop();
     resizeWindow();
-
-    stickerMain.testCreateStickers();
 }
 
 function updateLoop(ms) {
@@ -95,6 +93,8 @@ var _VectorContainer = require('../view/VectorContainer');
 
 var _TransformTool = require('../transform/TransformTool');
 
+var _Painter = require('./../utils/Painter');
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -131,11 +131,25 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
         _this.stickerLayer = stickerLayer;
         _this._cursorArea = false;
 
-        _this.initialize();
-        _this.addDebug();
-        _this.initGUI();
+        _this.startGuide();
+
+        // this.initialize();
+        // this.addDebug();
+        // this.initGUI();
+        // this.testCreateStickers();
         return _this;
     }
+
+    StickerMain.prototype.tapOrClick = function tapOrClick(event) {
+        this.stopGuide();
+        window.removeEventListener('mouseup', this._tapOrClickListener, false);
+        window.removeEventListener('touchend', this._tapOrClickListener, false);
+
+        this.initialize();
+        this.addDebug();
+        this.initGUI();
+        this.testCreateStickers();
+    };
 
     StickerMain.prototype.initialize = function initialize() {
         this.stickers = [];
@@ -365,7 +379,7 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
             var stickerSize = defaultSize + parseInt(Math.random() * 40);
             var rotation = _Calculator.Calc.toRadians(Math.random() * 360);
             var randomIndex = parseInt(Math.random() * this.svgs.length);
-            var url = this.svgs[randomIndex];
+            var url = this.svgs.splice(randomIndex, 1)[0];
             var randomX = stickerSize + parseInt(Math.random() * (canvasWidth - stickerSize * 2));
             var randomY = stickerSize + parseInt(Math.random() * (canvasHeight - stickerSize * 2));
             var sticker = this.createSticker(url, randomX, randomY, stickerSize, stickerSize, false);
@@ -396,19 +410,18 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
         this.addAniId = animationLoop(this.startAddTween.bind(this, displayTime, stickerVOList), displayDuration, 'linear', function progress() {}, function complete() {}, this);
 
         /*var stickerVO = this.addStickerVOList.shift();
-        stickerVO.sticker.visible = true;
-        cancelAnimFrame(this.addAniId);
-        this.addAniId =
-            animationLoop(
-                this.addTween.bind(this, stickerVO), 60, 'easeOutElastic',
-                function progressHandler() {},
-                this.addStickerWithMotion.bind(this),
-                this
-            );*/
+         stickerVO.sticker.visible = true;
+         cancelAnimFrame(this.addAniId);
+         this.addAniId =
+         animationLoop(
+         this.addTween.bind(this, stickerVO), 60, 'easeOutElastic',
+         function progressHandler() {},
+         this.addStickerWithMotion.bind(this),
+         this
+         );*/
     };
 
     StickerMain.prototype.activeLastTarget = function activeLastTarget() {
-        console.log(this.stickers[this.stickers.length - 1]);
         this.transformTool.activeTarget(this.stickers[this.stickers.length - 1]);
     };
 
@@ -431,6 +444,44 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
         var rotation = 0 + (vo.rotation - 0) * easeDecimal;
         sticker.scale.x = sticker.scale.y = scale;
         sticker.rotation = rotation;
+    };
+
+    StickerMain.prototype.startGuide = function startGuide() {
+        var _this2 = this;
+
+        var delayTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 800;
+
+        this.isGuide = false;
+        this._guideId = setInterval(function () {
+            _this2.doGuide();
+        }, delayTime);
+
+        this._tapOrClickListener = this.tapOrClick.bind(this);
+        window.addEventListener('mouseup', this._tapOrClickListener, false);
+        window.addEventListener('touchend', this._tapOrClickListener, false);
+    };
+
+    StickerMain.prototype.stopGuide = function stopGuide() {
+        clearInterval(this._guideId);
+        if (this.guideText) this.stickerLayer.removeChild(this.guideText);
+    };
+
+    StickerMain.prototype.doGuide = function doGuide() {
+        if (this.isGuide === false) {
+            this.isGuide = true;
+
+            if (!this.guideText) {
+                this.guideText = _Painter.Painter.getText('TOUCH SCREEN', 0x1b1b1b, 0xf1c40f);
+                // this.guideText = Painter.getText('TOUCH SCREEN', 0xFFFFFF, 0x9b59b6);
+            }
+
+            this.guideText.x = this.renderer.view.width / 2;
+            this.guideText.y = this.renderer.view.height / 2;
+            this.stickerLayer.addChild(this.guideText);
+        } else {
+            this.isGuide = false;
+            if (this.guideText) this.stickerLayer.removeChild(this.guideText);
+        }
     };
 
     _createClass(StickerMain, [{
@@ -488,7 +539,7 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
     return StickerMain;
 }(PIXI.utils.EventEmitter);
 
-},{"../transform/TransformTool":6,"../utils/Calculator":7,"../view/VectorContainer":11}],3:[function(require,module,exports){
+},{"../transform/TransformTool":6,"../utils/Calculator":7,"../view/VectorContainer":12,"./../utils/Painter":9}],3:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1214,11 +1265,12 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
                 case _RotationControlType.RotationControlType.MIDDLE_LEFT:
                     return 6;
                 case _RotationControlType.RotationControlType.TOP_LEFT:
+                case _RotationControlType.RotationControlType.DELETE:
                     return 5;
             }
         } else if (scaleSingX === -1 && scaleSingY === -1) {
             switch (this.rotationControlType) {
-                case _ToolControlType.ToolControlType.TOP_CENTER:
+                case _RotationControlType.RotationControlType.TOP_CENTER:
                     return 4;
                 case _RotationControlType.RotationControlType.TOP_RIGHT:
                     return 5;
@@ -1233,6 +1285,7 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
                 case _RotationControlType.RotationControlType.MIDDLE_LEFT:
                     return 2;
                 case _RotationControlType.RotationControlType.TOP_LEFT:
+                case _RotationControlType.RotationControlType.DELETE:
                     return 3;
             }
         } else {
@@ -1252,6 +1305,7 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
                 case _RotationControlType.RotationControlType.MIDDLE_LEFT:
                     return 2;
                 case _RotationControlType.RotationControlType.TOP_LEFT:
+                case _RotationControlType.RotationControlType.DELETE:
                     return 1;
             }
         }
@@ -2250,7 +2304,7 @@ var TransformTool = exports.TransformTool = function (_PIXI$utils$EventEmit) {
     return TransformTool;
 }(PIXI.utils.EventEmitter);
 
-},{"../utils/lambda":10,"./../utils/Calculator":7,"./../utils/Mouse":8,"./../utils/PointUtil":9,"./../view/VectorContainer":11,"./RotationControlType":3,"./ToolControl":4,"./ToolControlType":5}],7:[function(require,module,exports){
+},{"../utils/lambda":11,"./../utils/Calculator":7,"./../utils/Mouse":8,"./../utils/PointUtil":10,"./../view/VectorContainer":12,"./RotationControlType":3,"./ToolControl":4,"./ToolControlType":5}],7:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -2405,6 +2459,203 @@ exports.__esModule = true;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var Painter = exports.Painter = function () {
+    function Painter() {
+        _classCallCheck(this, Painter);
+    }
+
+    Painter.getRect = function getRect() {
+        var size = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 4;
+        var color = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0xFF3300;
+        var alpha = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+
+        var half = size / 2;
+        var rect = new PIXI.Graphics();
+        rect.beginFill(color, alpha);
+        rect.drawRect(-half, -half, size, size);
+        rect.endFill();
+        return rect;
+    };
+
+    Painter.getCircle = function getCircle() {
+        var radius = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 2;
+        var color = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0xFF3300;
+        var alpha = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+
+        var cicle = new PIXI.Graphics();
+        cicle.beginFill(color, alpha);
+        cicle.drawCircle(0, 0, radius);
+        cicle.endFill();
+        return cicle;
+    };
+
+    Painter.drawBounds = function drawBounds(graphics, bounds) {
+        var initClear = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+        var thickness = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
+        var color = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 0xFF3300;
+        var alpha = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0.7;
+
+        if (initClear) graphics.clear();
+
+        graphics.lineStyle(thickness, color, alpha);
+        graphics.drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
+        graphics.endFill();
+    };
+
+    Painter.drawPoints = function drawPoints(graphics, points) {
+        var initClear = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+        var thickness = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
+        var color = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 0xFF3300;
+        var alpha = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0.7;
+
+        if (initClear) graphics.clear();
+
+        var lt = points.lt;
+        var rt = points.rt;
+        var rb = points.rb;
+        var lb = points.lb;
+
+        graphics.lineStyle(thickness, color, alpha);
+        graphics.moveTo(lt.x, lt.y);
+        graphics.lineTo(rt.x, rt.y);
+        graphics.lineTo(rb.x, rb.y);
+        graphics.lineTo(lb.x, lb.y);
+        graphics.lineTo(lt.x, lt.y);
+        graphics.endFill();
+    };
+
+    Painter.drawCircle = function drawCircle(graphics, point) {
+        var radius = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 5;
+        var color = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0xFF3300;
+        var alpha = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 0.7;
+        var initClear = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : false;
+
+        if (initClear) graphics.clear();
+
+        graphics.beginFill(color, alpha);
+        graphics.drawCircle(point.x, point.y, radius);
+        graphics.endFill();
+    };
+
+    Painter.drawGrid = function drawGrid(graphics, width, height) {
+        var lightLineAlpha = 0.1;
+        var heavyLineAlpha = 0.3;
+
+        for (var x = 0.5; x < width; x += 10) {
+            if ((x - 0.5) % 50 === 0) graphics.lineStyle(1, 0x999999, heavyLineAlpha);else graphics.lineStyle(1, 0xdddddd, lightLineAlpha);
+
+            graphics.moveTo(x, 0);
+            graphics.lineTo(x, height);
+        }
+
+        for (var y = 0.5; y < height; y += 10) {
+            if ((y - 0.5) % 50 === 0) graphics.lineStyle(1, 0x999999, heavyLineAlpha);else graphics.lineStyle(1, 0xdddddd, lightLineAlpha);
+
+            graphics.moveTo(0, y);
+            graphics.lineTo(width, y);
+        }
+
+        graphics.endFill();
+    };
+
+    Painter.drawDistToSegment = function drawDistToSegment(graphics, point, lineA, lineB, distancePoint) {
+        // 1. 라인 그리기
+        // 2. distancePoint -> point 연결하기
+        // 3. distancePoint -> returnPoint 연결하기
+
+        var radius = 3;
+        var lineAlpha = 0.1;
+        var shapeAlpha = 0.2;
+
+        // 1
+        graphics.beginFill(0x00CC33, shapeAlpha);
+        graphics.lineStyle(1, 0x009933, lineAlpha);
+        graphics.moveTo(lineA.x, lineA.y);
+        graphics.lineTo(lineB.x, lineB.y);
+        graphics.drawCircle(lineA.x, lineA.y, radius);
+        graphics.drawCircle(lineB.x, lineB.y, radius);
+
+        // 2
+        /*graphics.beginFill(0xCCCCFF, shapeAlpha);
+         graphics.lineStyle(1, 0x660099, 0.1);
+         graphics.moveTo(distancePoint.x, distancePoint.y);
+         graphics.lineTo(point.x, point.y);
+         graphics.drawCircle(point.x, point.y, radius);
+         graphics.beginFill(0xFF3300, 0.4);
+         graphics.drawCircle(distancePoint.x, distancePoint.y, radius);*/
+
+        // 3
+        graphics.beginFill(0xFFCCFF, shapeAlpha);
+        graphics.lineStyle(1, 0xCC99CC, lineAlpha);
+        graphics.moveTo(point.x, point.y);
+        graphics.lineTo(point.x, distancePoint.y);
+        graphics.lineTo(distancePoint.x, distancePoint.y);
+        graphics.drawCircle(point.x, point.y, radius);
+        graphics.drawCircle(distancePoint.x, distancePoint.y, radius);
+
+        graphics.endFill();
+    };
+
+    Painter.drawLine = function drawLine(graphics, p1, p2) {
+        var thickness = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
+        var color = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 0xFF3300;
+        var alpha = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 1;
+
+        //graphics.beginFill(color, alpha);
+        graphics.lineStyle(thickness, color, alpha);
+        graphics.moveTo(p1.x, p1.y);
+        graphics.lineTo(p2.x, p2.y);
+        //graphics.endFill();
+    };
+
+    Painter.drawTriagle = function drawTriagle(graphics, p0, p1, p2) {
+        var thickness = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 1;
+        var color = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0xFF3300;
+        var alpha = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : 1;
+        var isFill = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : false;
+
+        if (isFill) graphics.beginFill(color, alpha);
+
+        graphics.lineStyle(thickness, color, alpha);
+        graphics.moveTo(p0.x, p0.y);
+        graphics.lineTo(p1.x, p1.y);
+        graphics.lineTo(p2.x, p2.y);
+        graphics.lineTo(p0.x, p0.y);
+
+        if (isFill) graphics.endFill();
+    };
+
+    Painter.getText = function getText(str) {
+        var textColor = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0xFFFFFF;
+        var backgroundColor = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0xFFFFFF;
+
+        var container = new PIXI.Sprite();
+
+        var text = new PIXI.Text(str, { fontSize: 14, fill: textColor });
+        text.x = -text.width / 2;
+        text.y = -text.height / 2;
+
+        var bg = new PIXI.Graphics();
+        bg.beginFill(backgroundColor);
+        bg.drawRect(text.x, text.y, text.width, text.height);
+        bg.endFill();
+
+        container.addChild(bg);
+        container.addChild(text);
+
+        return container;
+    };
+
+    return Painter;
+}();
+
+},{}],10:[function(require,module,exports){
+"use strict";
+
+exports.__esModule = true;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 var PointUtil = exports.PointUtil = function () {
     PointUtil.add = function add(point1, point2) {
         return new PIXI.Point(point1.x + point2.x, point1.y + point2.y);
@@ -2467,7 +2718,7 @@ var PointUtil = exports.PointUtil = function () {
     return PointUtil;
 }();
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -2628,7 +2879,7 @@ function indexOf(collection, element) {
 	return name;
 }
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
