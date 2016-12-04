@@ -145,6 +145,11 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
         window.removeEventListener('mouseup', this._tapOrClickListener, false);
         window.removeEventListener('touchend', this._tapOrClickListener, false);
 
+        this.loadingText = _Painter.Painter.getText('LOADING...', 0x1b1b1b, 0xf1c40f);
+        this.loadingText.x = this.renderer.view.width / 2;
+        this.loadingText.y = this.renderer.view.height / 2;
+        this.stickerLayer.addChild(this.loadingText);
+
         this.initGUI();
         this.testCreateStickers();
     };
@@ -375,11 +380,15 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
 
         for (var i = 0; i < totalSticker; i++) {
             var stickerSize = defaultSize + parseInt(Math.random() * 40);
-            var rotation = _Calculator.Calc.toRadians(Math.random() * 360);
+            var direction = Math.random() < 0.5 ? -1 : 1;
+            var rotation = _Calculator.Calc.toRadians(Math.random() * 360) * direction;
             var randomIndex = parseInt(Math.random() * this.svgs.length);
             var url = this.svgs.splice(randomIndex, 1)[0];
             var randomX = stickerSize + parseInt(Math.random() * (canvasWidth - stickerSize * 2));
             var randomY = stickerSize + parseInt(Math.random() * (canvasHeight - stickerSize * 2));
+            randomX = Math.round(randomX);
+            randomY = Math.round(randomY);
+
             var sticker = this.createSticker(url, randomX, randomY, stickerSize, stickerSize, false);
             sticker.scale.x = sticker.scale.y = 0;
 
@@ -454,6 +463,7 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
 
         if (currentStep == vo.animationTime) {
             sticker.scale.x = sticker.scale.y = vo.scale;
+            // sticker.emit(TransformTool.TRANSFORM_COMPLETE);
         }
     };
 
@@ -475,11 +485,6 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
     StickerMain.prototype.stopGuide = function stopGuide() {
         clearInterval(this._guideId);
         if (this.guideText) this.stickerLayer.removeChild(this.guideText);
-
-        this.loadingText = _Painter.Painter.getText('LOADING...', 0x1b1b1b, 0xf1c40f);
-        this.loadingText.x = this.renderer.view.width / 2;
-        this.loadingText.y = this.renderer.view.height / 2;
-        this.stickerLayer.addChild(this.loadingText);
     };
 
     StickerMain.prototype.removeLoadingText = function removeLoadingText() {
@@ -2983,6 +2988,21 @@ var VectorContainer = exports.VectorContainer = function (_PIXI$Container) {
         this.canvgCanvas = document.createElement('CANVAS');
         this.canvgCanvas.id = 'canvgCanvas';
         this.canvgContext = this.canvgCanvas.getContext('2d');
+
+        this.setpixelated(this.canvgContext);
+    };
+
+    VectorContainer.prototype.setpixelated = function setpixelated(context) {
+        context['imageSmoothingEnabled'] = false;
+        /* standard */
+        context['mozImageSmoothingEnabled'] = false;
+        /* Firefox */
+        context['oImageSmoothingEnabled'] = false;
+        /* Opera */
+        context['webkitImageSmoothingEnabled'] = false;
+        /* Safari */
+        context['msImageSmoothingEnabled'] = false;
+        /* IE */
     };
 
     VectorContainer.prototype.addEvent = function addEvent() {
@@ -3112,6 +3132,7 @@ var VectorContainer = exports.VectorContainer = function (_PIXI$Container) {
             });
         }
     };
+
     //     this.scale = {x: 1, y: 1};
     //     this.image.scale = {x: this.scaleSignX, y: this.scaleSignY};
     //     this.image.texture.update();

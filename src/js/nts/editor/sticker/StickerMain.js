@@ -38,6 +38,11 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         window.removeEventListener('mouseup', this._tapOrClickListener, false);
         window.removeEventListener('touchend', this._tapOrClickListener, false);
 
+        this.loadingText = Painter.getText('LOADING...', 0x1b1b1b, 0xf1c40f);
+        this.loadingText.x = this.renderer.view.width / 2;
+        this.loadingText.y = this.renderer.view.height / 2;
+        this.stickerLayer.addChild(this.loadingText);
+
         this.initGUI();
         this.testCreateStickers();
     }
@@ -368,7 +373,8 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
         for (var i = 0; i < totalSticker; i++) {
             var stickerSize = defaultSize + parseInt(Math.random() * 40);
-            var rotation = Calc.toRadians(Math.random() * 360);
+            var direction = (Math.random() < 0.5) ? -1 : 1;
+            var rotation = Calc.toRadians(Math.random() * 360) * direction;
             var randomIndex = parseInt(Math.random() * this.svgs.length);
             var url = this.svgs.splice(randomIndex, 1)[0];
             var randomX = stickerSize + parseInt(Math.random() * (canvasWidth - stickerSize * 2));
@@ -488,11 +494,6 @@ export class StickerMain extends PIXI.utils.EventEmitter {
     stopGuide() {
         clearInterval(this._guideId);
         if (this.guideText) this.stickerLayer.removeChild(this.guideText);
-
-        this.loadingText = Painter.getText('LOADING...', 0x1b1b1b, 0xf1c40f);
-        this.loadingText.x = this.renderer.view.width / 2;
-        this.loadingText.y = this.renderer.view.height / 2;
-        this.stickerLayer.addChild(this.loadingText);
     }
 
 
