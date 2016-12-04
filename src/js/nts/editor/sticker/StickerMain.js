@@ -377,7 +377,8 @@ export class StickerMain extends PIXI.utils.EventEmitter {
             var stickerVO = {
                 sticker: sticker,
                 scale: 1,
-                rotation: rotation
+                rotation: rotation,
+                animationTime: 60
             };
 
             stickers.push(stickerVO);
@@ -418,23 +419,30 @@ export class StickerMain extends PIXI.utils.EventEmitter {
     }
 
 
-    activeLastTarget() {
-        this.transformTool.activeTarget(this.stickers[this.stickers.length - 1]);
+    roundPixelSticker(sticker) {
+        sticker.scale.x = sticker.scale.y = 1;
+    }
+
+    activeLastTarget(sticker) {
+        this.transformTool.activeTarget(sticker);
     }
 
 
     startAddTween(displayTime, stickerVOList, easeDecimal, stepDecimal, currentStep) {
-        var completeCallBack = function () {
-        };
-
-        if (stickerVOList.length == 1)
-            completeCallBack = this.activeLastTarget.bind(this);
 
         if (currentStep % displayTime == 0) {
             var stickerVO = stickerVOList.shift();
-            stickerVO.sticker.visible = true;
+            var sticker = stickerVO.sticker;
+
+            var completeCallBack = function() {};
+
+            if (stickerVOList.length == 1)
+                completeCallBack = this.activeLastTarget.bind(this, sticker);
+
+            sticker.visible = true;
+
             animationLoop(
-                this.addTween.bind(this, stickerVO), 60, 'easeOutElastic',
+                this.addTween.bind(this, stickerVO), stickerVO.animationTime, 'easeOutElastic',
                 function progress() {
                 },
                 completeCallBack,
@@ -451,6 +459,10 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         var rotation = 0 + (vo.rotation - 0) * easeDecimal;
         sticker.scale.x = sticker.scale.y = scale;
         sticker.rotation = rotation;
+
+        if(currentStep == vo.animationTime) {
+            sticker.scale.x = sticker.scale.y = vo.scale;
+        }
     }
 
 
