@@ -131,12 +131,12 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
         _this.stickerLayer = stickerLayer;
         _this._cursorArea = false;
 
-        _this.startGuide();
-
         _this.initialize();
         _this.addDebug();
         // this.initGUI();
         // this.testCreateStickers();
+
+        _this.startGuide();
         return _this;
     }
 
@@ -386,7 +386,8 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
             var stickerVO = {
                 sticker: sticker,
                 scale: 1,
-                rotation: rotation
+                rotation: rotation,
+                animationTime: 60
             };
 
             stickers.push(stickerVO);
@@ -419,19 +420,27 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
          );*/
     };
 
-    StickerMain.prototype.activeLastTarget = function activeLastTarget() {
-        this.transformTool.activeTarget(this.stickers[this.stickers.length - 1]);
+    StickerMain.prototype.roundPixelSticker = function roundPixelSticker(sticker) {
+        sticker.scale.x = sticker.scale.y = 1;
+    };
+
+    StickerMain.prototype.activeLastTarget = function activeLastTarget(sticker) {
+        this.transformTool.activeTarget(sticker);
     };
 
     StickerMain.prototype.startAddTween = function startAddTween(displayTime, stickerVOList, easeDecimal, stepDecimal, currentStep) {
-        var completeCallBack = function completeCallBack() {};
-
-        if (stickerVOList.length == 1) completeCallBack = this.activeLastTarget.bind(this);
 
         if (currentStep % displayTime == 0) {
             var stickerVO = stickerVOList.shift();
-            stickerVO.sticker.visible = true;
-            animationLoop(this.addTween.bind(this, stickerVO), 60, 'easeOutElastic', function progress() {}, completeCallBack, this);
+            var sticker = stickerVO.sticker;
+
+            var completeCallBack = function completeCallBack() {};
+
+            if (stickerVOList.length == 1) completeCallBack = this.activeLastTarget.bind(this, sticker);
+
+            sticker.visible = true;
+
+            animationLoop(this.addTween.bind(this, stickerVO), stickerVO.animationTime, 'easeOutElastic', function progress() {}, completeCallBack, this);
         }
     };
 
@@ -442,6 +451,10 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
         var rotation = 0 + (vo.rotation - 0) * easeDecimal;
         sticker.scale.x = sticker.scale.y = scale;
         sticker.rotation = rotation;
+
+        if (currentStep == vo.animationTime) {
+            sticker.scale.x = sticker.scale.y = vo.scale;
+        }
     };
 
     StickerMain.prototype.startGuide = function startGuide() {
