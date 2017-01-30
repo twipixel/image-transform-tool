@@ -369,10 +369,11 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
         var stickers = [];
         var defaultSize = 100;
-        var defaultSticker = 12;
+        var defaultSticker = 3;
         var canvasWidth = this.canvas.width;
         var canvasHeight = this.canvas.height;
-        var totalSticker = defaultSticker + parseInt(Math.random() * (this.svgs.length - defaultSticker));
+        // var totalSticker = defaultSticker + parseInt(Math.random() * (this.svgs.length - defaultSticker));
+        var totalSticker = defaultSticker;
 
         for (var i = 0; i < totalSticker; i++) {
             var stickerSize = defaultSize + parseInt(Math.random() * 40);
