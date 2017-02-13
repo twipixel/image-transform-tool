@@ -21,7 +21,7 @@ var dirSrc = '/src';
 var dirJs = '/js';
 var dirImg = '/img';
 var dirLibs = '/libs';
-var dirBuild = '/__build__';
+var dirBuild = '/build';
 
 
 
