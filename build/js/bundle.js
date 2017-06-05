@@ -20,17 +20,17 @@ window.onload = initailize.bind(undefined);
 function initailize() {
     canvas = document.getElementById('canvas');
 
-    /*renderer = new PIXI.CanvasRenderer(canvas.width, canvas.height, {
-        view: canvas,
-        autoResize: true,
-        backgroundColor: 0x673AB7
-    });*/
-
-    renderer = new PIXI.WebGLRenderer(canvas.width, canvas.height, {
+    renderer = new PIXI.CanvasRenderer(canvas.width, canvas.height, {
         view: canvas,
         autoResize: true,
         backgroundColor: 0x673AB7
     });
+
+    /*renderer = new PIXI.WebGLRenderer(canvas.width, canvas.height, {
+        view: canvas,
+        autoResize: true,
+        backgroundColor: 0x673AB7
+    });*/
 
     // 위치가 정수가 아닐경우 흐릿하게 보이는 문제가 있어
     // 렌더러의 위치를 정수로 연산될 수 있도록 한다.
@@ -65,10 +65,8 @@ function update(ms) {
 };
 
 function resizeWindow() {
-    /*var width = window.innerWidth;
-    var height = window.innerHeight;*/
-    var width = 800;
-    var height = 600;
+    var width = window.innerWidth;
+    var height = window.innerHeight;
 
     /**
      * 캔버스 사이즈와 디스플레이 사이즈 설정
@@ -115,6 +113,13 @@ var Config = function (_PIXI$utils$EventEmit) {
         get: function get() {
             return this._renderer;
         }
+
+        /**
+         * PIXI.RENDERER_TYPE.WEBGL
+         * PIXI.RENDERER_TYPE.CANVAS
+         * @returns {*}
+         */
+
     }, {
         key: 'renderType',
         get: function get() {
