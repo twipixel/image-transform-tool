@@ -9,19 +9,19 @@ window.onload = initailize.bind(this);
 
 
 function initailize() {
-    console.log('initialize');
     canvas = document.getElementById('canvas');
-    context = canvas.getContext('2d');
+
     renderer = new PIXI.CanvasRenderer(canvas.width, canvas.height, {
         view: canvas,
         autoResize: true,
         backgroundColor: 0x673AB7
-        // backgroundColor: 0x8e44ad
-        // backgroundColor: 0x9b59b6
-        // backgroundColor: 0x222222
-        // backgroundColor: 0xF9F9F9
-        // backgroundColor: 0x333333
     });
+
+    /*renderer = new PIXI.WebGLRenderer(canvas.width, canvas.height, {
+        view: canvas,
+        autoResize: true,
+        backgroundColor: 0x673AB7
+    });*/
 
     // 위치가 정수가 아닐경우 흐릿하게 보이는 문제가 있어
     // 렌더러의 위치를 정수로 연산될 수 있도록 한다.

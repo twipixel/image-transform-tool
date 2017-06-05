@@ -1,7 +1,8 @@
 import {Calc} from '../utils/Calculator';
+import {Painter} from './../utils/Painter';
 import {VectorContainer} from '../view/VectorContainer';
 import {TransformTool} from '../transform/TransformTool';
-import {Painter} from './../utils/Painter';
+
 
 export class StickerMain extends PIXI.utils.EventEmitter {
 
@@ -79,7 +80,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         var title = gui.addFolder('커서 영역 화면에 표시');
         title.add(this, 'cursorArea');
         title.open();
-        gui.close();
+        //gui.close();
     }
 
 
@@ -324,40 +325,40 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
     addDebug() {
         this.svgs = [
-            './img/svg/airplane.svg',
-            './img/svg/bank.svg',
-            './img/svg/beacon.svg',
-            './img/svg/beats.svg',
-            './img/svg/bell.svg',
-            './img/svg/bicycle.svg',
-            './img/svg/box.svg',
-            './img/svg/browser.svg',
-            './img/svg/bulb.svg',
-            './img/svg/casino.svg',
-            './img/svg/chair.svg',
-            './img/svg/config.svg',
-            './img/svg/cup.svg',
-            './img/svg/folder.svg',
-            './img/svg/football.svg',
-            './img/svg/headphones.svg',
-            './img/svg/heart.svg',
-            './img/svg/laptop.svg',
-            './img/svg/letter.svg',
-            './img/svg/like.svg',
-            './img/svg/map.svg',
-            './img/svg/medal.svg',
-            './img/svg/mic.svg',
-            './img/svg/milk.svg',
-            './img/svg/pencil.svg',
-            './img/svg/picture.svg',
-            './img/svg/polaroid.svg',
-            './img/svg/printer.svg',
-            './img/svg/search.svg',
-            './img/svg/shoppingbag.svg',
-            './img/svg/speed.svg',
-            './img/svg/stopwatch.svg',
-            './img/svg/tweet.svg',
-            './img/svg/watch.svg'
+            './../img/svg/airplane.svg',
+            './../img/svg/bank.svg',
+            './../img/svg/beacon.svg',
+            './../img/svg/beats.svg',
+            './../img/svg/bell.svg',
+            './../img/svg/bicycle.svg',
+            './../img/svg/box.svg',
+            './../img/svg/browser.svg',
+            './../img/svg/bulb.svg',
+            './../img/svg/casino.svg',
+            './../img/svg/chair.svg',
+            './../img/svg/config.svg',
+            './../img/svg/cup.svg',
+            './../img/svg/folder.svg',
+            './../img/svg/football.svg',
+            './../img/svg/headphones.svg',
+            './../img/svg/heart.svg',
+            './../img/svg/laptop.svg',
+            './../img/svg/letter.svg',
+            './../img/svg/like.svg',
+            './../img/svg/map.svg',
+            './../img/svg/medal.svg',
+            './../img/svg/mic.svg',
+            './../img/svg/milk.svg',
+            './../img/svg/pencil.svg',
+            './../img/svg/picture.svg',
+            './../img/svg/polaroid.svg',
+            './../img/svg/printer.svg',
+            './../img/svg/search.svg',
+            './../img/svg/shoppingbag.svg',
+            './../img/svg/speed.svg',
+            './../img/svg/stopwatch.svg',
+            './../img/svg/tweet.svg',
+            './../img/svg/watch.svg'
         ];
 
         window.document.addEventListener('keyup', this.onKeyUp.bind(this));

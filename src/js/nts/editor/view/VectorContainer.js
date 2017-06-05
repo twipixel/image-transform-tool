@@ -49,7 +49,7 @@ export class VectorContainer extends PIXI.Container {
         this.isFirstLoad = true;
         this.renderableObject = true;
 
-        this.canvgCanvas = document.createElement('CANVAS');
+        this.canvgCanvas = document.createElement('canvas');
         this.canvgCanvas.id = 'canvgCanvas';
         this.canvgContext = this.canvgCanvas.getContext('2d');
 

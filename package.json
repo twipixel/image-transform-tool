@@ -34,7 +34,8 @@
     "webpack": "^1.12.13"
   },
   "scripts": {
-    "start": "electron ."
+    "dev": "electron .",
+    "build": "gulp build"
   },
   "repository": {
     "type": "git",

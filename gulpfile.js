@@ -20,7 +20,7 @@ var dirRoot = __dirname;
 var dirSrc = '/src';
 var dirJs = '/js';
 var dirImg = '/img';
-var dirLibs = '/libs';
+var dirLib = '/lib';
 var dirBuild = '/build';
 
 
@@ -35,46 +35,44 @@ function directoryExists(path) {
 }
 
 
-gulp.task('clean', () => del(dirRoot + dirBuild + '**/*', {
-    force: true
-}));
+gulp.task('clean', () => {
+    return del(dirRoot + dirBuild + '**/*', {
+        force: true
+    });
+});
 
 
-gulp.task('img', () => {
-    gulp.src(dirRoot + dirSrc + dirImg + '/**/*.*')
+gulp.task('copy-img', () => {
+    return gulp.src(dirRoot + dirSrc + dirImg + '/**/*.*')
     .pipe(cached('img'))
-    .pipe(gulp.dest(dirRoot + dirBuild + dirSrc + dirImg));
+    .pipe(gulp.dest(dirRoot + dirBuild + dirImg));
 });
 
 
-gulp.task('html', () => {
-    gulp.src(dirRoot + dirSrc + '/*.html')
+gulp.task('copy-lib', () => {
+    return gulp.src(dirRoot + dirSrc + dirLib + '**/*')
+        .pipe(cached('lib'))
+        .pipe(gulp.dest(dirRoot + dirBuild));
+});
+
+
+gulp.task('copy-html', () => {
+    return gulp.src(dirRoot + dirSrc + dirJs + '/*.html')
         .pipe(cached('html'))
-        .pipe(gulp.dest(dirRoot + dirBuild + dirSrc));
-});
-
-
-gulp.task('libs', () => {
-    return gulp.src(dirRoot + dirSrc + dirLibs + '**/*')
-        .pipe(cached('libs'))
-        .pipe(gulp.dest(dirRoot + dirBuild + dirSrc));
+        .pipe(gulp.dest(dirRoot + dirBuild + dirJs));
 });
 
 
 gulp.task('bundle', () => {
-    if (!directoryExists(dirRoot + dirBuild + dirSrc)) {
-        fs.mkdirSync(dirRoot + dirBuild + dirSrc);
-    }
-
     return browserify(dirRoot + dirSrc + dirJs + "/index.js")
         .transform(babelify, {presets: ['es2015-loose']})
         .bundle()
-        .pipe(fs.createWriteStream(dirRoot + dirBuild + dirSrc + '/bundle.js'));
+        .pipe(fs.createWriteStream(dirRoot + dirBuild + dirJs + '/bundle.js'));
 });
 
 
-gulp.task('build', ['clean'], () => {
-    return gulp.start('img', 'libs', 'html', 'bundle');
+gulp.task('build', ['clean', 'copy-img', 'copy-lib', 'copy-html'], () => {
+    return gulp.start('bundle');
 });
 
 
