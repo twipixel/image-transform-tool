@@ -1,5 +1,7 @@
+import Config from './../config/Config';
 import {Calc} from './../utils/Calculator';
 import {TransformTool} from './../transform/TransformTool';
+
 
 export class VectorContainer extends PIXI.Container {
 
@@ -123,7 +125,14 @@ export class VectorContainer extends PIXI.Container {
         this.canvgCanvas.width = width;
         this.canvgCanvas.height = height;
         this.canvgContext.drawSvg(this.url || this.svg, x, y, width, height, {
-            renderCallback: this.drawCompleteListener.call(this)
+            renderCallback: () => {
+                /**
+                 * ####################### 매우 중요 #######################
+                 * 여기서 약간의 Delay 를 주지 않으면 WebGL 에서는 텍스쳐가 안보입니다.
+                 * #######################################################
+                 */
+                setTimeout(this.drawCompleteListener.call(this), 1);
+            }
         });
         // this.canvgContext.drawSvg(this.url || this.svg, x, y, width, height);
         //

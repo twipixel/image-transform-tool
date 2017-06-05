@@ -3,9 +3,15 @@
 
 var _Mouse = require('./nts/editor/utils/Mouse');
 
+var _Config = require('./nts/editor/config/Config');
+
+var _Config2 = _interopRequireDefault(_Config);
+
 var _Calculator = require('./nts/editor/utils/Calculator');
 
 var _StickerMain = require('./nts/editor/sticker/StickerMain');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var stage, stickerMain, rootLayer, stickerLayer, canvas, context, renderer;
 
@@ -14,22 +20,23 @@ window.onload = initailize.bind(undefined);
 function initailize() {
     canvas = document.getElementById('canvas');
 
-    renderer = new PIXI.CanvasRenderer(canvas.width, canvas.height, {
-        view: canvas,
-        autoResize: true,
-        backgroundColor: 0x673AB7
-    });
-
-    /*renderer = new PIXI.WebGLRenderer(canvas.width, canvas.height, {
+    /*renderer = new PIXI.CanvasRenderer(canvas.width, canvas.height, {
         view: canvas,
         autoResize: true,
         backgroundColor: 0x673AB7
     });*/
 
+    renderer = new PIXI.WebGLRenderer(canvas.width, canvas.height, {
+        view: canvas,
+        autoResize: true,
+        backgroundColor: 0x673AB7
+    });
+
     // 위치가 정수가 아닐경우 흐릿하게 보이는 문제가 있어
     // 렌더러의 위치를 정수로 연산될 수 있도록 한다.
     renderer.roundPixels = true;
 
+    _Config2.default.renderer = renderer;
     _Mouse.Mouse.renderer = renderer;
     stage = new PIXI.Container(0xE6E9EC);
     rootLayer = new PIXI.Container(0xE6E9EC);
@@ -58,8 +65,10 @@ function update(ms) {
 };
 
 function resizeWindow() {
-    var width = window.innerWidth;
-    var height = window.innerHeight;
+    /*var width = window.innerWidth;
+    var height = window.innerHeight;*/
+    var width = 800;
+    var height = 600;
 
     /**
      * 캔버스 사이즈와 디스플레이 사이즈 설정
@@ -79,7 +88,76 @@ function resizeWindow() {
     if (stickerMain) stickerMain.resize();
 }
 
-},{"./nts/editor/sticker/StickerMain":2,"./nts/editor/utils/Calculator":7,"./nts/editor/utils/Mouse":8}],2:[function(require,module,exports){
+},{"./nts/editor/config/Config":2,"./nts/editor/sticker/StickerMain":3,"./nts/editor/utils/Calculator":8,"./nts/editor/utils/Mouse":9}],2:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var singleton = Symbol();
+var singletonEnforcer = Symbol();
+
+var Config = function (_PIXI$utils$EventEmit) {
+    _inherits(Config, _PIXI$utils$EventEmit);
+
+    _createClass(Config, null, [{
+        key: 'renderer',
+        set: function set(value) {
+            this._renderer = value;
+        },
+        get: function get() {
+            return this._renderer;
+        }
+    }, {
+        key: 'renderType',
+        get: function get() {
+            if (this._renderer) {
+                return this._renderer.type;
+            }
+            return null;
+        }
+    }]);
+
+    function Config(enforcer) {
+        _classCallCheck(this, Config);
+
+        var _this = _possibleConstructorReturn(this, _PIXI$utils$EventEmit.call(this));
+
+        if (enforcer !== singletonEnforcer) {
+            throw new Error('Cannot construct singleton');
+        }
+
+        _this._init();
+        return _this;
+    }
+
+    Config.prototype._init = function _init() {
+        //
+    };
+
+    _createClass(Config, null, [{
+        key: 'instance',
+        get: function get() {
+            if (!this[singleton]) {
+                this[singleton] = new Config(singletonEnforcer);
+            }
+            return this[singleton];
+        }
+    }]);
+
+    return Config;
+}(PIXI.utils.EventEmitter);
+
+exports.default = Config;
+
+},{}],3:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -574,7 +652,7 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
     return StickerMain;
 }(PIXI.utils.EventEmitter);
 
-},{"../transform/TransformTool":6,"../utils/Calculator":7,"../view/VectorContainer":12,"./../utils/Painter":9}],3:[function(require,module,exports){
+},{"../transform/TransformTool":7,"../utils/Calculator":8,"../view/VectorContainer":13,"./../utils/Painter":10}],4:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -643,7 +721,7 @@ var RotationControlType = exports.RotationControlType = function () {
     return RotationControlType;
 }();
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1408,7 +1486,7 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
     return ToolControl;
 }(PIXI.Sprite);
 
-},{"./../utils/Calculator":7,"./../utils/Mouse":8,"./RotationControlType":3,"./ToolControlType":5}],5:[function(require,module,exports){
+},{"./../utils/Calculator":8,"./../utils/Mouse":9,"./RotationControlType":4,"./ToolControlType":6}],6:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1482,7 +1560,7 @@ var ToolControlType = exports.ToolControlType = function () {
     return ToolControlType;
 }();
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -2339,7 +2417,7 @@ var TransformTool = exports.TransformTool = function (_PIXI$utils$EventEmit) {
     return TransformTool;
 }(PIXI.utils.EventEmitter);
 
-},{"../utils/lambda":11,"./../utils/Calculator":7,"./../utils/Mouse":8,"./../utils/PointUtil":10,"./../view/VectorContainer":12,"./RotationControlType":3,"./ToolControl":4,"./ToolControlType":5}],7:[function(require,module,exports){
+},{"../utils/lambda":12,"./../utils/Calculator":8,"./../utils/Mouse":9,"./../utils/PointUtil":11,"./../view/VectorContainer":13,"./RotationControlType":4,"./ToolControl":5,"./ToolControlType":6}],8:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -2437,7 +2515,7 @@ var Calc = exports.Calc = function () {
     return Calc;
 }();
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -2487,7 +2565,7 @@ var Mouse = exports.Mouse = function () {
     return Mouse;
 }();
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -2684,7 +2762,7 @@ var Painter = exports.Painter = function () {
     return Painter;
 }();
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -2753,7 +2831,7 @@ var PointUtil = exports.PointUtil = function () {
     return PointUtil;
 }();
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -2914,7 +2992,7 @@ function indexOf(collection, element) {
 	return name;
 }
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -2922,9 +3000,15 @@ exports.VectorContainer = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _Config = require('./../config/Config');
+
+var _Config2 = _interopRequireDefault(_Config);
+
 var _Calculator = require('./../utils/Calculator');
 
 var _TransformTool = require('./../transform/TransformTool');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -3056,6 +3140,8 @@ var VectorContainer = exports.VectorContainer = function (_PIXI$Container) {
     };
 
     VectorContainer.prototype.drawSvg = function drawSvg(x, y, width, height) {
+        var _this2 = this;
+
         this.drawX = x;
         this.drawY = y;
         this.drawWidth = width;
@@ -3072,7 +3158,14 @@ var VectorContainer = exports.VectorContainer = function (_PIXI$Container) {
         this.canvgCanvas.width = width;
         this.canvgCanvas.height = height;
         this.canvgContext.drawSvg(this.url || this.svg, x, y, width, height, {
-            renderCallback: this.drawCompleteListener.call(this)
+            renderCallback: function renderCallback() {
+                /**
+                 * ####################### 매우 중요 #######################
+                 * 여기서 약간의 Delay 를 주지 않으면 WebGL 에서는 텍스쳐가 안보입니다.
+                 * #######################################################
+                 */
+                setTimeout(_this2.drawCompleteListener.call(_this2), 1);
+            }
         });
         // this.canvgContext.drawSvg(this.url || this.svg, x, y, width, height);
         //
@@ -3197,4 +3290,4 @@ var VectorContainer = exports.VectorContainer = function (_PIXI$Container) {
     return VectorContainer;
 }(PIXI.Container);
 
-},{"./../transform/TransformTool":6,"./../utils/Calculator":7}]},{},[1]);
+},{"./../config/Config":2,"./../transform/TransformTool":7,"./../utils/Calculator":8}]},{},[1]);
