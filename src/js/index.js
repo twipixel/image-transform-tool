@@ -1,3 +1,4 @@
+import 'babel-polyfill';
 import {Mouse} from './nts/editor/utils/Mouse';
 import Config from './nts/editor/config/Config';
 import {Calc} from './nts/editor/utils/Calculator';
