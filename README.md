@@ -11,5 +11,6 @@ canvg를 이용해 vector를 canvas에 표시하고 변형 툴로 이미지의 �
     
     
     BUILD:
-    npm run build (오류 시 한번 더 실행 또는 gulp clean 실행 후 다시 실행)
+    npm run build 
+    (오류 시 한번 더 실행 또는 gulp clean 실행 후 gulp build 실행)
                     
