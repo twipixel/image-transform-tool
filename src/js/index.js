@@ -52,12 +52,12 @@ function initailize() {
 function updateLoop (ms) {
     update(ms);
     requestAnimFrame(updateLoop.bind(this));
-};
+}
 
 
 function update(ms) {
     renderer.render(stage);
-};
+}
 
 
 function resizeWindow() {
