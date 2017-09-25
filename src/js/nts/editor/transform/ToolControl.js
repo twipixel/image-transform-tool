@@ -192,7 +192,7 @@ export class ToolControl extends PIXI.Sprite {
     onMouseDown(e) {
         e.stopPropagation();
 
-        var globalPoint = Mouse.global;
+        var globalPoint = {x: Mouse.global.x, y: Mouse.global.y};
 
         this.prevMousePoint = this.currentMousePoint = globalPoint;
         this.targetPrevMousePoint = this.targetCurrentMousePoint = this.targetLayer.toLocal(globalPoint);
