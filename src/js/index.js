@@ -1,5 +1,5 @@
 import 'babel-polyfill';
-import {Mouse} from './nts/editor/utils/Mouse';
+import Mouse from './nts/editor/utils/Mouse';
 import Config from './nts/editor/config/Config';
 import {Calc} from './nts/editor/utils/Calculator';
 import {StickerMain} from './nts/editor/sticker/StickerMain';
@@ -31,6 +31,8 @@ function initailize() {
 
     Config.renderer = renderer;
     Mouse.renderer = renderer;
+    Mouse.mouse = (Config.instance.desktop) ? Mouse.DESKTOP_MOUSE : Mouse.MOBILE_MOUSE;
+
     stage = new PIXI.Container(0xE6E9EC);
     rootLayer = new PIXI.Container(0xE6E9EC);
     stickerLayer = new PIXI.Container(0xE6E9EC);

@@ -6959,6 +6959,8 @@ require('babel-polyfill');
 
 var _Mouse = require('./nts/editor/utils/Mouse');
 
+var _Mouse2 = _interopRequireDefault(_Mouse);
+
 var _Config = require('./nts/editor/config/Config');
 
 var _Config2 = _interopRequireDefault(_Config);
@@ -6993,7 +6995,9 @@ function initailize() {
     renderer.roundPixels = true;
 
     _Config2.default.renderer = renderer;
-    _Mouse.Mouse.renderer = renderer;
+    _Mouse2.default.renderer = renderer;
+    _Mouse2.default.mouse = _Config2.default.instance.desktop ? _Mouse2.default.DESKTOP_MOUSE : _Mouse2.default.MOBILE_MOUSE;
+
     stage = new PIXI.Container(0xE6E9EC);
     rootLayer = new PIXI.Container(0xE6E9EC);
     stickerLayer = new PIXI.Container(0xE6E9EC);
@@ -7014,11 +7018,11 @@ function initailize() {
 function updateLoop(ms) {
     update(ms);
     requestAnimFrame(updateLoop.bind(this));
-};
+}
 
 function update(ms) {
     renderer.render(stage);
-};
+}
 
 function resizeWindow() {
     var width = window.innerWidth;
@@ -7096,11 +7100,72 @@ var Config = function (_PIXI$utils$EventEmit) {
         }
 
         _this._init();
+        _this.checkOS();
         return _this;
     }
 
-    Config.prototype._init = function _init() {
-        //
+    Config.prototype._init = function _init() {}
+    //
+
+
+    //--------------------------------------------------------------------------
+    //
+    //    OS 체크
+    //
+    //--------------------------------------------------------------------------
+
+
+    /**
+     * Phaser.Device 코드
+     * http://phaser.io/docs/2.4.2/Phaser.Device.html
+     */
+    ;
+
+    Config.prototype.checkOS = function checkOS() {
+        this.desktop = false;
+
+        var ua = navigator.userAgent;
+
+        if (/Playstation Vita/.test(ua)) {
+            this.vita = true;
+        } else if (/Kindle/.test(ua) || /\bKF[A-Z][A-Z]+/.test(ua) || /Silk.*Mobile Safari/.test(ua)) {
+            this.kindle = true;
+            // This will NOT detect early generations of Kindle Fire, I think there is no reliable way...
+            // E.g. "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_3; en-us; Silk/1.1.0-80) AppleWebKit/533.16 (KHTML, like Gecko) Version/5.0 Safari/533.16 Silk-Accelerated=true"
+        } else if (/Android/.test(ua)) {
+            this.android = true;
+        } else if (/CrOS/.test(ua)) {
+            this.chromeOS = true;
+        } else if (/iP[ao]d|iPhone/i.test(ua)) {
+            this.iOS = true;
+            navigator.appVersion.match(/OS (\d+)/);
+            this.iOSVersion = parseInt(RegExp.$1, 10);
+        } else if (/Linux/.test(ua)) {
+            this.linux = true;
+        } else if (/Mac OS/.test(ua)) {
+            this.macOS = true;
+        } else if (/Windows/.test(ua)) {
+            this.windows = true;
+        }
+
+        if (/Windows Phone/i.test(ua) || /IEMobile/i.test(ua)) {
+            this.android = false;
+            this.iOS = false;
+            this.macOS = false;
+            this.windows = true;
+            this.windowsPhone = true;
+        }
+
+        var silk = /Silk/.test(ua); // detected in browsers
+
+        if (this.windows || this.macOS || this.linux && !silk || this.chromeOS) {
+            this.desktop = true;
+        }
+
+        //  Windows Phone / Table reset
+        if (this.windowsPhone || /Windows NT/i.test(ua) && /Touch/i.test(ua)) {
+            this.desktop = false;
+        }
     };
 
     _createClass(Config, null, [{
@@ -7133,6 +7198,12 @@ var _Painter = require('./../utils/Painter');
 var _VectorContainer = require('../view/VectorContainer');
 
 var _TransformTool = require('../transform/TransformTool');
+
+var _Mouse = require('./../utils/Mouse');
+
+var _Mouse2 = _interopRequireDefault(_Mouse);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -7233,6 +7304,7 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
         sticker._stickerDeselectListener = this.onStickerDeselect.bind(this);
         sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
         sticker.on('mousedown', sticker._stickerMouseDownListener);
+        sticker.on('touchstart', sticker._stickerMouseDownListener);
         sticker.on(_TransformTool.TransformTool.DELETE, sticker._stickerDeleteListener);
         sticker.on(_TransformTool.TransformTool.SELECT, sticker._stickerSelectListener);
         sticker.on(_TransformTool.TransformTool.DESELECT, sticker._stickerDeselectListener);
@@ -7245,6 +7317,7 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
         if (target === null) return;
 
         target.off('mousedown', target._stickerMouseDownListener);
+        target.off('touchstart', target._stickerMouseDownListener);
         target.off(_TransformTool.TransformTool.DELETE, target._stickerDeleteListener);
         target.off(_TransformTool.TransformTool.SELECT, target._stickerSelectListener);
         target.off(_TransformTool.TransformTool.DESELECT, target._stickerDeselectListener);
@@ -7295,6 +7368,7 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
             sticker._stickerDeselectListener = this.onStickerDeselect.bind(this);
             sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
             sticker.on('mousedown', sticker._stickerMouseDownListener);
+            sticker.on('touchstart', sticker._stickerMouseDownListener);
             sticker.on(_TransformTool.TransformTool.DELETE, sticker._stickerDeleteListener);
             sticker.on(_TransformTool.TransformTool.SELECT, sticker._stickerSelectListener);
             sticker.on(_TransformTool.TransformTool.DESELECT, sticker._stickerDeselectListener);
@@ -7356,7 +7430,7 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
 
     StickerMain.prototype.onStickerMouseDown = function onStickerMouseDown(e) {
         var target = e.target;
-        //if (target.checkAlphaPoint(e.data.global)) return;
+        //if (target.checkAlphaPoint(Mouse.global)) return;
         e.stopPropagation();
         this.onStickerClick(e);
     };
@@ -7613,7 +7687,7 @@ var StickerMain = exports.StickerMain = function (_PIXI$utils$EventEmit) {
     return StickerMain;
 }(PIXI.utils.EventEmitter);
 
-},{"../transform/TransformTool":304,"../utils/Calculator":305,"../view/VectorContainer":310,"./../utils/Painter":307}],301:[function(require,module,exports){
+},{"../transform/TransformTool":304,"../utils/Calculator":305,"../view/VectorContainer":310,"./../utils/Mouse":306,"./../utils/Painter":307}],301:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7692,11 +7766,15 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _Mouse = require('./../utils/Mouse');
 
+var _Mouse2 = _interopRequireDefault(_Mouse);
+
 var _Calculator = require('./../utils/Calculator');
 
 var _ToolControlType = require('./ToolControlType');
 
 var _RotationControlType = require('./RotationControlType');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -7875,15 +7953,19 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
         this.mouseover = this.onMouseOver.bind(this);
         this.mouseout = this.onMouseOut.bind(this);
         this.mousemove = this.onMouseOverMove.bind(this);
+
+        this.touchmove = this.onMouseOverMove.bind(this);
     };
 
     ToolControl.prototype.addMouseDownEvent = function addMouseDownEvent() {
         this._mouseDownListener = this.onMouseDown.bind(this);
         this.on('mousedown', this._mouseDownListener);
+        this.on('touchstart', this._mouseDownListener);
     };
 
     ToolControl.prototype.removeMouseDownEvent = function removeMouseDownEvent() {
         this.off('mousedown', this._mouseDownListener);
+        this.off('touchstart', this._mouseDownListener);
     };
 
     ToolControl.prototype.addMouseMoveEvent = function addMouseMoveEvent() {
@@ -7891,17 +7973,21 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
         this._mouseUpListener = this.onMouseUp.bind(this);
 
         window.document.addEventListener('mousemove', this._mouseMoveListener);
+        window.document.addEventListener('touchmove', this._mouseMoveListener);
     };
 
     ToolControl.prototype.removeMouseMoveEvent = function removeMouseMoveEvent() {
         window.document.removeEventListener('mousemove', this._mouseMoveListener);
         window.document.removeEventListener('mouseup', this._mouseUpListener);
+
+        window.document.removeEventListener('touchmove', this._mouseMoveListener);
+        window.document.removeEventListener('touchend', this._mouseUpListener);
     };
 
     ToolControl.prototype.onMouseDown = function onMouseDown(e) {
         e.stopPropagation();
 
-        var globalPoint = { x: e.data.global.x, y: e.data.global.y };
+        var globalPoint = { x: _Mouse2.default.global.x, y: _Mouse2.default.global.y };
 
         this.prevMousePoint = this.currentMousePoint = globalPoint;
         this.targetPrevMousePoint = this.targetCurrentMousePoint = this.targetLayer.toLocal(globalPoint);
@@ -7921,8 +8007,8 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
 
         if (this.type === _ToolControlType.ToolControlType.ROTATION) {
             this.prevRotation = this.currentRotation = _Calculator.Calc.getRotation(this.centerPoint.globalPoint, {
-                x: e.data.global.x,
-                y: e.data.global.y
+                x: _Mouse2.default.global.x,
+                y: _Mouse2.default.global.y
             });
             this.currentRadian = _Calculator.Calc.toRadians(this.currentRotation);
 
@@ -7944,6 +8030,7 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
 
         this.addMouseMoveEvent();
         window.document.addEventListener('mouseup', this._mouseUpListener);
+        window.document.addEventListener('touchend', this._mouseUpListener);
         // this.removeMouseDownEvent();
 
         this.prevMousePoint = this.targetPrevMousePoint = null;
@@ -7967,7 +8054,7 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
 
     ToolControl.prototype.onMouseMove = function onMouseMove(e) {
 
-        var globalPoint = _Mouse.Mouse.global;
+        var globalPoint = _Mouse2.default.global;
         this.currentMousePoint = globalPoint;
         this.targetCurrentMousePoint = this.targetLayer.toLocal(globalPoint);
 
@@ -7989,7 +8076,7 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
         this.moveRotationCursor();
 
         if (this.type === _ToolControlType.ToolControlType.ROTATION) {
-            this.currentRotation = _Calculator.Calc.getRotation(this.centerPoint.globalPoint, _Mouse.Mouse.global);
+            this.currentRotation = _Calculator.Calc.getRotation(this.centerPoint.globalPoint, _Mouse2.default.global);
 
             this.changeRotation = this.currentRotation - this.prevRotation;
             this.absChangeRotation = this.changeRotation < 0 ? this.changeRotation * -1 : this.changeRotation;
@@ -8024,7 +8111,7 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
     };
 
     ToolControl.prototype.onMouseUp = function onMouseUp(e) {
-        var globalPoint = _Mouse.Mouse.global;
+        var globalPoint = _Mouse2.default.global;
         this.currentMousePoint = globalPoint;
         this.targetCurrentMousePoint = this.targetLayer.toLocal(globalPoint);
 
@@ -8045,7 +8132,7 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
 
         if (this.type === _ToolControlType.ToolControlType.ROTATION) {
 
-            this.currentRotation = _Calculator.Calc.getRotation(this.centerPoint.globalPoint, _Mouse.Mouse.global);
+            this.currentRotation = _Calculator.Calc.getRotation(this.centerPoint.globalPoint, _Mouse2.default.global);
 
             this.changeRotation = this.currentRotation - this.prevRotation;
             this.absChangeRotation = this.changeRotation < 0 ? this.changeRotation * -1 : this.changeRotation;
@@ -8093,7 +8180,7 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
     ToolControl.prototype.onMouseOut = function onMouseOut() {
         if (this.type === _ToolControlType.ToolControlType.DELETE) this.texture = this.deleteTexture;
 
-        if (_Mouse.Mouse.defaultCursor !== 'none') {
+        if (_Mouse2.default.defaultCursor !== 'none') {
             this.rotationCursor = null;
             this.hideAllRotationCursor();
         }
@@ -8114,8 +8201,8 @@ var ToolControl = exports.ToolControl = function (_PIXI$Sprite) {
             this.rotationCursor.visible = true;
         }
 
-        this.rotationCursor.x = _Mouse.Mouse.globalX;
-        this.rotationCursor.y = _Mouse.Mouse.globalY;
+        this.rotationCursor.x = _Mouse2.default.globalX;
+        this.rotationCursor.y = _Mouse2.default.globalY;
     };
 
     ToolControl.prototype.getAngleIndex = function getAngleIndex() {
@@ -8531,6 +8618,8 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _Mouse = require('./../utils/Mouse');
 
+var _Mouse2 = _interopRequireDefault(_Mouse);
+
 var _Calculator = require('./../utils/Calculator');
 
 var _PointUtil = require('./../utils/PointUtil');
@@ -8544,6 +8633,8 @@ var _RotationControlType = require('./RotationControlType');
 var _VectorContainer = require('./../view/VectorContainer');
 
 var _lambda = require('../utils/lambda');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -8754,8 +8845,11 @@ var TransformTool = exports.TransformTool = function (_PIXI$utils$EventEmit) {
         //this.stageLayer.root.on( "mousedown", this.onMouseDown, this );
         //this.stageLayer.root.on( 'mouseup', this.onMouseUp, this );
 
-        window.document.addEventListener('mousedown', this.onMouseUp.bind(this));
+        window.document.addEventListener('mousedown', this.onMouseDown.bind(this));
         window.document.addEventListener('mouseup', this.onMouseUp.bind(this));
+
+        window.document.addEventListener('touchstart', this.onMouseDown.bind(this));
+        window.document.addEventListener('touchend', this.onMouseUp.bind(this));
         this.downCnt = 0;
     };
 
@@ -8763,8 +8857,8 @@ var TransformTool = exports.TransformTool = function (_PIXI$utils$EventEmit) {
 
         //if( e.data.originalEvent.target != this.stageLayer.renderer.view ) return;
 
-        this._px = e.data.global.x;
-        this._py = e.data.global.y;
+        this._px = _Mouse2.default.global.x;
+        this._py = _Mouse2.default.global.y;
     };
 
     TransformTool.prototype.onMouseUp = function onMouseUp(e) {
@@ -8775,8 +8869,8 @@ var TransformTool = exports.TransformTool = function (_PIXI$utils$EventEmit) {
 
         if (this.downCnt < 0 && this.target) {
 
-            var dx = _Mouse.Mouse.globalX - this._px,
-                dy = _Mouse.Mouse.globalX - this._py;
+            var dx = _Mouse2.default.globalX - this._px,
+                dy = _Mouse2.default.globalX - this._py;
 
             if (dx * dx + dy * dy <= _dragRange * _dragRange) {
 
@@ -9187,7 +9281,7 @@ var TransformTool = exports.TransformTool = function (_PIXI$utils$EventEmit) {
 
         this.stageLayer.buttonMode = true;
         this.stageLayer.interactive = true;
-        this.stageLayer.defaultCursor = _Mouse.Mouse.currentCursorStyle;
+        this.stageLayer.defaultCursor = _Mouse2.default.currentCursorStyle;
     };
 
     TransformTool.prototype.disableCurrentStyleCursor = function disableCurrentStyleCursor() {
@@ -9485,12 +9579,61 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Mouse = exports.Mouse = function () {
+var Mouse = function () {
     function Mouse() {
         _classCallCheck(this, Mouse);
     }
 
+    /**
+     * 이동 거리가 5px 이하이고 500ms 안에 두번 클릭하면 더블 클릭으로 인정
+     * @param prevPoint 이전좌표
+     * @param currentPoint 현재좌표
+     * @param prevTime 이전 클릭 타임
+     * @param currentTime 현재 클릭 타임
+     * @returns {boolean} 더블 클릭 여부
+     */
+    Mouse.isDoubleClick = function isDoubleClick(prevPoint, currentPoint, prevTime, currentTime) {
+        var diffX = currentPoint.x - prevPoint.x;
+
+        if (diffX < 0) {
+            diffX = diffX * -1;
+        }
+
+        var diffY = currentPoint.y - prevPoint.y;
+
+        if (diffY < 0) {
+            diffY = diffY * -1;
+        }
+
+        if (diffX > 5 || diffY > 5) {
+            return false;
+        }
+
+        if (currentTime - prevTime > 500) {
+            return false;
+        }
+
+        return true;
+    };
+
     _createClass(Mouse, null, [{
+        key: "DESKTOP_MOUSE",
+        get: function get() {
+            return this.renderer.plugins.interaction.mouse;
+        }
+    }, {
+        key: "MOBILE_MOUSE",
+        get: function get() {
+            return this.renderer.plugins.interaction.pointer;
+        }
+
+        /**
+         * PIXI.Application.renderer
+         * 랜더러에서 interaction 객체를 참조할 수 있어서 사용하려면 렌더러를 셋팅해야 합니다.
+         * @param value {PIXI.WebGLRenderrer|PIXI.CanvasRenderer}
+         */
+
+    }, {
         key: "renderer",
         set: function set(value) {
             this._renderer = value;
@@ -9498,20 +9641,44 @@ var Mouse = exports.Mouse = function () {
         get: function get() {
             return this._renderer;
         }
+
+        /**
+         * 모바일 대응을 위해서
+         * PC 버전에서는 mouse 객체를, 모바일 버전에서는 pointer 객체를 셋팅하면
+         * global 객체에서 참조해서 좌표값을 전달하도록 합니다.
+         *
+         * 만약 설정하지 않으면 기본 PC만 대응하도록 mouse 객체를 설정합니다.
+         *
+         * Desktop : Mouse.renderer.plugins.interaction.mouse
+         * Mobile : Mouse.renderer.plugins.interaction.pointer
+         * @param value
+         */
+
+    }, {
+        key: "mouse",
+        set: function set(value) {
+            this._mouse = value;
+        },
+        get: function get() {
+            if (!this._mouse) {
+                this._mouse = this.DESKTOP_MOUSE;
+            }
+            return this._mouse;
+        }
     }, {
         key: "global",
         get: function get() {
-            return Mouse.renderer.plugins.interaction.mouse.global;
+            return this.mouse.global;
         }
     }, {
         key: "globalX",
         get: function get() {
-            return Mouse.renderer.plugins.interaction.mouse.global.x;
+            return this.mouse.global.x;
         }
     }, {
         key: "globalY",
         get: function get() {
-            return Mouse.renderer.plugins.interaction.mouse.global.y;
+            return this.mouse.global.y;
         }
     }, {
         key: "currentCursorStyle",
@@ -9521,10 +9688,17 @@ var Mouse = exports.Mouse = function () {
         get: function get() {
             return Mouse.renderer.plugins.interaction.currentCursorStyle;
         }
+    }, {
+        key: "currentTime",
+        get: function get() {
+            return new Date().getTime();
+        }
     }]);
 
     return Mouse;
 }();
+
+exports.default = Mouse;
 
 },{}],307:[function(require,module,exports){
 "use strict";
@@ -9731,6 +9905,10 @@ exports.__esModule = true;
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var PointUtil = exports.PointUtil = function () {
+    function PointUtil() {
+        _classCallCheck(this, PointUtil);
+    }
+
     PointUtil.add = function add(point1, point2) {
         return new PIXI.Point(point1.x + point2.x, point1.y + point2.y);
     };
@@ -9743,22 +9921,26 @@ var PointUtil = exports.PointUtil = function () {
         return Math.sqrt((point1.x - point2.x) * (point1.x - point2.x) + (point1.y - point2.y) * (point1.y - point2.y));
     };
 
-    PointUtil.calcDistance = function calcDistance(point1, point2) {
-        return Math.sqrt((point1.x - point2.x) * (point1.x - point2.x) + (point1.y - point2.y) * (point1.y - point2.y));
-    };
+    /**
+     * interpolate 보간법에 addLength 만큼의 거리를 더한 값을 반환합니다.
+     * @param point1
+     * @param point2
+     * @param addLength
+     * @returns {PIXI.Point|*}
+     */
 
-    PointUtil.getAddedInterpolate = function getAddedInterpolate(tc, bc, addLength) {
-        var h = PointUtil.calcDistance(tc, bc);
-        var f = (h + addLength) / h;
-        return PointUtil.interpolate(tc, bc, f);
+
+    PointUtil.getAddedInterpolate = function getAddedInterpolate(point1, point2, addLength) {
+        var distance = PointUtil.distance(point1, point2);
+        var f = (distance + addLength) / distance;
+        return PointUtil.interpolate(point1, point2, f);
     };
 
     /**
-     * 지정한 두 점 사이에서 한 점을 정합니다.
-     * http://help.adobe.com/ko_KR/as2/reference/flashlite/WS5A22C182-B974-4b7e-9979-5BD0B43389F0.html
+     * factor에 의해 point1과 point2를 잇는 선분의 한점을 반환합니다.
      * @param point1
      * @param point2
-     * @param f
+     * @param f 0이면 point2값이 1이면 point1값이 나옵니다. 1.5이면 두점을 지나 1.5배 먼 거리값이 나옵니다.
      * @returns {PIXI.Point|*}
      */
 
@@ -9766,28 +9948,6 @@ var PointUtil = exports.PointUtil = function () {
     PointUtil.interpolate = function interpolate(point1, point2, f) {
         return new PIXI.Point(point2.x + f * (point1.x - point2.x), point2.y + f * (point1.y - point2.y));
     };
-
-    /**
-     * (0,0)과 현재 포인트 사이의 선분을 설정된 길이로 조절합니다.
-     * http://help.adobe.com/ko_KR/as2/reference/flashlite/WSB22C5AE6-750E-4274-BBF4-C10BD879207C.html
-     * @param point
-     * @param length
-     * @returns {*}
-     */
-
-
-    PointUtil.normalize = function normalize(point, length) {
-        if (point.x == 0 && point.y == 0) return point;
-
-        var norm = length / Math.sqrt(point.x * point.x + point.y * point.y);
-        point.x *= norm;
-        point.y *= norm;
-        return point;
-    };
-
-    function PointUtil() {
-        _classCallCheck(this, PointUtil);
-    }
 
     return PointUtil;
 }();

@@ -1,4 +1,4 @@
-import {Mouse} from './../utils/Mouse';
+import Mouse from './../utils/Mouse';
 import {Calc} from './../utils/Calculator';
 import {ToolControlType} from './ToolControlType';
 import {RotationControlType} from './RotationControlType';
@@ -153,17 +153,21 @@ export class ToolControl extends PIXI.Sprite {
         this.mouseover = this.onMouseOver.bind(this);
         this.mouseout = this.onMouseOut.bind(this);
         this.mousemove = this.onMouseOverMove.bind(this);
+
+        this.touchmove = this.onMouseOverMove.bind(this);
     };
 
 
     addMouseDownEvent() {
         this._mouseDownListener = this.onMouseDown.bind(this);
         this.on('mousedown', this._mouseDownListener);
+        this.on('touchstart', this._mouseDownListener);
     };
 
 
     removeMouseDownEvent() {
         this.off('mousedown', this._mouseDownListener);
+        this.off('touchstart', this._mouseDownListener);
     };
 
 
@@ -172,19 +176,23 @@ export class ToolControl extends PIXI.Sprite {
         this._mouseUpListener = this.onMouseUp.bind(this);
 
         window.document.addEventListener('mousemove', this._mouseMoveListener);
+        window.document.addEventListener('touchmove', this._mouseMoveListener);
     };
 
 
     removeMouseMoveEvent() {
         window.document.removeEventListener('mousemove', this._mouseMoveListener);
         window.document.removeEventListener('mouseup', this._mouseUpListener);
+
+        window.document.removeEventListener('touchmove', this._mouseMoveListener);
+        window.document.removeEventListener('touchend', this._mouseUpListener);
     };
 
 
     onMouseDown(e) {
         e.stopPropagation();
 
-        var globalPoint = {x: e.data.global.x, y: e.data.global.y};
+        var globalPoint = Mouse.global;
 
         this.prevMousePoint = this.currentMousePoint = globalPoint;
         this.targetPrevMousePoint = this.targetCurrentMousePoint = this.targetLayer.toLocal(globalPoint);
@@ -204,8 +212,8 @@ export class ToolControl extends PIXI.Sprite {
 
         if(this.type === ToolControlType.ROTATION) {
             this.prevRotation = this.currentRotation = Calc.getRotation(this.centerPoint.globalPoint, {
-                x: e.data.global.x,
-                y: e.data.global.y
+                x: Mouse.global.x,
+                y: Mouse.global.y
             });
             this.currentRadian = Calc.toRadians(this.currentRotation);
 
@@ -228,6 +236,7 @@ export class ToolControl extends PIXI.Sprite {
 
         this.addMouseMoveEvent();
         window.document.addEventListener('mouseup', this._mouseUpListener);
+        window.document.addEventListener('touchend', this._mouseUpListener);
         // this.removeMouseDownEvent();
 
         this.prevMousePoint = this.targetPrevMousePoint = null;

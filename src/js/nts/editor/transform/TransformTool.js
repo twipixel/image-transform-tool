@@ -1,4 +1,4 @@
-import {Mouse} from './../utils/Mouse';
+import Mouse from './../utils/Mouse';
 import {Calc} from './../utils/Calculator';
 import {PointUtil} from './../utils/PointUtil';
 import {ToolControl} from './ToolControl';
@@ -209,8 +209,11 @@ export class TransformTool extends PIXI.utils.EventEmitter {
         //this.stageLayer.root.on( "mousedown", this.onMouseDown, this );
         //this.stageLayer.root.on( 'mouseup', this.onMouseUp, this );
 
-        window.document.addEventListener('mousedown', this.onMouseUp.bind(this));
+        window.document.addEventListener('mousedown', this.onMouseDown.bind(this));
         window.document.addEventListener('mouseup', this.onMouseUp.bind(this));
+
+        window.document.addEventListener('touchstart', this.onMouseDown.bind(this));
+        window.document.addEventListener('touchend', this.onMouseUp.bind(this));
         this.downCnt = 0;
     }
 
@@ -218,8 +221,8 @@ export class TransformTool extends PIXI.utils.EventEmitter {
 
         //if( e.data.originalEvent.target != this.stageLayer.renderer.view ) return;
 
-        this._px = e.data.global.x;
-        this._py = e.data.global.y;
+        this._px = Mouse.global.x;
+        this._py = Mouse.global.y;
     }
 
     onMouseUp(e){

@@ -2,6 +2,7 @@ import {Calc} from '../utils/Calculator';
 import {Painter} from './../utils/Painter';
 import {VectorContainer} from '../view/VectorContainer';
 import {TransformTool} from '../transform/TransformTool';
+import Mouse from './../utils/Mouse';
 
 
 export class StickerMain extends PIXI.utils.EventEmitter {
@@ -100,6 +101,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         sticker._stickerDeselectListener = this.onStickerDeselect.bind(this);
         sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
         sticker.on('mousedown', sticker._stickerMouseDownListener);
+        sticker.on('touchstart', sticker._stickerMouseDownListener);
         sticker.on(TransformTool.DELETE, sticker._stickerDeleteListener);
         sticker.on(TransformTool.SELECT, sticker._stickerSelectListener);
         sticker.on(TransformTool.DESELECT, sticker._stickerDeselectListener);
@@ -113,6 +115,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
         if (target === null) return;
 
         target.off('mousedown', target._stickerMouseDownListener);
+        target.off('touchstart', target._stickerMouseDownListener);
         target.off(TransformTool.DELETE, target._stickerDeleteListener);
         target.off(TransformTool.SELECT, target._stickerSelectListener);
         target.off(TransformTool.DESELECT, target._stickerDeselectListener);
@@ -164,6 +167,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
             sticker._stickerDeselectListener = this.onStickerDeselect.bind(this);
             sticker._stickerLoadCompleteListener = this.onLoadComplete.bind(this);
             sticker.on('mousedown', sticker._stickerMouseDownListener);
+            sticker.on('touchstart', sticker._stickerMouseDownListener);
             sticker.on(TransformTool.DELETE, sticker._stickerDeleteListener);
             sticker.on(TransformTool.SELECT, sticker._stickerSelectListener);
             sticker.on(TransformTool.DESELECT, sticker._stickerDeselectListener);
@@ -236,7 +240,7 @@ export class StickerMain extends PIXI.utils.EventEmitter {
 
     onStickerMouseDown(e) {
         var target = e.target;
-        //if (target.checkAlphaPoint(e.data.global)) return;
+        //if (target.checkAlphaPoint(Mouse.global)) return;
         e.stopPropagation();
         this.onStickerClick(e);
     }
